@@ -107,6 +107,8 @@ const tooltipLabelFormatter = (context) => {
 
 const ShowMeTheMoneyCalculator = () => {
     const [isMarried, setIsMarried] = useState(false);
+    const [primaryName] = useState('John Smith');
+    const [spouseName] = useState('Mary Smith');
     const [spouse1Dob, setSpouse1Dob] = useState('1965-02-03');
     const [spouse1Pia, setSpouse1Pia] = useState(4000);
     const [spouse1PreferredYear, setSpouse1PreferredYear] = useState(67);
@@ -120,7 +122,30 @@ const ShowMeTheMoneyCalculator = () => {
     const [chartData, setChartData] = useState({ labels: [], datasets: [] });
     const [chartOptions, setChartOptions] = useState({});
     const [prematureDeath, setPrematureDeath] = useState(false);
-    const [deathYear, setDeathYear] = useState(new Date().getFullYear() + 1);
+    const currentCalendarYear = new Date().getFullYear();
+    const [deathYear, setDeathYear] = useState(currentCalendarYear + 1);
+
+    const formatAge = (dob) => {
+        const birthDate = new Date(dob);
+        if (Number.isNaN(birthDate.getTime())) {
+            return '';
+        }
+
+        const now = new Date();
+        let years = now.getFullYear() - birthDate.getFullYear();
+        let months = now.getMonth() - birthDate.getMonth();
+
+        if (now.getDate() < birthDate.getDate()) {
+            months -= 1;
+        }
+
+        if (months < 0) {
+            years -= 1;
+            months += 12;
+        }
+
+        return `${years}y ${months}m`;
+    };
 
     const calculateProjections = (pia, dob, filingYear, filingMonth, inflationRate) => {
         const birthDate = new Date(dob);
@@ -172,6 +197,8 @@ const ShowMeTheMoneyCalculator = () => {
 
         let totalProjections = { age62: s1_age62_proj, preferred: s1_preferred_proj, age70: s1_age70_proj };
 
+        const deathYearNumber = Number(deathYear) || deathYear;
+
         if (isMarried) {
             const s2_age62_proj = calculateProjections(spouse2Pia, spouse2Dob, 62, 0, inflation);
             const s2_preferred_proj = calculateProjections(spouse2Pia, spouse2Dob, spouse2PreferredYear, spouse2PreferredMonth, inflation);
@@ -185,7 +212,7 @@ const ShowMeTheMoneyCalculator = () => {
                     const yearNum = parseInt(year, 10);
                     const s1_benefit = s1_proj.monthly[yearNum] || 0;
                     const s2_benefit = s2_proj.monthly[yearNum] || 0;
-                    if (prematureDeath && yearNum >= deathYear) {
+                    if (prematureDeath && yearNum >= deathYearNumber) {
                         combinedMonthly[yearNum] = Math.max(s1_benefit, s2_benefit);
                     } else {
                         combinedMonthly[yearNum] = s1_benefit + s2_benefit;
@@ -297,32 +324,101 @@ const ShowMeTheMoneyCalculator = () => {
                 <h2>Social Security "Show Me the Money" Calculator</h2>
             </header>
             <div style={{ padding: '20px', backgroundColor: '#f0f4f8' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '20px' }}>
-                    <div>
-                        <h3>Spouse 1</h3>
-                        <label>Date of Birth: <input type="date" value={spouse1Dob} onChange={e => setSpouse1Dob(e.target.value)} /></label><br />
-                        <label>Benefit (PIA) at FRA: <input type="number" value={spouse1Pia} onChange={e => setSpouse1Pia(Number(e.target.value))} /></label><br />
-                        <div style={{ border: '1px solid blue', padding: '10px', marginTop: '10px' }}>
-                            <label>Spouse 1 Preferred Filing Age</label><br />
-                            Preferred: <input type="number" value={spouse1PreferredYear} onChange={e => setSpouse1PreferredYear(Number(e.target.value))} /> Year <input type="number" value={spouse1PreferredMonth} onChange={e => setSpouse1PreferredMonth(Number(e.target.value))} /> Month
+                <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '20px', gap: '24px' }}>
+                    <div style={{ minWidth: '280px' }}>
+                        <h3>Primary Spouse</h3>
+                        <div style={{ marginTop: '8px' }}>
+                            <label>Name:&nbsp;
+                                <input type="text" value={primaryName} readOnly style={{ width: '170px', backgroundColor: '#f5f5f5' }} />
+                            </label>
+                        </div>
+                        <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <label>Date of Birth:&nbsp;
+                                <input type="date" value={spouse1Dob} onChange={e => setSpouse1Dob(e.target.value)} />
+                            </label>
+                            <span style={{ fontSize: '0.9rem', color: '#333', fontWeight: 500 }}>Current Age: {formatAge(spouse1Dob)}</span>
+                        </div>
+                        <div style={{ marginTop: '8px' }}>
+                            <label>Benefit (PIA) at FRA:&nbsp;
+                                <input type="number" value={spouse1Pia} onChange={e => setSpouse1Pia(Number(e.target.value))} />
+                            </label>
+                        </div>
+                        <div style={{ border: '1px solid #3b82f6', padding: '10px', marginTop: '10px', borderRadius: '4px' }}>
+                            <label style={{ fontWeight: 600 }}>Primary Spouse Preferred Filing Age</label><br />
+                            Preferred: <input type="number" value={spouse1PreferredYear} onChange={e => setSpouse1PreferredYear(Number(e.target.value))} style={{ width: '60px' }} />
+                            &nbsp;Year&nbsp;
+                            <input type="number" value={spouse1PreferredMonth} onChange={e => setSpouse1PreferredMonth(Number(e.target.value))} style={{ width: '60px' }} />
+                            &nbsp;Month
                         </div>
                     </div>
-                    {isMarried && <div>
-                        <h3>Spouse 2</h3>
-                        <label>Date of Birth: <input type="date" value={spouse2Dob} onChange={e => setSpouse2Dob(e.target.value)} /></label><br />
-                        <label>Benefit (PIA) at FRA: <input type="number" value={spouse2Pia} onChange={e => setSpouse2Pia(Number(e.target.value))} /></label><br />
-                        <div style={{ border: '1px solid blue', padding: '10px', marginTop: '10px' }}>
-                            <label>Spouse 2 Preferred Filing Age</label><br />
-                            Preferred: <input type="number" value={spouse2PreferredYear} onChange={e => setSpouse2PreferredYear(Number(e.target.value))} /> Year <input type="number" value={spouse2PreferredMonth} onChange={e => setSpouse2PreferredMonth(Number(e.target.value))} /> Month
+                    {isMarried && (
+                        <div style={{ minWidth: '280px' }}>
+                            <h3>Spouse</h3>
+                            <div style={{ marginTop: '8px' }}>
+                                <label>Name:&nbsp;
+                                    <input type="text" value={spouseName} readOnly style={{ width: '170px', backgroundColor: '#f5f5f5' }} />
+                                </label>
+                            </div>
+                            <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <label>Date of Birth:&nbsp;
+                                    <input type="date" value={spouse2Dob} onChange={e => setSpouse2Dob(e.target.value)} />
+                                </label>
+                                <span style={{ fontSize: '0.9rem', color: '#333', fontWeight: 500 }}>Current Age: {formatAge(spouse2Dob)}</span>
+                            </div>
+                            <div style={{ marginTop: '8px' }}>
+                                <label>Benefit (PIA) at FRA:&nbsp;
+                                    <input type="number" value={spouse2Pia} onChange={e => setSpouse2Pia(Number(e.target.value))} />
+                                </label>
+                            </div>
+                            <div style={{ border: '1px solid #3b82f6', padding: '10px', marginTop: '10px', borderRadius: '4px' }}>
+                                <label style={{ fontWeight: 600 }}>Spouse Preferred Filing Age</label><br />
+                                Preferred: <input type="number" value={spouse2PreferredYear} onChange={e => setSpouse2PreferredYear(Number(e.target.value))} style={{ width: '60px' }} />
+                                &nbsp;Year&nbsp;
+                                <input type="number" value={spouse2PreferredMonth} onChange={e => setSpouse2PreferredMonth(Number(e.target.value))} style={{ width: '60px' }} />
+                                &nbsp;Month
+                            </div>
                         </div>
-                    </div>}
+                    )}
                 </div>
                 <label><input type="checkbox" checked={isMarried} onChange={(e) => setIsMarried(e.target.checked)} /> Married/Domestic Partner</label><br/>
-                {isMarried && <label><input type="checkbox" checked={prematureDeath} onChange={e => setPrematureDeath(e.target.checked)} /> Potential Premature Death of Either Spouse?</label>}
-                
-                <div style={{marginTop: '20px'}}>
-                    <label>Expected Inflation: <input type="range" min="0" max="0.1" step="0.001" value={inflation} onChange={e => setInflation(Number(e.target.value))} /></label>
-                    <p>Current Annual Inflation: {(inflation * 100).toFixed(1)}%</p>
+                {isMarried && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <input
+                                type="checkbox"
+                                checked={prematureDeath}
+                                onChange={e => setPrematureDeath(e.target.checked)}
+                            />
+                            Potential Premature Death of Either Spouse?
+                        </label>
+                        {prematureDeath && (
+                            <select
+                                value={deathYear}
+                                onChange={e => setDeathYear(Number(e.target.value))}
+                                style={{ padding: '4px' }}
+                            >
+                                {Array.from({ length: 2075 - currentCalendarYear }, (_, idx) => currentCalendarYear + 1 + idx).map(year => (
+                                    <option key={year} value={year}>{year}</option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
+                )}
+
+                <div style={{marginTop: '20px', display: 'flex', alignItems: 'center', gap: '12px'}}>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontWeight: 500 }}>
+                        Expected Inflation
+                        <input
+                            type="range"
+                            min="0"
+                            max="0.1"
+                            step="0.001"
+                            value={inflation}
+                            onChange={e => setInflation(Number(e.target.value))}
+                            style={{ accentColor: (inflation >= 0.02 && inflation <= 0.03) ? '#1d4ed8' : '#ff8c00' }}
+                        />
+                    </label>
+                    <span style={{ fontWeight: 600 }}>{(inflation * 100).toFixed(1)}%</span>
                 </div>
 
                 <div style={{ marginTop: '40px', textAlign: 'center' }}>
