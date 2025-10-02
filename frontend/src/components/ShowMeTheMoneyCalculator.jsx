@@ -105,6 +105,151 @@ const tooltipLabelFormatter = (context) => {
     return `${datasetLabel}${currencyFormatter.format(Math.round(value))}`;
 };
 
+const formatCurrencyTick = (value) => `$${Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+
+const CHART_PADDING = { left: 60, right: 30, top: 10, bottom: 10 };
+
+const LifeStageSlider = ({ minAge = 62, maxAge = 95, style = {} }) => {
+    const [goGoEndAge, setGoGoEndAge] = useState(75);
+    const [slowGoEndAge, setSlowGoEndAge] = useState(85);
+
+    useEffect(() => {
+        const styleId = 'life-stage-slider-styles';
+        if (!document.getElementById(styleId)) {
+            const style = document.createElement('style');
+            style.id = styleId;
+            style.textContent = `
+                .life-stage-slider {
+                    position: relative;
+                    max-width: 100%;
+                }
+                .life-stage-slider__track {
+                    position: relative;
+                    border-radius: 14px;
+                    overflow: hidden;
+                    height: 32px;
+                    display: flex;
+                    align-items: stretch;
+                    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+                }
+                .life-stage-slider__segments {
+                    display: grid;
+                    width: 100%;
+                    align-items: center;
+                    text-align: center;
+                    color: #0f172a;
+                    font-weight: 600;
+                    text-shadow: 0 1px 0 rgba(255,255,255,0.7);
+                    font-size: 0.95rem;
+                    letter-spacing: 0.02em;
+                }
+                .life-stage-slider__segments span {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+                .life-stage-slider input[type=range] {
+                    position: absolute;
+                    width: 100%;
+                    height: 32px;
+                    margin: 0;
+                    background: none;
+                    pointer-events: none;
+                    -webkit-appearance: none;
+                    appearance: none;
+                }
+                .life-stage-slider input[type=range]::-webkit-slider-thumb {
+                    pointer-events: auto;
+                    -webkit-appearance: none;
+                    appearance: none;
+                    width: 14px;
+                    height: 30px;
+                    background: #1d4ed8;
+                    clip-path: polygon(0 50%, 100% 0, 100% 100%);
+                    border: none;
+                    cursor: ew-resize;
+                    box-shadow: 0 0 0 2px rgba(255,255,255,0.9);
+                }
+                .life-stage-slider input[type=range]::-moz-range-thumb {
+                    pointer-events: auto;
+                    width: 14px;
+                    height: 30px;
+                    background: #1d4ed8;
+                    clip-path: polygon(0 50%, 100% 0, 100% 100%);
+                    border: none;
+                    cursor: ew-resize;
+                    box-shadow: 0 0 0 2px rgba(255,255,255,0.9);
+                }
+                .life-stage-slider__markers {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-top: 6px;
+                    font-size: 0.8rem;
+                    color: #475569;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }, []);
+
+    const range = maxAge - minAge;
+    const goPercent = ((goGoEndAge - minAge) / range) * 100;
+    const slowPercent = ((slowGoEndAge - goGoEndAge) / range) * 100;
+    const noGoPercent = Math.max(0, 100 - goPercent - slowPercent);
+
+    const trackStyle = {
+        background: `linear-gradient(to right,
+            #bbf7d0 0%, #bbf7d0 ${goPercent}%,
+            #fde68a ${goPercent}%, #fde68a ${goPercent + slowPercent}%,
+            #fecaca ${goPercent + slowPercent}%, #fecaca 100%)`
+    };
+
+    const segmentColumns = `${Math.max(goPercent, 1)}fr ${Math.max(slowPercent, 1)}fr ${Math.max(noGoPercent, 1)}fr`;
+
+    const handleGoGoChange = (event) => {
+        const value = Number(event.target.value);
+        const clamped = Math.min(value, slowGoEndAge - 1);
+        setGoGoEndAge(clamped);
+    };
+
+    const handleSlowGoChange = (event) => {
+        const value = Number(event.target.value);
+        const clamped = Math.max(value, goGoEndAge + 1);
+        setSlowGoEndAge(clamped);
+    };
+
+    return (
+        <div className="life-stage-slider" style={style}>
+            <div className="life-stage-slider__track" style={trackStyle}>
+                <div className="life-stage-slider__segments" style={{ gridTemplateColumns: segmentColumns }}>
+                    <span>Go-Go Years</span>
+                    <span>Slow-Go Years</span>
+                    <span>No-Go Years</span>
+                </div>
+            </div>
+            <input
+                type="range"
+                min={minAge + 1}
+                max={maxAge - 1}
+                value={goGoEndAge}
+                onChange={handleGoGoChange}
+            />
+            <input
+                type="range"
+                min={minAge + 2}
+                max={maxAge}
+                value={slowGoEndAge}
+                onChange={handleSlowGoChange}
+            />
+            <div className="life-stage-slider__markers">
+                <span>{`Go-Go: ${minAge}-${goGoEndAge}`}</span>
+                <span>{`Slow-Go: ${goGoEndAge + 1}-${slowGoEndAge}`}</span>
+                <span>{`No-Go: ${slowGoEndAge + 1}-${maxAge}`}</span>
+            </div>
+        </div>
+    );
+};
+
 const ShowMeTheMoneyCalculator = () => {
     const [isMarried, setIsMarried] = useState(false);
     const [primaryName] = useState('John Smith');
@@ -124,6 +269,13 @@ const ShowMeTheMoneyCalculator = () => {
     const [prematureDeath, setPrematureDeath] = useState(false);
     const currentCalendarYear = new Date().getFullYear();
     const [deathYear, setDeathYear] = useState(currentCalendarYear + 1);
+    const [activeRecordView, setActiveRecordView] = useState('combined');
+
+    useEffect(() => {
+        if (!isMarried && activeRecordView === 'spouse') {
+            setActiveRecordView('combined');
+        }
+    }, [isMarried, activeRecordView]);
 
     const formatAge = (dob) => {
         const birthDate = new Date(dob);
@@ -191,78 +343,105 @@ const ShowMeTheMoneyCalculator = () => {
 
 
     useEffect(() => {
-        const s1_age62_proj = calculateProjections(spouse1Pia, spouse1Dob, 62, 0, inflation);
-        const s1_preferred_proj = calculateProjections(spouse1Pia, spouse1Dob, spouse1PreferredYear, spouse1PreferredMonth, inflation);
-        const s1_age70_proj = calculateProjections(spouse1Pia, spouse1Dob, 70, 0, inflation);
+        const primaryAge62 = calculateProjections(spouse1Pia, spouse1Dob, 62, 0, inflation);
+        const primaryPreferred = calculateProjections(spouse1Pia, spouse1Dob, spouse1PreferredYear, spouse1PreferredMonth, inflation);
+        const primaryAge70 = calculateProjections(spouse1Pia, spouse1Dob, 70, 0, inflation);
 
-        let totalProjections = { age62: s1_age62_proj, preferred: s1_preferred_proj, age70: s1_age70_proj };
+        const primaryProjections = {
+            age62: primaryAge62,
+            preferred: primaryPreferred,
+            age70: primaryAge70
+        };
+
+        let spouseProjections = null;
+        let combinedProjections = primaryProjections;
 
         const deathYearNumber = Number(deathYear) || deathYear;
 
         if (isMarried) {
-            const s2_age62_proj = calculateProjections(spouse2Pia, spouse2Dob, 62, 0, inflation);
-            const s2_preferred_proj = calculateProjections(spouse2Pia, spouse2Dob, spouse2PreferredYear, spouse2PreferredMonth, inflation);
-            const s2_age70_proj = calculateProjections(spouse2Pia, spouse2Dob, 70, 0, inflation);
+            const spouseAge62 = calculateProjections(spouse2Pia, spouse2Dob, 62, 0, inflation);
+            const spousePreferred = calculateProjections(spouse2Pia, spouse2Dob, spouse2PreferredYear, spouse2PreferredMonth, inflation);
+            const spouseAge70 = calculateProjections(spouse2Pia, spouse2Dob, 70, 0, inflation);
 
-            const allYears = Array.from(new Set([...Object.keys(s1_age62_proj.monthly), ...Object.keys(s2_age62_proj.monthly)])).sort();
-
-            const combined = (s1_proj, s2_proj) => {
-                const combinedMonthly = {};
-                allYears.forEach(year => {
-                    const yearNum = parseInt(year, 10);
-                    const s1_benefit = s1_proj.monthly[yearNum] || 0;
-                    const s2_benefit = s2_proj.monthly[yearNum] || 0;
-                    if (prematureDeath && yearNum >= deathYearNumber) {
-                        combinedMonthly[yearNum] = Math.max(s1_benefit, s2_benefit);
-                    } else {
-                        combinedMonthly[yearNum] = s1_benefit + s2_benefit;
-                    }
-                });
-
-                let cumulative = 0;
-                const cumulativeProj = {};
-                allYears.forEach(year => {
-                    const yearNum = parseInt(year, 10);
-                    cumulative += (combinedMonthly[yearNum] || 0) * 12;
-                    cumulativeProj[yearNum] = cumulative;
-                });
-
-                return { monthly: combinedMonthly, cumulative: cumulativeProj };
+            spouseProjections = {
+                age62: spouseAge62,
+                preferred: spousePreferred,
+                age70: spouseAge70
             };
 
-            totalProjections.age62 = combined(s1_age62_proj, s2_age62_proj);
-            totalProjections.preferred = combined(s1_preferred_proj, s2_preferred_proj);
-            totalProjections.age70 = combined(s1_age70_proj, s2_age70_proj);
+            const allYears = Array.from(new Set([
+                ...Object.keys(primaryAge62.monthly),
+                ...Object.keys(spouseAge62.monthly)
+            ])).sort();
+
+            const makeCombined = (projPrimary, projSpouse) => {
+                const monthly = {};
+                allYears.forEach((year) => {
+                    const yearNum = Number(year);
+                    const primaryValue = projPrimary.monthly[yearNum] || 0;
+                    const spouseValue = projSpouse.monthly[yearNum] || 0;
+                    monthly[yearNum] = prematureDeath && yearNum >= deathYearNumber
+                        ? Math.max(primaryValue, spouseValue)
+                        : primaryValue + spouseValue;
+                });
+
+                const cumulative = {};
+                let runningTotal = 0;
+                allYears.forEach((year) => {
+                    const yearNum = Number(year);
+                    runningTotal += (monthly[yearNum] || 0) * 12;
+                    cumulative[yearNum] = runningTotal;
+                });
+
+                return { monthly, cumulative };
+            };
+
+            combinedProjections = {
+                age62: makeCombined(primaryAge62, spouseAge62),
+                preferred: makeCombined(primaryPreferred, spousePreferred),
+                age70: makeCombined(primaryAge70, spouseAge70)
+            };
         }
 
-        const getSpouse1Age = (year) => year - new Date(spouse1Dob).getFullYear();
+        const projections = activeRecordView === 'primary'
+            ? primaryProjections
+            : activeRecordView === 'spouse' && spouseProjections
+                ? spouseProjections
+                : combinedProjections;
+
+        const birthYearPrimary = new Date(spouse1Dob).getFullYear();
+        const birthYearSpouse = isMarried ? new Date(spouse2Dob).getFullYear() : null;
 
         const displayAges = [62, 67, 70, 75, 80, 85, 90, 95];
-        const fullAgeRange = Array.from({ length: 95 - 62 + 1}, (_, i) => new Date(spouse1Dob).getFullYear() + 62 + i);
-        
-        const labels = fullAgeRange.map(year => {
-            const age1 = getSpouse1Age(year);
-            const age2 = isMarried ? year - new Date(spouse2Dob).getFullYear() : '';
-            return `Ages ${age1}${isMarried ? `/${age2}` : ''}`;
-        });
+        const primaryYears = displayAges.map(age => birthYearPrimary + age);
+        const spouseYears = isMarried ? displayAges.map(age => birthYearSpouse + age) : null;
+
+        let displayYearsForData = primaryYears;
+        let labels = primaryYears.map(year => `Age ${year - birthYearPrimary}`);
+
+        if (activeRecordView === 'spouse' && spouseYears) {
+            displayYearsForData = spouseYears;
+            labels = spouseYears.map(year => `Age ${year - birthYearSpouse}`);
+        } else if (activeRecordView === 'combined' && isMarried && birthYearSpouse !== null) {
+            displayYearsForData = primaryYears;
+            labels = primaryYears.map(year => {
+                const age1 = year - birthYearPrimary;
+                const age2 = year - birthYearSpouse;
+                return `Ages ${age1}/${age2}`;
+            });
+        }
 
         let newChartData;
         let newChartOptions;
 
         if (chartView === 'monthly') {
-            const filteredMonthlyYears = fullAgeRange.filter(year => displayAges.includes(getSpouse1Age(year)));
-            const filteredMonthlyLabels = filteredMonthlyYears.map(year => {
-                const age1 = getSpouse1Age(year);
-                const age2 = isMarried ? year - new Date(spouse2Dob).getFullYear() : '';
-                return `Ages ${age1}${isMarried ? `/${age2}` : ''}`;
-            });
-
+            const monthlyBarStyle = { barPercentage: 0.6, categoryPercentage: 0.72, borderRadius: 4, maxBarThickness: 55 };
             newChartData = {
-                labels: filteredMonthlyLabels,
+                labels,
                 datasets: [
-                    { label: 'File at 62', data: filteredMonthlyYears.map(year => Math.round(totalProjections.age62.monthly[year] || 0)), backgroundColor: 'red' },
-                    { label: 'Preferred Age', data: filteredMonthlyYears.map(year => Math.round(totalProjections.preferred.monthly[year] || 0)), backgroundColor: 'blue' },
-                    { label: 'File at 70', data: filteredMonthlyYears.map(year => Math.round(totalProjections.age70.monthly[year] || 0)), backgroundColor: 'green' },
+                    { label: 'File at 62', data: displayYearsForData.map(year => Math.round(projections.age62.monthly[year] || 0)), backgroundColor: 'rgba(255, 99, 132, 0.9)', ...monthlyBarStyle },
+                    { label: 'Preferred Age', data: displayYearsForData.map(year => Math.round(projections.preferred.monthly[year] || 0)), backgroundColor: 'rgba(54, 162, 235, 0.9)', ...monthlyBarStyle },
+                    { label: 'File at 70', data: displayYearsForData.map(year => Math.round(projections.age70.monthly[year] || 0)), backgroundColor: 'rgba(75, 192, 192, 0.9)', ...monthlyBarStyle },
                 ]
             };
             newChartOptions = {
@@ -270,15 +449,22 @@ const ShowMeTheMoneyCalculator = () => {
                     title: { display: true, text: 'Monthly View' },
                     tooltip: { callbacks: { label: tooltipLabelFormatter } }
                 },
-                scales: { x: { title: { text: 'Year' } }, y: { title: { text: 'Monthly Benefit' } } }
+                layout: { padding: CHART_PADDING },
+                scales: {
+                    x: { title: { text: 'Year' }, ticks: { autoSkip: false } },
+                    y: {
+                        title: { text: 'Monthly Benefit ($)' },
+                        ticks: { callback: formatCurrencyTick }
+                    }
+                }
             };
         } else if (chartView === 'cumulative') {
             newChartData = {
                 labels,
                 datasets: [
-                    { label: 'File at 62', data: fullAgeRange.map(year => Math.round(totalProjections.age62.cumulative[year] || 0)), borderColor: 'red', fill: false },
-                    { label: 'Preferred Age', data: fullAgeRange.map(year => Math.round(totalProjections.preferred.cumulative[year] || 0)), borderColor: 'blue', fill: false },
-                    { label: 'File at 70', data: fullAgeRange.map(year => Math.round(totalProjections.age70.cumulative[year] || 0)), borderColor: 'green', fill: false },
+                    { label: 'File at 62', data: displayYearsForData.map(year => Math.round(projections.age62.cumulative[year] || 0)), borderColor: 'red', fill: false },
+                    { label: 'Preferred Age', data: displayYearsForData.map(year => Math.round(projections.preferred.cumulative[year] || 0)), borderColor: 'blue', fill: false },
+                    { label: 'File at 70', data: displayYearsForData.map(year => Math.round(projections.age70.cumulative[year] || 0)), borderColor: 'green', fill: false },
                 ]
             };
             newChartOptions = {
@@ -286,18 +472,25 @@ const ShowMeTheMoneyCalculator = () => {
                     title: { display: true, text: 'Cumulative View' },
                     tooltip: { callbacks: { label: tooltipLabelFormatter } }
                 },
-                scales: { x: { title: { text: 'Year' } }, y: { title: { text: 'Cumulative Benefits' } } }
+                layout: { padding: CHART_PADDING },
+                scales: {
+                    x: { title: { text: 'Year' }, ticks: { autoSkip: false } },
+                    y: {
+                        title: { text: 'Cumulative Benefits ($)' },
+                        ticks: { callback: formatCurrencyTick }
+                    }
+                }
             };
         } else { // combined
             newChartData = {
                 labels,
                 datasets: [
-                    { type: 'bar', label: 'Monthly File at 62', data: fullAgeRange.map(year => displayAges.includes(getSpouse1Age(year)) ? Math.round(totalProjections.age62.monthly[year] || 0) : 0), backgroundColor: 'red', yAxisID: 'y_monthly', barPercentage: 0.8, categoryPercentage: 0.9 },
-                    { type: 'bar', label: 'Monthly Preferred Age', data: fullAgeRange.map(year => displayAges.includes(getSpouse1Age(year)) ? Math.round(totalProjections.preferred.monthly[year] || 0) : 0), backgroundColor: 'blue', yAxisID: 'y_monthly', barPercentage: 0.8, categoryPercentage: 0.9 },
-                    { type: 'bar', label: 'Monthly File at 70', data: fullAgeRange.map(year => displayAges.includes(getSpouse1Age(year)) ? Math.round(totalProjections.age70.monthly[year] || 0) : 0), backgroundColor: 'green', yAxisID: 'y_monthly', barPercentage: 0.8, categoryPercentage: 0.9 },
-                    { type: 'line', label: 'Cumulative File at 62', data: fullAgeRange.map(year => Math.round(totalProjections.age62.cumulative[year] || 0)), borderColor: 'red', yAxisID: 'y_cumulative', fill: false },
-                    { type: 'line', label: 'Cumulative Preferred Age', data: fullAgeRange.map(year => Math.round(totalProjections.preferred.cumulative[year] || 0)), borderColor: 'blue', yAxisID: 'y_cumulative', fill: false },
-                    { type: 'line', label: 'Cumulative File at 70', data: fullAgeRange.map(year => Math.round(totalProjections.age70.cumulative[year] || 0)), borderColor: 'green', yAxisID: 'y_cumulative', fill: false },
+                    { type: 'bar', label: 'Monthly File at 62', data: displayYearsForData.map(year => Math.round(projections.age62.monthly[year] || 0)), backgroundColor: 'rgba(255, 99, 132, 0.9)', yAxisID: 'y_monthly', barPercentage: 0.65, categoryPercentage: 0.8, maxBarThickness: 70, borderRadius: 4 },
+                    { type: 'bar', label: 'Monthly Preferred Age', data: displayYearsForData.map(year => Math.round(projections.preferred.monthly[year] || 0)), backgroundColor: 'rgba(54, 162, 235, 0.9)', yAxisID: 'y_monthly', barPercentage: 0.65, categoryPercentage: 0.8, maxBarThickness: 70, borderRadius: 4 },
+                    { type: 'bar', label: 'Monthly File at 70', data: displayYearsForData.map(year => Math.round(projections.age70.monthly[year] || 0)), backgroundColor: 'rgba(75, 192, 192, 0.9)', yAxisID: 'y_monthly', barPercentage: 0.65, categoryPercentage: 0.8, maxBarThickness: 70, borderRadius: 4 },
+                    { type: 'line', label: 'Cumulative File at 62', data: displayYearsForData.map(year => Math.round(projections.age62.cumulative[year] || 0)), borderColor: 'red', yAxisID: 'y_cumulative', fill: false, order: 2, borderWidth: 2 },
+                    { type: 'line', label: 'Cumulative Preferred Age', data: displayYearsForData.map(year => Math.round(projections.preferred.cumulative[year] || 0)), borderColor: 'blue', yAxisID: 'y_cumulative', fill: false, order: 2, borderWidth: 2 },
+                    { type: 'line', label: 'Cumulative File at 70', data: displayYearsForData.map(year => Math.round(projections.age70.cumulative[year] || 0)), borderColor: 'green', yAxisID: 'y_cumulative', fill: false, order: 2, borderWidth: 2 },
                 ]
             };
             newChartOptions = { 
@@ -305,10 +498,24 @@ const ShowMeTheMoneyCalculator = () => {
                     title: { display: true, text: 'Combined View' },
                     tooltip: { callbacks: { label: tooltipLabelFormatter } }
                 },
+                layout: { padding: CHART_PADDING },
                 scales: { 
-                    x: { title: { text: 'Year' } }, 
-                    y_monthly: { type: 'linear', display: true, position: 'left', title: { text: 'Monthly Benefit', display: true } },
-                    y_cumulative: { type: 'linear', display: true, position: 'right', title: { text: 'Cumulative Benefits', display: true }, grid: { drawOnChartArea: false } }
+                    x: { title: { text: 'Year' }, ticks: { autoSkip: false } }, 
+                    y_monthly: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { text: 'Monthly Benefit ($)', display: true },
+                        ticks: { callback: formatCurrencyTick }
+                    },
+                    y_cumulative: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: { text: 'Cumulative Benefits ($)', display: true },
+                        grid: { drawOnChartArea: false },
+                        ticks: { callback: formatCurrencyTick }
+                    }
                 }
             };
         }
@@ -316,7 +523,15 @@ const ShowMeTheMoneyCalculator = () => {
         setChartData(newChartData);
         setChartOptions(newChartOptions);
 
-    }, [isMarried, spouse1Dob, spouse1Pia, spouse1PreferredYear, spouse1PreferredMonth, spouse2Dob, spouse2Pia, spouse2PreferredYear, spouse2PreferredMonth, inflation, chartView, prematureDeath, deathYear]);
+    }, [isMarried, spouse1Dob, spouse1Pia, spouse1PreferredYear, spouse1PreferredMonth, spouse2Dob, spouse2Pia, spouse2PreferredYear, spouse2PreferredMonth, inflation, chartView, prematureDeath, deathYear, activeRecordView]);
+
+    const handlePrimaryOnlyToggle = (event) => {
+        setActiveRecordView(event.target.checked ? 'primary' : 'combined');
+    };
+
+    const handleSpouseOnlyToggle = (event) => {
+        setActiveRecordView(event.target.checked ? 'spouse' : 'combined');
+    };
 
     return (
         <div style={{ fontFamily: 'sans-serif', padding: '20px', maxWidth: '1200px', margin: 'auto' }}>
@@ -326,7 +541,17 @@ const ShowMeTheMoneyCalculator = () => {
             <div style={{ padding: '20px', backgroundColor: '#f0f4f8' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '20px', gap: '24px' }}>
                     <div style={{ minWidth: '280px' }}>
-                        <h3>Primary Spouse</h3>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                            <h3 style={{ margin: 0 }}>Primary Filer</h3>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#4b5563' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={activeRecordView === 'primary'}
+                                    onChange={handlePrimaryOnlyToggle}
+                                />
+                                <span>Show this record only</span>
+                            </label>
+                        </div>
                         <div style={{ marginTop: '8px' }}>
                             <label>Name:&nbsp;
                                 <input type="text" value={primaryName} readOnly style={{ width: '170px', backgroundColor: '#f5f5f5' }} />
@@ -344,7 +569,7 @@ const ShowMeTheMoneyCalculator = () => {
                             </label>
                         </div>
                         <div style={{ border: '1px solid #3b82f6', padding: '10px', marginTop: '10px', borderRadius: '4px' }}>
-                            <label style={{ fontWeight: 600 }}>Primary Spouse Preferred Filing Age</label><br />
+                            <label style={{ fontWeight: 600 }}>Primary Filer Preferred Filing Age</label><br />
                             Preferred: <input type="number" value={spouse1PreferredYear} onChange={e => setSpouse1PreferredYear(Number(e.target.value))} style={{ width: '60px' }} />
                             &nbsp;Year&nbsp;
                             <input type="number" value={spouse1PreferredMonth} onChange={e => setSpouse1PreferredMonth(Number(e.target.value))} style={{ width: '60px' }} />
@@ -353,7 +578,17 @@ const ShowMeTheMoneyCalculator = () => {
                     </div>
                     {isMarried && (
                         <div style={{ minWidth: '280px' }}>
-                            <h3>Spouse</h3>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                                <h3 style={{ margin: 0 }}>Spouse</h3>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#4b5563' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={activeRecordView === 'spouse'}
+                                        onChange={handleSpouseOnlyToggle}
+                                    />
+                                    <span>Show this record only</span>
+                                </label>
+                            </div>
                             <div style={{ marginTop: '8px' }}>
                                 <label>Name:&nbsp;
                                     <input type="text" value={spouseName} readOnly style={{ width: '170px', backgroundColor: '#f5f5f5' }} />
@@ -421,16 +656,45 @@ const ShowMeTheMoneyCalculator = () => {
                     <span style={{ fontWeight: 600 }}>{(inflation * 100).toFixed(1)}%</span>
                 </div>
 
-                <div style={{ marginTop: '40px', textAlign: 'center' }}>
-                    <button onClick={() => setChartView('monthly')}>Monthly Benefit</button>
-                    <button onClick={() => setChartView('cumulative')}>Cumulative Benefit</button>
-                    <button onClick={() => setChartView('combined')}>Combined</button>
+                <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'center', gap: '12px' }}>
+                    {['monthly', 'cumulative', 'combined'].map(view => (
+                        <button
+                            key={view}
+                            onClick={() => setChartView(view)}
+                            style={{
+                                padding: '10px 18px',
+                                borderRadius: '10px',
+                                border: 'none',
+                                fontWeight: chartView === view ? 600 : 500,
+                                cursor: 'pointer',
+                                background: chartView === view ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' : '#e5e7eb',
+                                color: chartView === view ? '#ffffff' : '#1f2937',
+                                boxShadow: chartView === view ? '0 10px 22px rgba(37, 99, 235, 0.20), inset 0 1px 0 rgba(255,255,255,0.3)' : 'inset 0 1px 2px rgba(255,255,255,0.7)',
+                                transition: 'all 0.2s ease',
+                                opacity: chartView === view ? 0.95 : 1,
+                                letterSpacing: '0.02em'
+                            }}
+                        >
+                            {view === 'monthly' ? 'Monthly Benefit' : view === 'cumulative' ? 'Cumulative Benefit' : 'Combined'}
+                        </button>
+                    ))}
                 </div>
 
-                <div style={{ height: '500px', marginTop: '20px' }}>
-                    {chartView === 'monthly' ? <Bar data={chartData} options={chartOptions} /> :
-                     chartView === 'cumulative' ? <Line data={chartData} options={chartOptions} /> :
-                     <Bar data={chartData} options={chartOptions} />}
+                <div style={{ marginTop: '20px' }}>
+                    <div style={{ height: '500px' }}>
+                        {chartView === 'monthly' ? <Bar data={chartData} options={chartOptions} /> :
+                         chartView === 'cumulative' ? <Line data={chartData} options={chartOptions} /> :
+                         <Bar data={chartData} options={chartOptions} />}
+                    </div>
+                    <LifeStageSlider
+                        minAge={62}
+                        maxAge={95}
+                        style={{
+                            marginTop: '12px',
+                            marginLeft: CHART_PADDING.left,
+                            width: `calc(100% - ${CHART_PADDING.left + CHART_PADDING.right}px)`
+                        }}
+                    />
                 </div>
             </div>
         </div>
