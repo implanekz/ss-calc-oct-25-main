@@ -8,6 +8,12 @@ from dateutil.relativedelta import relativedelta
 from typing import Dict, List, Tuple, Optional
 import math
 
+# New import for benefit math helpers
+from .benefit_math import (
+    monthly_benefit_at_claim,
+    benefit_after_claim,
+)
+
 class SocialSecurityConstants:
     """Official Social Security calculation constants"""
     
@@ -158,17 +164,21 @@ class IndividualSSCalculator:
             Monthly benefit amount
         """
         claiming_date = self.get_claiming_date(claiming_age_years, claiming_age_months)
-        
-        # Inflate the PIA first based on COLA adjustments from age 62
-        inflated_pia = self._calculate_inflated_pia(claiming_age_years, inflation_rate)
-        
-        # Calculate reduction or credit factor
-        if claiming_date < self.fra_date:
-            factor = self.calculate_reduction_factor(claiming_date)
-        else:
-            factor = self.calculate_delayed_credit_factor(claiming_date)
-        
-        return inflated_pia * factor
+        claim_age_in_months = self.age_in_months(claiming_date)
+        claim_age_years = claim_age_in_months / 12
+        current_age_in_months = self.age_in_months(date.today())
+        current_age_years = current_age_in_months / 12
+        fra_years_float = self.fra_years + self.fra_months / 12
+
+        monthly_benefit = monthly_benefit_at_claim(
+            pia_fra=self.pia,
+            claim_age_years=claim_age_years,
+            current_age_years=current_age_years,
+            r=inflation_rate,
+            fra_years=fra_years_float,
+        )
+
+        return monthly_benefit
     
     def calculate_lifetime_benefits(self, claiming_age_years: int, longevity_age: int, 
                                   inflation_rate: float = 0.025, claiming_age_months: int = 0) -> Dict:
@@ -193,9 +203,12 @@ class IndividualSSCalculator:
         annual_benefits = []
         
         current_date = claiming_date
+        years_after_claim = 0
         current_benefit = monthly_benefit
+        final_monthly_benefit = monthly_benefit
         
         while current_date < death_date:
+            current_benefit = benefit_after_claim(monthly_benefit, years_after_claim, inflation_rate)
             # Calculate benefits for this year
             year_end = min(
                 date(current_date.year + 1, 1, 1) - relativedelta(days=1),
@@ -216,14 +229,14 @@ class IndividualSSCalculator:
                 'annual_total': round(year_benefits, 2)
             })
             
-            # Apply inflation adjustment for next year (post-claiming COLA)
-            current_benefit *= (1 + inflation_rate)
+            final_monthly_benefit = current_benefit
+            years_after_claim += 1
             current_date = date(current_date.year + 1, 1, 1)
         
         return {
             'total_lifetime_benefits': round(total_benefits, 2),
             'initial_monthly_benefit': round(monthly_benefit, 2),
-            'final_monthly_benefit': round(current_benefit / (1 + inflation_rate), 2),
+            'final_monthly_benefit': round(final_monthly_benefit, 2),
             'annual_breakdown': annual_benefits,
             'claiming_date': claiming_date,
             'death_date': death_date,
