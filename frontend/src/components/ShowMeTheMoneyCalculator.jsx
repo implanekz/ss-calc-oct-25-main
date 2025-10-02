@@ -4,6 +4,107 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement,
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend);
 
+const FRA_LOOKUP = {
+    1937: { years: 65, months: 0 },
+    1938: { years: 65, months: 2 },
+    1939: { years: 65, months: 4 },
+    1940: { years: 65, months: 6 },
+    1941: { years: 65, months: 8 },
+    1942: { years: 65, months: 10 },
+    1943: { years: 66, months: 0 },
+    1944: { years: 66, months: 0 },
+    1945: { years: 66, months: 0 },
+    1946: { years: 66, months: 0 },
+    1947: { years: 66, months: 0 },
+    1948: { years: 66, months: 0 },
+    1949: { years: 66, months: 0 },
+    1950: { years: 66, months: 0 },
+    1951: { years: 66, months: 0 },
+    1952: { years: 66, months: 0 },
+    1953: { years: 66, months: 0 },
+    1954: { years: 66, months: 0 },
+    1955: { years: 66, months: 2 },
+    1956: { years: 66, months: 4 },
+    1957: { years: 66, months: 6 },
+    1958: { years: 66, months: 8 },
+    1959: { years: 66, months: 10 },
+    1960: { years: 67, months: 0 }
+};
+
+const getFra = (birthYear) => {
+    if (birthYear <= 1937) {
+        return { years: 65, months: 0 };
+    }
+    if (birthYear >= 1960) {
+        return { years: 67, months: 0 };
+    }
+    return FRA_LOOKUP[birthYear] || { years: 67, months: 0 };
+};
+
+const ageInMonths = (birthDate, targetDate) => {
+    let years = targetDate.getFullYear() - birthDate.getFullYear();
+    let months = targetDate.getMonth() - birthDate.getMonth();
+    let totalMonths = years * 12 + months;
+
+    if (targetDate.getDate() < birthDate.getDate()) {
+        totalMonths -= 1;
+    }
+
+    return totalMonths;
+};
+
+const preclaimColaFactor = (claimAgeYears, currentAgeYears, rate) => {
+    if (claimAgeYears <= currentAgeYears) {
+        return 1;
+    }
+
+    const pre60Years = Math.max(0, Math.min(60, claimAgeYears) - currentAgeYears);
+    const colaYearsFrom62 = Math.max(0, Math.floor(claimAgeYears) - 62);
+
+    return Math.pow(1 + rate, pre60Years + colaYearsFrom62);
+};
+
+const monthsFromFra = (claimAgeYears, fraYears) => Math.round((claimAgeYears - fraYears) * 12);
+
+const delayedRetirementCreditFactor = (monthsAfterFra) => {
+    const months = Math.max(0, monthsAfterFra);
+    return 1 + ((2 / 3) / 100) * months;
+};
+
+const earlyReductionFactor = (monthsBeforeFra) => {
+    const months = Math.abs(Math.min(0, monthsBeforeFra));
+    const first36 = Math.min(36, months);
+    const extra = Math.max(0, months - 36);
+    const reduction = first36 * (5 / 9) / 100 + extra * (5 / 12) / 100;
+    return Math.max(0, 1 - reduction);
+};
+
+const monthlyBenefitAtClaim = ({ piaFRA, claimAgeYears, currentAgeYears, rate, fraYears }) => {
+    const base = piaFRA * preclaimColaFactor(claimAgeYears, currentAgeYears, rate);
+    const monthsOffset = monthsFromFra(claimAgeYears, fraYears);
+    if (monthsOffset >= 0) {
+        return base * delayedRetirementCreditFactor(monthsOffset);
+    }
+    return base * earlyReductionFactor(monthsOffset);
+};
+
+const benefitAfterClaim = (baseMonthlyAtClaim, yearsAfterClaim, rate) => {
+    const years = Math.max(0, yearsAfterClaim);
+    return baseMonthlyAtClaim * Math.pow(1 + rate, years);
+};
+
+const currencyFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0
+});
+
+const tooltipLabelFormatter = (context) => {
+    const datasetLabel = context.dataset?.label ? `${context.dataset.label}: ` : '';
+    const value = context.parsed?.y ?? context.raw ?? 0;
+    return `${datasetLabel}${currencyFormatter.format(Math.round(value))}`;
+};
+
 const ShowMeTheMoneyCalculator = () => {
     const [isMarried, setIsMarried] = useState(false);
     const [spouse1Dob, setSpouse1Dob] = useState('1965-02-03');
@@ -14,47 +115,49 @@ const ShowMeTheMoneyCalculator = () => {
     const [spouse2Pia, setSpouse2Pia] = useState(1500);
     const [spouse2PreferredYear, setSpouse2PreferredYear] = useState(65);
     const [spouse2PreferredMonth, setSpouse2PreferredMonth] = useState(0);
-    const [inflation, setInflation] = useState(0.03);
+    const [inflation, setInflation] = useState(0.025);
     const [chartView, setChartView] = useState('monthly'); // monthly, cumulative, combined
     const [chartData, setChartData] = useState({ labels: [], datasets: [] });
     const [chartOptions, setChartOptions] = useState({});
     const [prematureDeath, setPrematureDeath] = useState(false);
     const [deathYear, setDeathYear] = useState(new Date().getFullYear() + 1);
 
-    const FRA = 67;
-
     const calculateProjections = (pia, dob, filingYear, filingMonth, inflationRate) => {
-        const birthYear = new Date(dob).getFullYear();
-        const filingAgeTotalMonths = filingYear * 12 + filingMonth;
-        const fraTotalMonths = FRA * 12;
-        const yearAge62 = birthYear + 62;
+        const birthDate = new Date(dob);
+        const birthYear = birthDate.getFullYear();
+        const claimAgeYears = filingYear + (filingMonth || 0) / 12;
+        const currentAgeMonths = ageInMonths(birthDate, new Date());
+        const currentAgeYears = currentAgeMonths / 12;
+        const fra = getFra(birthYear);
+        const fraYears = fra.years + (fra.months || 0) / 12;
+
+        const baseMonthlyAtClaim = monthlyBenefitAtClaim({
+            piaFRA: pia,
+            claimAgeYears,
+            currentAgeYears,
+            rate: inflationRate,
+            fraYears
+        });
 
         const monthlyProjection = {};
         const cumulativeProjection = {};
         let cumulative = 0;
 
-        for (let year = yearAge62; year <= birthYear + 95; year++) {
-            const age = year - birthYear;
-            const claimingYear = birthYear + filingYear;
+        const startYear = birthYear + 62;
+        const endYear = birthYear + 95;
+        const claimingCalendarYear = birthYear + filingYear;
+
+        for (let year = startYear; year <= endYear; year++) {
             let monthlyBenefit = 0;
 
-            if (age >= filingYear) {
-                const inflationYears = Math.max(0, year - claimingYear);
-                const inflatedPia = pia * Math.pow(1 + inflationRate, inflationYears);
-                let baseBenefit = inflatedPia;
-
-                if (filingAgeTotalMonths < fraTotalMonths) {
-                    const monthsEarly = fraTotalMonths - filingAgeTotalMonths;
-                    baseBenefit *= 1 - (Math.min(monthsEarly, 36) * 5/9/100 + Math.max(0, monthsEarly - 36) * 5/12/100);
-                } else if (filingAgeTotalMonths > fraTotalMonths) {
-                    const monthsLate = filingAgeTotalMonths - fraTotalMonths;
-                    baseBenefit *= 1 + (monthsLate * 2/3/100);
-                }
-                monthlyBenefit = baseBenefit * Math.pow(1 + inflationRate, year - claimingYear);
+            if (year >= claimingCalendarYear) {
+                const yearsAfterClaim = year - claimingCalendarYear;
+                monthlyBenefit = benefitAfterClaim(baseMonthlyAtClaim, yearsAfterClaim, inflationRate);
             }
-            
-            monthlyProjection[year] = monthlyBenefit;
-            cumulative += monthlyBenefit * 12;
+
+            const roundedMonthly = Number(monthlyBenefit.toFixed(2));
+            monthlyProjection[year] = roundedMonthly;
+            cumulative = Number((cumulative + roundedMonthly * 12).toFixed(2));
             cumulativeProjection[year] = cumulative;
         }
 
@@ -130,36 +233,51 @@ const ShowMeTheMoneyCalculator = () => {
             newChartData = {
                 labels: filteredMonthlyLabels,
                 datasets: [
-                    { label: 'File at 62', data: filteredMonthlyYears.map(year => totalProjections.age62.monthly[year]), backgroundColor: 'red' },
-                    { label: 'Preferred Age', data: filteredMonthlyYears.map(year => totalProjections.preferred.monthly[year]), backgroundColor: 'blue' },
-                    { label: 'File at 70', data: filteredMonthlyYears.map(year => totalProjections.age70.monthly[year]), backgroundColor: 'green' },
+                    { label: 'File at 62', data: filteredMonthlyYears.map(year => Math.round(totalProjections.age62.monthly[year] || 0)), backgroundColor: 'red' },
+                    { label: 'Preferred Age', data: filteredMonthlyYears.map(year => Math.round(totalProjections.preferred.monthly[year] || 0)), backgroundColor: 'blue' },
+                    { label: 'File at 70', data: filteredMonthlyYears.map(year => Math.round(totalProjections.age70.monthly[year] || 0)), backgroundColor: 'green' },
                 ]
             };
-            newChartOptions = { plugins: { title: { display: true, text: 'Monthly View' } }, scales: { x: { title: { text: 'Year' } }, y: { title: { text: 'Monthly Benefit' } } } };
+            newChartOptions = {
+                plugins: {
+                    title: { display: true, text: 'Monthly View' },
+                    tooltip: { callbacks: { label: tooltipLabelFormatter } }
+                },
+                scales: { x: { title: { text: 'Year' } }, y: { title: { text: 'Monthly Benefit' } } }
+            };
         } else if (chartView === 'cumulative') {
             newChartData = {
                 labels,
                 datasets: [
-                    { label: 'File at 62', data: fullAgeRange.map(year => totalProjections.age62.cumulative[year]), borderColor: 'red', fill: false },
-                    { label: 'Preferred Age', data: fullAgeRange.map(year => totalProjections.preferred.cumulative[year]), borderColor: 'blue', fill: false },
-                    { label: 'File at 70', data: fullAgeRange.map(year => totalProjections.age70.cumulative[year]), borderColor: 'green', fill: false },
+                    { label: 'File at 62', data: fullAgeRange.map(year => Math.round(totalProjections.age62.cumulative[year] || 0)), borderColor: 'red', fill: false },
+                    { label: 'Preferred Age', data: fullAgeRange.map(year => Math.round(totalProjections.preferred.cumulative[year] || 0)), borderColor: 'blue', fill: false },
+                    { label: 'File at 70', data: fullAgeRange.map(year => Math.round(totalProjections.age70.cumulative[year] || 0)), borderColor: 'green', fill: false },
                 ]
             };
-            newChartOptions = { plugins: { title: { display: true, text: 'Cumulative View' } }, scales: { x: { title: { text: 'Year' } }, y: { title: { text: 'Cumulative Benefits' } } } };
+            newChartOptions = {
+                plugins: {
+                    title: { display: true, text: 'Cumulative View' },
+                    tooltip: { callbacks: { label: tooltipLabelFormatter } }
+                },
+                scales: { x: { title: { text: 'Year' } }, y: { title: { text: 'Cumulative Benefits' } } }
+            };
         } else { // combined
             newChartData = {
                 labels,
                 datasets: [
-                    { type: 'bar', label: 'Monthly File at 62', data: fullAgeRange.map(year => displayAges.includes(getSpouse1Age(year)) ? totalProjections.age62.monthly[year] : 0), backgroundColor: 'red', yAxisID: 'y_monthly', barPercentage: 0.8, categoryPercentage: 0.9 },
-                    { type: 'bar', label: 'Monthly Preferred Age', data: fullAgeRange.map(year => displayAges.includes(getSpouse1Age(year)) ? totalProjections.preferred.monthly[year] : 0), backgroundColor: 'blue', yAxisID: 'y_monthly', barPercentage: 0.8, categoryPercentage: 0.9 },
-                    { type: 'bar', label: 'Monthly File at 70', data: fullAgeRange.map(year => displayAges.includes(getSpouse1Age(year)) ? totalProjections.age70.monthly[year] : 0), backgroundColor: 'green', yAxisID: 'y_monthly', barPercentage: 0.8, categoryPercentage: 0.9 },
-                    { type: 'line', label: 'Cumulative File at 62', data: fullAgeRange.map(year => totalProjections.age62.cumulative[year]), borderColor: 'red', yAxisID: 'y_cumulative', fill: false },
-                    { type: 'line', label: 'Cumulative Preferred Age', data: fullAgeRange.map(year => totalProjections.preferred.cumulative[year]), borderColor: 'blue', yAxisID: 'y_cumulative', fill: false },
-                    { type: 'line', label: 'Cumulative File at 70', data: fullAgeRange.map(year => totalProjections.age70.cumulative[year]), borderColor: 'green', yAxisID: 'y_cumulative', fill: false },
+                    { type: 'bar', label: 'Monthly File at 62', data: fullAgeRange.map(year => displayAges.includes(getSpouse1Age(year)) ? Math.round(totalProjections.age62.monthly[year] || 0) : 0), backgroundColor: 'red', yAxisID: 'y_monthly', barPercentage: 0.8, categoryPercentage: 0.9 },
+                    { type: 'bar', label: 'Monthly Preferred Age', data: fullAgeRange.map(year => displayAges.includes(getSpouse1Age(year)) ? Math.round(totalProjections.preferred.monthly[year] || 0) : 0), backgroundColor: 'blue', yAxisID: 'y_monthly', barPercentage: 0.8, categoryPercentage: 0.9 },
+                    { type: 'bar', label: 'Monthly File at 70', data: fullAgeRange.map(year => displayAges.includes(getSpouse1Age(year)) ? Math.round(totalProjections.age70.monthly[year] || 0) : 0), backgroundColor: 'green', yAxisID: 'y_monthly', barPercentage: 0.8, categoryPercentage: 0.9 },
+                    { type: 'line', label: 'Cumulative File at 62', data: fullAgeRange.map(year => Math.round(totalProjections.age62.cumulative[year] || 0)), borderColor: 'red', yAxisID: 'y_cumulative', fill: false },
+                    { type: 'line', label: 'Cumulative Preferred Age', data: fullAgeRange.map(year => Math.round(totalProjections.preferred.cumulative[year] || 0)), borderColor: 'blue', yAxisID: 'y_cumulative', fill: false },
+                    { type: 'line', label: 'Cumulative File at 70', data: fullAgeRange.map(year => Math.round(totalProjections.age70.cumulative[year] || 0)), borderColor: 'green', yAxisID: 'y_cumulative', fill: false },
                 ]
             };
             newChartOptions = { 
-                plugins: { title: { display: true, text: 'Combined View' } },
+                plugins: {
+                    title: { display: true, text: 'Combined View' },
+                    tooltip: { callbacks: { label: tooltipLabelFormatter } }
+                },
                 scales: { 
                     x: { title: { text: 'Year' } }, 
                     y_monthly: { type: 'linear', display: true, position: 'left', title: { text: 'Monthly Benefit', display: true } },

@@ -1,3 +1,5 @@
+import pytest
+
 from backend.core.benefit_math import (
     monthly_benefit_at_claim,
     benefit_after_claim,
@@ -32,3 +34,17 @@ def test_post_claim_cola_compounds(default_inputs):
     assert round(benefit_after_claim(base, 1, r), 2) == round(3000 * 1.03, 2)
     # Year 2: two COLAs
     assert round(benefit_after_claim(base, 2, r), 2) == round(3000 * (1.03**2), 2)
+
+
+def test_no_double_cola_after_claim(default_inputs):
+    base = monthly_benefit_at_claim(
+        pia_fra=default_inputs["pia_fra"],
+        claim_age_years=62.0,
+        current_age_years=60.5,
+        r=default_inputs["cola_rate"],
+        fra_years=default_inputs["fra_years"],
+    )
+    assert pytest.approx(2800.0, rel=1e-3) == round(base, 2)
+
+    five_years_out = benefit_after_claim(base, 5, default_inputs["cola_rate"])
+    assert round(five_years_out, 2) == round(2800 * (1.03**5), 2)
