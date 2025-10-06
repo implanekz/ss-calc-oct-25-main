@@ -33,8 +33,9 @@ header p {
 
 .controls {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: 24px;
+  row-gap: 16px;
   padding: 24px;
   background: #fbf7eb;
   border-radius: 14px;
@@ -186,6 +187,133 @@ th:first-child, td:first-child {
   color: #0c2246;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.stress-test-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stress-button {
+  min-width: 140px;
+}
+
+.stress-controls {
+  display: none;
+}
+
+.stress-controls--visible {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #d6c8a8;
+  border-radius: 999px;
+  padding: 6px 12px;
+}
+
+.stress-select {
+  border: none;
+  background: transparent;
+  font-size: 0.95rem;
+  padding: 6px 8px;
+  appearance: none;
+}
+
+.stress-select:disabled {
+  color: #9ca3af;
+}
+
+.stress-info-button {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #0c2246;
+  padding: 4px 6px;
+  border-radius: 50%;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.stress-info-button:hover,
+.stress-info-button:focus-visible {
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+  outline: none;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal[hidden] {
+  display: none;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(12, 34, 70, 0.45);
+}
+
+.modal-content {
+  position: relative;
+  background: #fffdf7;
+  border-radius: 16px;
+  padding: 24px 28px;
+  max-width: 520px;
+  width: min(90vw, 520px);
+  box-shadow: 0 22px 48px -24px rgba(12, 34, 70, 0.55);
+  border: 1px solid #ddd1b6;
+  z-index: 1;
+  color: #14303c;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1.35rem;
+  color: #0c2246;
+}
+
+.modal-content p {
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: #4f5d73;
+}
+
+.modal-close:hover,
+.modal-close:focus-visible {
+  color: #1d4ed8;
+  outline: none;
+}
+
 .chart-card {
   background: #fbf7eb;
   border-radius: 14px;
@@ -218,6 +346,11 @@ footer {
 input.numeric {
   width: 100%;
   text-align: right;
+  padding: 10px 12px;
+  border: 1px solid #d6c8a8;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #fffdf7;
 }
 
 .negative {
@@ -253,4 +386,12 @@ input.numeric {
   font-weight: 600;
   color: #0c2246;
   border-top: 2px solid #d9caa8;
+}
+
+.input-hint {
+  display: block;
+  margin-top: 4px;
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: #6b7d8a;
 }

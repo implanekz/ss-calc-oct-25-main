@@ -26,6 +26,45 @@ const RETURN_DATA = [
   { year: 2024, return: 0.2331 },
 ];
 
+const STRESS_SCENARIOS = {
+  tech: {
+    key: 'tech',
+    label: 'Tech Wreck: 2000-2002',
+    loss: -0.83,
+    modal: {
+      title: 'Tech Wreck (2000-2002)',
+      body: `
+        <p>The NASDAQ 100 peaked at <strong>4,704.73</strong> on March 27, 2000 before sliding to a trough of <strong>795.25</strong> on October 9, 2002.</p>
+        <p>This collapse represented a loss of roughly <strong>83%</strong> from peak to trough, marking the end of the dot-com bubble.</p>
+      `,
+    },
+  },
+  gfc: {
+    key: 'gfc',
+    label: 'Financial Crisis: 2007-2009',
+    loss: -0.57,
+    modal: {
+      title: 'Global Financial Crisis (2007-2009)',
+      body: `
+        <p>The S&P 500 reached its pre-crisis peak at <strong>1,565.15</strong> on October 9, 2007 and bottomed at <strong>676.53</strong> on March 9, 2009.</p>
+        <p>The index shed nearly <strong>57%</strong> during the downturn before a prolonged recovery began.</p>
+      `,
+    },
+  },
+  covid: {
+    key: 'covid',
+    label: 'COVID Crisis: 2020',
+    loss: -0.34,
+    modal: {
+      title: 'COVID Crisis (2020)',
+      body: `
+        <p>The S&P 500 hit a high of <strong>3,386.15</strong> on February 19, 2020 and plunged to <strong>2,237.40</strong> by March 23, 2020.</p>
+        <p>This swift decline of around <strong>34%</strong> was one of the fastest major drawdowns in modern market history.</p>
+      `,
+    },
+  },
+};
+
 const formatCurrency = (value) => {
   const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
   if (value < 0) {
@@ -45,10 +84,17 @@ const strategyTwoReturn = (r) => {
 
 let currentOrder = null;
 let currentSpanKey = null;
+const stressState = {
+  enabled: false,
+  scenarioKey: '',
+  targetYear: '',
+};
 
 const generateSpanKey = (returns) => {
   if (!returns.length) return 'empty';
-  return `${returns[0].year}-${returns[returns.length - 1].year}-${returns.length}`;
+  const base = `${returns[0].year}-${returns[returns.length - 1].year}-${returns.length}`;
+  const stressSuffix = stressState.enabled ? `-stress-${stressState.scenarioKey || 'none'}-${stressState.targetYear || 'none'}` : '-stress-off';
+  return `${base}${stressSuffix}`;
 };
 
 const shuffleReturns = (returns) => {
@@ -291,6 +337,18 @@ const datasetsForChart = (historical, strat1, strat2, initialBalance) => {
   };
 };
 
+const populateInitialBalanceOptions = () => {
+  const datalist = document.getElementById('initial-balance-options');
+  if (!datalist) return;
+  datalist.innerHTML = '';
+  for (let amount = 0; amount <= 1000000; amount += 250000) {
+    const option = document.createElement('option');
+    option.value = String(amount);
+    option.label = formatCurrency(amount);
+    datalist.appendChild(option);
+  }
+};
+
 const populateWithdrawalSelect = () => {
   const select = document.getElementById('withdrawal-rate');
   select.innerHTML = '';
@@ -301,6 +359,110 @@ const populateWithdrawalSelect = () => {
     if (Math.abs(rate - 0) < 0.001) option.selected = true;
     select.appendChild(option);
   }
+};
+
+const populateStressScenarioOptions = (select) => {
+  if (!select) return;
+  select.innerHTML = '';
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.disabled = true;
+  placeholder.textContent = 'Select scenario';
+  select.appendChild(placeholder);
+  placeholder.selected = true;
+
+  Object.values(STRESS_SCENARIOS).forEach((scenario) => {
+    const option = document.createElement('option');
+    option.value = scenario.key;
+    option.textContent = scenario.label;
+    if (scenario.key === stressState.scenarioKey) {
+      option.selected = true;
+      placeholder.selected = false;
+    }
+    select.appendChild(option);
+  });
+
+  if (!stressState.scenarioKey) {
+    placeholder.selected = true;
+  }
+};
+
+const updateStressYearOptions = (select, startYear, endYear) => {
+  if (!select) return;
+  select.innerHTML = '';
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.disabled = true;
+  placeholder.textContent = 'Select year';
+  select.appendChild(placeholder);
+  placeholder.selected = true;
+
+  const begin = Math.min(startYear, endYear);
+  const finish = Math.max(startYear, endYear);
+  const availableYears = [];
+
+  for (let year = begin; year <= finish; year += 1) {
+    availableYears.push(year);
+    const option = document.createElement('option');
+    option.value = String(year);
+    option.textContent = String(year);
+    if (Number(stressState.targetYear) === year) {
+      option.selected = true;
+      placeholder.selected = false;
+    }
+    select.appendChild(option);
+  }
+
+  const shouldDisable = !stressState.enabled || !stressState.scenarioKey;
+  select.disabled = shouldDisable;
+  if (shouldDisable) {
+    placeholder.selected = true;
+    stressState.targetYear = '';
+  } else if (!select.value) {
+    placeholder.selected = true;
+  } else {
+    const numericTarget = Number(stressState.targetYear);
+    if (!availableYears.includes(numericTarget)) {
+      stressState.targetYear = '';
+      placeholder.selected = true;
+    }
+  }
+};
+
+const isStressActive = () => stressState.enabled && stressState.scenarioKey && stressState.targetYear;
+
+const applyStressScenario = (returns) => {
+  if (!isStressActive()) return returns;
+  const scenario = STRESS_SCENARIOS[stressState.scenarioKey];
+  if (!scenario) return returns;
+  const targetYear = Number(stressState.targetYear);
+  return returns.map((entry) => {
+    if (entry.year === targetYear) {
+      return { ...entry, return: scenario.loss };
+    }
+    return { ...entry };
+  });
+};
+
+const stressModal = {
+  root: null,
+  title: null,
+  body: null,
+};
+
+const openStressModal = (scenarioKey) => {
+  const scenario = STRESS_SCENARIOS[scenarioKey];
+  if (!scenario || !stressModal.root) return;
+  stressModal.title.textContent = scenario.modal.title;
+  stressModal.body.innerHTML = scenario.modal.body.trim();
+  stressModal.root.hidden = false;
+  stressModal.root.setAttribute('aria-hidden', 'false');
+};
+
+const closeStressModal = () => {
+  if (!stressModal.root) return;
+  stressModal.root.hidden = true;
+  stressModal.root.setAttribute('aria-hidden', 'true');
 };
 
 const getInputValues = () => {
@@ -315,7 +477,9 @@ const getInputValues = () => {
 
 const runSimulation = (forceNewRandom = false) => {
   const { initialBalance, withdrawalRate, startYear, endYear } = getInputValues();
-  const baseReturns = getReturnsSlice(startYear, endYear);
+  updateStressYearOptions(stressYearSelect, startYear, endYear);
+  let baseReturns = getReturnsSlice(startYear, endYear);
+  baseReturns = applyStressScenario(baseReturns);
   const orderedReturns = getOrderedSequence(baseReturns, { forceRandom: forceNewRandom });
 
   const annualWithdrawal = initialBalance * (withdrawalRate / 100);
@@ -336,8 +500,92 @@ const runSimulation = (forceNewRandom = false) => {
   }
 };
 
+const stressToggleButton = document.getElementById('stress-toggle');
+const stressControls = document.getElementById('stress-controls');
+const stressScenarioSelect = document.getElementById('stress-scenario');
+const stressYearSelect = document.getElementById('stress-year');
+const stressInfoButton = document.getElementById('stress-info');
+const stressModalCloseButton = document.getElementById('stress-modal-close');
+const stressModalRoot = document.getElementById('stress-modal');
+stressModal.root = stressModalRoot;
+stressModal.title = document.getElementById('stress-modal-title');
+stressModal.body = document.getElementById('stress-modal-body');
+
+const startYearInput = document.getElementById('start-year');
+const endYearInput = document.getElementById('end-year');
+
+populateStressScenarioOptions(stressScenarioSelect);
+updateStressYearOptions(stressYearSelect, Number(startYearInput.value) || RETURN_DATA[0].year, Number(endYearInput.value) || RETURN_DATA[RETURN_DATA.length - 1].year);
+
+if (stressToggleButton) {
+  stressToggleButton.addEventListener('click', () => {
+    stressState.enabled = !stressState.enabled;
+    stressToggleButton.setAttribute('aria-expanded', stressState.enabled ? 'true' : 'false');
+    if (stressControls) {
+      stressControls.hidden = !stressState.enabled;
+      stressControls.classList.toggle('stress-controls--visible', stressState.enabled);
+    }
+    if (!stressState.enabled) {
+      stressState.scenarioKey = '';
+      stressState.targetYear = '';
+    }
+    populateStressScenarioOptions(stressScenarioSelect);
+    updateStressYearOptions(stressYearSelect, Number(startYearInput.value) || RETURN_DATA[0].year, Number(endYearInput.value) || RETURN_DATA[RETURN_DATA.length - 1].year);
+    currentOrder = null;
+    currentSpanKey = null;
+    runSimulation(false);
+  });
+}
+
+if (stressScenarioSelect) {
+  stressScenarioSelect.addEventListener('change', (event) => {
+    const value = event.target.value;
+    stressState.scenarioKey = value;
+    currentOrder = null;
+    currentSpanKey = null;
+    updateStressYearOptions(stressYearSelect, Number(startYearInput.value) || RETURN_DATA[0].year, Number(endYearInput.value) || RETURN_DATA[RETURN_DATA.length - 1].year);
+    runSimulation(false);
+  });
+}
+
+if (stressYearSelect) {
+  stressYearSelect.addEventListener('change', (event) => {
+    stressState.targetYear = event.target.value;
+    currentOrder = null;
+    currentSpanKey = null;
+    runSimulation(false);
+  });
+}
+
+if (stressInfoButton) {
+  stressInfoButton.addEventListener('click', () => {
+    const key = stressState.scenarioKey || stressScenarioSelect?.value;
+    if (key) {
+      openStressModal(key);
+    }
+  });
+}
+
+if (stressModalCloseButton) {
+  stressModalCloseButton.addEventListener('click', closeStressModal);
+}
+
+if (stressModalRoot) {
+  stressModalRoot.addEventListener('click', (event) => {
+    if (event.target.classList.contains('modal-backdrop')) {
+      closeStressModal();
+    }
+  });
+}
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    closeStressModal();
+  }
+});
+
 const resetForm = () => {
-  document.getElementById('initial-balance').value = '$500,000';
+  document.getElementById('initial-balance').value = '$250,000';
   document.getElementById('withdrawal-rate').value = '0.0';
   document.getElementById('start-year').value = 2000;
   document.getElementById('end-year').value = 2012;
@@ -345,9 +593,20 @@ const resetForm = () => {
   currentSpanKey = null;
   expandedTables.strategy1 = false;
   expandedTables.strategy2 = false;
+  stressState.enabled = false;
+  stressState.scenarioKey = '';
+  stressState.targetYear = '';
+  if (stressControls) {
+    stressControls.hidden = true;
+    stressControls.classList.remove('stress-controls--visible');
+  }
+  if (stressToggleButton) stressToggleButton.setAttribute('aria-expanded', 'false');
+  populateStressScenarioOptions(stressScenarioSelect);
+  updateStressYearOptions(stressYearSelect, 2000, 2012);
   runSimulation(false);
 };
 
+populateInitialBalanceOptions();
 populateWithdrawalSelect();
 const balanceInput = document.getElementById('initial-balance');
 const formatBalanceDisplay = () => {
