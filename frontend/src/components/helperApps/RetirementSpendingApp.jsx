@@ -390,22 +390,25 @@ const RetirementSpendingApp = () => {
               ) : (
                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', color: '#1f2937' }}>
                   Percent of account
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    step={0.1}
-                    value={(inputs.withdrawalPercent * 100).toFixed(1)}
-                    onChange={(event) => {
-                      const value = Number(event.target.value);
-                      if (!Number.isFinite(value)) return;
-                      setInputs((prev) => ({
-                        ...prev,
-                        withdrawalPercent: value / 100,
-                      }));
-                    }}
-                    style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5f5' }}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={0.1}
+                      value={(inputs.withdrawalPercent * 100).toFixed(1)}
+                      onChange={(event) => {
+                        const value = Number(event.target.value);
+                        if (!Number.isFinite(value)) return;
+                        setInputs((prev) => ({
+                          ...prev,
+                          withdrawalPercent: value / 100,
+                        }));
+                      }}
+                      style={{ flex: 1, padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5f5' }}
+                    />
+                    <span style={{ color: '#1f2937', fontWeight: 600 }}>%</span>
+                  </div>
                   <span style={{ fontSize: '0.82rem', color: '#64748b' }}>Enter as percent (6 = 6%)</span>
                 </label>
               )}
