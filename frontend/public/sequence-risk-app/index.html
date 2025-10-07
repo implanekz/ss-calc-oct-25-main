@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sequence of Returns Risk</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Sequence of Returns Risk</h1>
+      <p>
+        Explore how the order of market returns affects a retirement portfolio when you withdraw a steady income each
+        year.
+      </p>
+    </header>
+
+    <section class="controls">
+      <div class="field">
+        <label for="initial-balance">Initial Balance</label>
+        <input id="initial-balance" class="numeric" type="text" value="$250,000" list="initial-balance-options" />
+        <datalist id="initial-balance-options"></datalist>
+        <small class="input-hint">Type in any amount</small>
+      </div>
+      <div class="field">
+        <label for="withdrawal-rate">Withdrawal Rate</label>
+        <select id="withdrawal-rate"></select>
+      </div>
+      <div class="field">
+        <label for="start-year">Beginning Year</label>
+        <input id="start-year" type="number" value="2000" />
+      </div>
+      <div class="field">
+        <label for="end-year">Ending Year</label>
+        <input id="end-year" type="number" value="2012" />
+      </div>
+      <div class="button-row">
+        <button id="randomize" class="primary">Random</button>
+        <button id="reset" class="secondary">Reset</button>
+        <div class="stress-test-group">
+          <button id="stress-toggle" class="secondary stress-button" aria-expanded="false">Stress Test</button>
+          <div id="stress-controls" class="stress-controls" hidden>
+            <label class="visually-hidden" for="stress-scenario">Stress Scenario</label>
+            <select id="stress-scenario" class="stress-select">
+              <option value="" disabled selected>Select scenario</option>
+            </select>
+            <label class="visually-hidden" for="stress-year">Stress Year</label>
+            <select id="stress-year" class="stress-select" disabled>
+              <option value="" disabled selected>Select year</option>
+            </select>
+            <button id="stress-info" class="stress-info-button" type="button" aria-label="About selected scenario">&#9432;</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tables-wrapper" id="tables-wrapper"></section>
+
+    <section class="chart-card">
+      <canvas id="sequence-chart" height="180"></canvas>
+    </section>
+  </main>
+
+  <footer>
+    <small>
+      Historical nominal S&P 500 total return data is hard-coded for demonstration purposes. Replace with your preferred
+      dataset for production use.
+    </small>
+  </footer>
+
+  <div id="stress-modal" class="modal" hidden aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="stress-modal-title">
+      <button type="button" class="modal-close" id="stress-modal-close" aria-label="Close">&times;</button>
+      <h3 id="stress-modal-title"></h3>
+      <div id="stress-modal-body"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

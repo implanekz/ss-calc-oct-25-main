@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ShowMeTheMoneyCalculator from './components/ShowMeTheMoneyCalculator.jsx';
 import RetirementSpendingApp from './components/helperApps/RetirementSpendingApp.jsx';
 import RetirementIncomeNeedsApp from './components/helperApps/RetirementIncomeNeedsApp.jsx';
+import SequenceOfReturnsApp from './components/helperApps/SequenceOfReturnsApp.jsx';
 
 function App() {
   const [activeApp, setActiveApp] = useState('ss');
@@ -46,7 +47,7 @@ function App() {
             cursor: 'pointer',
           }}
         >
-          Helper App: Longevity Spending
+          Longevity Spending
         </button>
         <button
           type="button"
@@ -61,13 +62,29 @@ function App() {
             cursor: 'pointer',
           }}
         >
-          Helper App: Income Target
+          Income Target
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveApp('sequence')}
+          style={{
+            padding: '10px 18px',
+            borderRadius: '999px',
+            border: '1px solid transparent',
+            background: activeApp === 'sequence' ? '#38bdf8' : '#1e293b',
+            color: '#f8fafc',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          Sequence of Returns
         </button>
       </nav>
 
       {activeApp === 'ss' && <ShowMeTheMoneyCalculator />}
       {activeApp === 'helper-spending' && <RetirementSpendingApp />}
       {activeApp === 'helper-income' && <RetirementIncomeNeedsApp />}
+      {activeApp === 'sequence' && <SequenceOfReturnsApp />}
     </div>
   );
 }
