@@ -232,6 +232,11 @@ const renderTables = (historicalScenario, strategyOneScenario, strategyTwoScenar
         expandedTables[key] = !isExpanded;
         headingElement.classList.toggle('active', !isExpanded);
         content.style.display = isExpanded ? 'none' : '';
+
+        // Update chart visibility
+        if (latestScenarios) {
+          renderChart(latestScenarios.historical, latestScenarios.strategyOne, latestScenarios.strategyTwo);
+        }
       });
     }
 
@@ -262,8 +267,9 @@ const renderChart = (historicalScenario, strategyOneScenario, strategyTwoScenari
         data: historicalScenario.rows.map((row) => Math.round(row.ending)),
         borderColor: '#2563eb',
         backgroundColor: 'rgba(37, 99, 235, 0.15)',
-        fill: true,
+        fill: false,
         tension: 0.25,
+        hidden: false,
       },
       {
         label: 'Strategy 1 Sequence',
@@ -272,6 +278,7 @@ const renderChart = (historicalScenario, strategyOneScenario, strategyTwoScenari
         backgroundColor: 'rgba(34, 197, 94, 0.15)',
         fill: false,
         tension: 0.25,
+        hidden: !expandedTables.strategy1,
       },
       {
         label: 'Strategy 2 Sequence',
@@ -280,6 +287,7 @@ const renderChart = (historicalScenario, strategyOneScenario, strategyTwoScenari
         backgroundColor: 'rgba(249, 115, 22, 0.15)',
         fill: false,
         tension: 0.25,
+        hidden: !expandedTables.strategy2,
       },
     ],
   };
@@ -484,6 +492,9 @@ const runSimulation = () => {
   const strategyOne = simulateSequence(initialBalance, annualWithdrawal, orderedReturns, strategyOneReturn);
   const strategyTwo = simulateSequence(initialBalance, annualWithdrawal, orderedReturns, strategyTwoReturn);
 
+  // Store scenarios for later use when toggling tables
+  latestScenarios = { historical, strategyOne, strategyTwo };
+
   renderTables(historical, strategyOne, strategyTwo);
   renderChart(historical, strategyOne, strategyTwo);
 };
@@ -493,6 +504,7 @@ const init = () => {
   populateInitialBalanceOptions();
   initStressControls();
   document.getElementById('stress-info').hidden = true;
+  document.getElementById('stress-controls').hidden = true;
   runSimulation();
 
   document.getElementById('randomize').addEventListener('click', () => {

@@ -238,6 +238,10 @@ footer {
   align-items: center;
 }
 
+.stress-controls[hidden] {
+  display: none;
+}
+
 .stress-select {
   padding: 8px 10px;
   border-radius: 8px;
