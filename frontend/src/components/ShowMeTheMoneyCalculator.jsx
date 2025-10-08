@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Bar, Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { Checkbox, Button } from './ui';
+import { PillTabs, PillTab } from './ui';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -109,12 +111,9 @@ const formatCurrencyTick = (value) => `$${Number(value).toLocaleString('en-US', 
 
 const CHART_PADDING = { left: 60, right: 30, top: 10, bottom: 10 };
 
-const LifeStageSlider = () => null;
-
 const ShowMeTheMoneyCalculator = () => {
     const [isMarried, setIsMarried] = useState(false);
-    const [primaryName] = useState('John Smith');
-    const [spouseName] = useState('Mary Smith');
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [spouse1Dob, setSpouse1Dob] = useState('1965-02-03');
     const [spouse1Pia, setSpouse1Pia] = useState(4000);
     const [spouse1PreferredYear, setSpouse1PreferredYear] = useState(67);
@@ -951,279 +950,379 @@ const ShowMeTheMoneyCalculator = () => {
     ];
 
     return (
-        <div style={{ fontFamily: 'sans-serif', padding: '20px', maxWidth: '1200px', margin: 'auto' }}>
-            <header style={{ backgroundColor: '#003366', color: 'white', padding: '10px', textAlign: 'center' }}>
-                <h2>Social Security "Show Me the Money" Calculator</h2>
-            </header>
-            <div style={{ padding: '20px', backgroundColor: '#f0f4f8' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '20px', gap: '24px' }}>
-                    <div style={{ minWidth: '280px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
-                            <h3 style={{ margin: 0 }}>Primary Filer</h3>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#4b5563' }}>
+        <div className="flex flex-col lg:flex-row h-[calc(100vh-4rem)] overflow-hidden">
+            {/* Compact Sidebar */}
+            <div className={`relative bg-white border-r border-gray-200 transition-all duration-300 ${
+                sidebarCollapsed ? 'w-0 lg:w-12' : 'lg:w-80 xl:w-96'
+            }`}>
+                <div className={`h-full ${sidebarCollapsed ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+                {!sidebarCollapsed && (
+                    <div>
+                        <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-blue-50 flex justify-between items-start">
+                            <div>
+                                <h2 className="text-lg font-bold text-gray-900">Controls</h2>
+                                <p className="text-xs text-gray-600">Adjust your inputs</p>
+                            </div>
+                            <button
+                                onClick={() => setSidebarCollapsed(true)}
+                                className="hidden lg:flex p-1.5 bg-primary-600 text-white rounded-lg shadow-md hover:bg-primary-700 transition-all hover:scale-110"
+                                title="Collapse controls"
+                            >
+                                <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="p-4 space-y-4">
+                    {/* Primary Filer - Compact */}
+                    <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                        <div className="flex justify-between items-center mb-2">
+                            <h3 className="text-sm font-semibold text-gray-900">Primary Filer</h3>
+                            <Checkbox
+                                label=""
+                                checked={activeRecordView === 'primary'}
+                                onChange={handlePrimaryOnlyToggle}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                                <div>
+                                    <label className="block text-gray-600 mb-1">DOB</label>
+                                    <input
+                                        type="date"
+                                        value={spouse1Dob}
+                                        onChange={e => setSpouse1Dob(e.target.value)}
+                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-600 mb-1">Age</label>
+                                    <div className="px-2 py-1 bg-white border border-gray-200 rounded text-gray-700">
+                                        {formatAge(spouse1Dob)}
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs text-gray-600 mb-1">PIA at FRA ($)</label>
                                 <input
-                                    type="checkbox"
-                                    checked={activeRecordView === 'primary'}
-                                    onChange={handlePrimaryOnlyToggle}
+                                    type="number"
+                                    value={spouse1Pia}
+                                    onChange={e => setSpouse1Pia(Number(e.target.value))}
+                                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                                 />
-                                <span>Show this record only</span>
-                            </label>
-                        </div>
-                        <div style={{ marginTop: '8px' }}>
-                            <label>Name:&nbsp;
-                                <input type="text" value={primaryName} readOnly style={{ width: '170px', backgroundColor: '#f5f5f5' }} />
-                            </label>
-                        </div>
-                        <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <label>Date of Birth:&nbsp;
-                                <input type="date" value={spouse1Dob} onChange={e => setSpouse1Dob(e.target.value)} />
-                            </label>
-                            <span style={{ fontSize: '0.9rem', color: '#333', fontWeight: 500 }}>Current Age: {formatAge(spouse1Dob)}</span>
-                        </div>
-                        <div style={{ marginTop: '8px' }}>
-                            <label>Benefit (PIA) at FRA:&nbsp;
-                                <input type="number" value={spouse1Pia} onChange={e => setSpouse1Pia(Number(e.target.value))} />
-                            </label>
-                        </div>
-                        <div style={{ border: '1px solid #3b82f6', padding: '10px', marginTop: '10px', borderRadius: '4px' }}>
-                            <label style={{ fontWeight: 600 }}>Primary Filer Preferred Filing Age</label><br />
-                            Preferred: <input type="number" value={spouse1PreferredYear} onChange={e => setSpouse1PreferredYear(Number(e.target.value))} style={{ width: '60px' }} />
-                            &nbsp;Year&nbsp;
-                            <input type="number" value={spouse1PreferredMonth} onChange={e => setSpouse1PreferredMonth(Number(e.target.value))} style={{ width: '60px' }} />
-                            &nbsp;Month
+                            </div>
+                            <div className="bg-primary-100 rounded p-2">
+                                <label className="block text-xs font-medium text-gray-700 mb-1">Filing Age</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <input
+                                            type="number"
+                                            value={spouse1PreferredYear}
+                                            onChange={e => setSpouse1PreferredYear(Number(e.target.value))}
+                                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
+                                            placeholder="Yr"
+                                        />
+                                    </div>
+                                    <div>
+                                        <input
+                                            type="number"
+                                            value={spouse1PreferredMonth}
+                                            onChange={e => setSpouse1PreferredMonth(Number(e.target.value))}
+                                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
+                                            placeholder="Mo"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    {/* Spouse - Compact */}
                     {isMarried && (
-                        <div style={{ minWidth: '280px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
-                                <h3 style={{ margin: 0 }}>Spouse</h3>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#4b5563' }}>
+                        <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                            <div className="flex justify-between items-center mb-2">
+                                <h3 className="text-sm font-semibold text-gray-900">Spouse</h3>
+                                <Checkbox
+                                    label=""
+                                    checked={activeRecordView === 'spouse'}
+                                    onChange={handleSpouseOnlyToggle}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <div>
+                                        <label className="block text-gray-600 mb-1">DOB</label>
+                                        <input
+                                            type="date"
+                                            value={spouse2Dob}
+                                            onChange={e => setSpouse2Dob(e.target.value)}
+                                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-gray-600 mb-1">Age</label>
+                                        <div className="px-2 py-1 bg-white border border-gray-200 rounded text-gray-700">
+                                            {formatAge(spouse2Dob)}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-gray-600 mb-1">PIA at FRA ($)</label>
                                     <input
-                                        type="checkbox"
-                                        checked={activeRecordView === 'spouse'}
-                                        onChange={handleSpouseOnlyToggle}
+                                        type="number"
+                                        value={spouse2Pia}
+                                        onChange={e => setSpouse2Pia(Number(e.target.value))}
+                                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                                     />
-                                    <span>Show this record only</span>
-                                </label>
-                            </div>
-                            <div style={{ marginTop: '8px' }}>
-                                <label>Name:&nbsp;
-                                    <input type="text" value={spouseName} readOnly style={{ width: '170px', backgroundColor: '#f5f5f5' }} />
-                                </label>
-                            </div>
-                            <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <label>Date of Birth:&nbsp;
-                                    <input type="date" value={spouse2Dob} onChange={e => setSpouse2Dob(e.target.value)} />
-                                </label>
-                                <span style={{ fontSize: '0.9rem', color: '#333', fontWeight: 500 }}>Current Age: {formatAge(spouse2Dob)}</span>
-                            </div>
-                            <div style={{ marginTop: '8px' }}>
-                                <label>Benefit (PIA) at FRA:&nbsp;
-                                    <input type="number" value={spouse2Pia} onChange={e => setSpouse2Pia(Number(e.target.value))} />
-                                </label>
-                            </div>
-                            <div style={{ border: '1px solid #3b82f6', padding: '10px', marginTop: '10px', borderRadius: '4px' }}>
-                                <label style={{ fontWeight: 600 }}>Spouse Preferred Filing Age</label><br />
-                                Preferred: <input type="number" value={spouse2PreferredYear} onChange={e => setSpouse2PreferredYear(Number(e.target.value))} style={{ width: '60px' }} />
-                                &nbsp;Year&nbsp;
-                                <input type="number" value={spouse2PreferredMonth} onChange={e => setSpouse2PreferredMonth(Number(e.target.value))} style={{ width: '60px' }} />
-                                &nbsp;Month
+                                </div>
+                                <div className="bg-primary-100 rounded p-2">
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Filing Age</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <input
+                                                type="number"
+                                                value={spouse2PreferredYear}
+                                                onChange={e => setSpouse2PreferredYear(Number(e.target.value))}
+                                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
+                                                placeholder="Yr"
+                                            />
+                                        </div>
+                                        <div>
+                                            <input
+                                                type="number"
+                                                value={spouse2PreferredMonth}
+                                                onChange={e => setSpouse2PreferredMonth(Number(e.target.value))}
+                                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
+                                                placeholder="Mo"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
-                </div>
-                <label><input type="checkbox" checked={isMarried} onChange={(e) => setIsMarried(e.target.checked)} /> Married/Domestic Partner</label><br/>
-                {isMarried && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <input
-                                type="checkbox"
-                                checked={prematureDeath}
-                                onChange={e => setPrematureDeath(e.target.checked)}
+
+                    {/* Options - Compact */}
+                    <div className="border border-gray-200 rounded-lg p-3 bg-white">
+                        <h3 className="text-sm font-semibold text-gray-900 mb-2">Options</h3>
+                        <div className="space-y-2">
+                            <Checkbox
+                                label={<span className="text-xs">Married/Partner</span>}
+                                checked={isMarried}
+                                onChange={(e) => setIsMarried(e.target.checked)}
                             />
-                            Potential Premature Death of Either Spouse?
-                        </label>
-                        {prematureDeath && (
-                            <select
-                                value={deathYear}
-                                onChange={e => setDeathYear(Number(e.target.value))}
-                                style={{ padding: '4px' }}
-                            >
-                                {Array.from({ length: 2075 - currentCalendarYear }, (_, idx) => currentCalendarYear + 1 + idx).map(year => (
-                                    <option key={year} value={year}>{year}</option>
-                                ))}
-                            </select>
-                        )}
+
+                            {isMarried && (
+                                <div className="ml-6 space-y-2">
+                                    <Checkbox
+                                        label={<span className="text-xs">Premature Death?</span>}
+                                        checked={prematureDeath}
+                                        onChange={e => setPrematureDeath(e.target.checked)}
+                                    />
+                                    {prematureDeath && (
+                                        <select
+                                            value={deathYear}
+                                            onChange={e => setDeathYear(Number(e.target.value))}
+                                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
+                                        >
+                                            {Array.from({ length: 2075 - currentCalendarYear }, (_, idx) => currentCalendarYear + 1 + idx).map(year => (
+                                                <option key={year} value={year}>{year}</option>
+                                            ))}
+                                        </select>
+                                    )}
+                                </div>
+                            )}
+
+                            <div className="pt-2">
+                                <div className="flex justify-between items-center mb-1">
+                                    <label className="text-xs font-medium text-gray-700">Inflation</label>
+                                    <span className="text-xs font-semibold text-primary-600">
+                                        {(inflation * 100).toFixed(1)}%
+                                    </span>
+                                </div>
+                                <input
+                                    type="range"
+                                    value={inflation}
+                                    onChange={e => setInflation(Number(e.target.value))}
+                                    min="0"
+                                    max="0.1"
+                                    step="0.001"
+                                    className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                        </div>
                     </div>
                 )}
-
-                <div style={{marginTop: '20px', display: 'flex', alignItems: 'center', gap: '12px'}}>
-                    <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontWeight: 500 }}>
-                        Expected Inflation
-                        <input
-                            type="range"
-                            min="0"
-                            max="0.1"
-                            step="0.001"
-                            value={inflation}
-                            onChange={e => setInflation(Number(e.target.value))}
-                            style={{ accentColor: (inflation >= 0.02 && inflation <= 0.03) ? '#1d4ed8' : '#ff8c00' }}
-                        />
-                    </label>
-                    <span style={{ fontWeight: 600 }}>{(inflation * 100).toFixed(1)}%</span>
                 </div>
 
-                <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'center', gap: '12px' }}>
-                    {chartTabs.map(tab => (
-                        <button
-                            key={tab.key}
-                            onClick={() => setChartView(tab.key)}
-                            style={{
-                                padding: '10px 18px',
-                                borderRadius: '10px',
-                                border: 'none',
-                                fontWeight: chartView === tab.key ? 600 : 500,
-                                cursor: 'pointer',
-                                background: chartView === tab.key ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' : '#e5e7eb',
-                                color: chartView === tab.key ? '#ffffff' : '#1f2937',
-                                boxShadow: chartView === tab.key ? '0 10px 22px rgba(37, 99, 235, 0.20), inset 0 1px 0 rgba(255,255,255,0.3)' : 'inset 0 1px 2px rgba(255,255,255,0.7)',
-                                transition: 'all 0.2s ease',
-                                opacity: chartView === tab.key ? 0.95 : 1,
-                                letterSpacing: '0.02em'
-                            }}
+                {/* Expand Button - Only shown when collapsed */}
+                {sidebarCollapsed && (
+                    <button
+                        onClick={() => setSidebarCollapsed(false)}
+                        className="hidden lg:flex absolute top-4 left-1 p-1.5 bg-primary-600 text-white rounded-lg shadow-lg hover:bg-primary-700 transition-all hover:scale-110 z-10"
+                        title="Expand controls"
+                    >
+                        <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
                         >
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                )}
+            </div>
 
-                <div style={{ marginTop: '20px' }}>
-                    {chartView === 'earlyLate' && (
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px', marginRight: CHART_PADDING.right }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#334155' }}>
-                                <input
-                                    type="checkbox"
+            {/* Main Chart Area */}
+            <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
+                <div className="border-b border-gray-200 bg-white px-4 py-3">
+                    <div className="flex flex-wrap gap-2 items-center justify-between">
+                        <PillTabs className="flex-wrap">
+                            {chartTabs.map(tab => (
+                                <PillTab
+                                    key={tab.key}
+                                    active={chartView === tab.key}
+                                    onClick={() => setChartView(tab.key)}
+                                >
+                                    <span className="text-xs">{tab.label}</span>
+                                </PillTab>
+                            ))}
+                        </PillTabs>
+
+                        {/* Chart Controls */}
+                        {chartView === 'earlyLate' && (
+                            <div className="flex items-center">
+                                <Checkbox
+                                    label={<span className="text-xs">Monthly</span>}
                                     checked={showMonthlyCashflow}
                                     onChange={e => setShowMonthlyCashflow(e.target.checked)}
                                 />
-                                Show monthly income
-                            </label>
-                        </div>
-                    )}
-                    {chartView === 'post70' && (
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px', marginRight: CHART_PADDING.right, gap: '10px', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.85rem', color: '#334155' }}>View:</span>
-                            {['monthly', 'cumulative', 'combined'].map(option => (
-                                <button
-                                    key={option}
-                                    onClick={() => setPost70View(option)}
-                                    style={{
-                                        padding: '6px 12px',
-                                        borderRadius: '999px',
-                                        border: '1px solid',
-                                        borderColor: post70View === option ? '#2563eb' : '#cbd5f5',
-                                        background: post70View === option ? '#2563eb' : '#ffffff',
-                                        color: post70View === option ? '#ffffff' : '#1f2937',
-                                        fontSize: '0.8rem',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease'
-                                    }}
-                                >
-                                    {option === 'monthly' ? 'Monthly' : option === 'cumulative' ? 'Cumulative' : 'Combined'}
-                                </button>
-                            ))}
-                        </div>
-                    )}
+                            </div>
+                        )}
+                    </div>
+
                     {chartView === 'sscuts' && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', padding: '12px 16px', background: '#eef2ff', borderRadius: '12px', border: '1px solid #c7d2fe', flexWrap: 'wrap', gap: '12px' }}>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center' }}>
-                                <label style={{ display: 'flex', flexDirection: 'column', fontSize: '0.85rem', color: '#1f2937', minWidth: '140px' }}>
-                                    Insolvency Year
-                                    <select
-                                        value={ssCutYear}
-                                        onChange={e => setSsCutYear(Number(e.target.value))}
-                                        style={{ marginTop: '4px', padding: '6px 10px', borderRadius: '8px', border: '1px solid #c7d2fe', background: '#fff' }}
-                                    >
-                                        {Array.from({ length: 21 }, (_, idx) => 2030 + idx).map(year => (
-                                            <option key={year} value={year}>{year}</option>
-                                        ))}
-                                    </select>
-                                </label>
-                                <label style={{ display: 'flex', flexDirection: 'column', fontSize: '0.85rem', color: '#1f2937', minWidth: '140px' }}>
-                                    Benefit Cut (%)
-                                    <select
-                                        value={ssCutPercentage}
-                                        onChange={e => setSsCutPercentage(Number(e.target.value))}
-                                        style={{ marginTop: '4px', padding: '6px 10px', borderRadius: '8px', border: '1px solid #c7d2fe', background: '#fff' }}
-                                    >
-                                        {Array.from({ length: 26 }, (_, idx) => 10 + idx).map(percent => (
-                                            <option key={percent} value={percent}>{percent}%</option>
-                                        ))}
-                                    </select>
-                                </label>
+                        <div className="mt-3 flex flex-wrap gap-3 items-end">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Insolvency Year</label>
+                                <select
+                                    value={ssCutYear}
+                                    onChange={e => setSsCutYear(Number(e.target.value))}
+                                    className="px-3 py-2 text-sm font-medium border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white hover:border-gray-400 transition-colors"
+                                >
+                                    {Array.from({ length: 21 }, (_, idx) => 2030 + idx).map(year => (
+                                        <option key={year} value={year}>{year}</option>
+                                    ))}
+                                </select>
                             </div>
-                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                <button
-                                    onClick={handleProjectCuts}
-                                    style={{ padding: '10px 20px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)', color: '#ffffff', fontWeight: 600, cursor: 'pointer', boxShadow: '0 12px 20px rgba(37, 99, 235, 0.18)'}}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Benefit Cut</label>
+                                <select
+                                    value={ssCutPercentage}
+                                    onChange={e => setSsCutPercentage(Number(e.target.value))}
+                                    className="px-3 py-2 text-sm font-medium border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white hover:border-gray-400 transition-colors"
                                 >
-                                    Project Cuts
-                                </button>
-                                <button
-                                    onClick={handleShowBaseline}
-                                    disabled={!ssCutsPayload || !ssCutsActive}
-                                    style={{
-                                        padding: '9px 18px',
-                                        borderRadius: '10px',
-                                        border: '1px solid #3b82f6',
-                                        background: (!ssCutsPayload || !ssCutsActive) ? '#f1f5f9' : '#ffffff',
-                                        color: (!ssCutsPayload || !ssCutsActive) ? '#94a3b8' : '#1d4ed8',
-                                        fontWeight: 500,
-                                        cursor: (!ssCutsPayload || !ssCutsActive) ? 'not-allowed' : 'pointer'
-                                    }}
-                                >
-                                    Show Baseline
-                                </button>
-                                <button
-                                    onClick={() => setShowSsCutInfo(true)}
-                                    style={{ padding: '9px 16px', borderRadius: '10px', border: '1px solid #3b82f6', background: '#ffffff', color: '#1d4ed8', fontWeight: 500, cursor: 'pointer' }}
-                                >
-                                    What is this?
-                                </button>
+                                    {Array.from({ length: 26 }, (_, idx) => 10 + idx).map(percent => (
+                                        <option key={percent} value={percent}>{percent}%</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <button
+                                onClick={ssCutsActive ? handleShowBaseline : handleProjectCuts}
+                                className={`px-6 py-2 text-sm font-bold rounded-lg transition-all shadow-md hover:shadow-lg transform hover:scale-105 ${
+                                    ssCutsActive
+                                        ? 'bg-gray-600 text-white hover:bg-gray-700'
+                                        : 'bg-gradient-to-r from-primary-600 to-primary-700 text-white hover:from-primary-700 hover:to-primary-800'
+                                }`}
+                            >
+                                {ssCutsActive ? 'Show Baseline' : 'Project Cuts'}
+                            </button>
+                            <button
+                                onClick={() => setShowSsCutInfo(true)}
+                                className="w-8 h-8 flex items-center justify-center bg-orange-500 hover:bg-orange-600 text-white rounded-full transition-all shadow-md hover:shadow-lg transform hover:scale-110"
+                                title="Learn more about SS cuts"
+                            >
+                                <span className="text-sm font-bold">i</span>
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Chart Container */}
+                <div className="flex-1 p-4 overflow-auto">
+                    {/* Post-70 View Selector */}
+                    {chartView === 'post70' && (
+                        <div className="mb-4 bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">View Type:</label>
+                            <div className="flex gap-3">
+                                {[
+                                    { key: 'monthly', label: 'Monthly Income' },
+                                    { key: 'cumulative', label: 'Cumulative Income Since 70' },
+                                    { key: 'combined', label: 'Both (Monthly + Cumulative)' }
+                                ].map(option => (
+                                    <button
+                                        key={option.key}
+                                        onClick={() => setPost70View(option.key)}
+                                        className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                                            post70View === option.key
+                                                ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-md'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        {option.label}
+                                    </button>
+                                ))}
                             </div>
                         </div>
                     )}
-                    <div style={{ height: '500px' }}>
+
+                    <div className="h-full bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                         {
                             chartView === 'sscuts'
                                 ? (ssCutsChartData && ssCutsChartData.labels && ssCutsChartData.labels.length > 0
-                                    ? <Bar data={chartData} options={chartOptions} />
+                                    ? <Bar data={chartData} options={{...chartOptions, maintainAspectRatio: false}} />
                                     : (
-                                        <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontSize: '0.95rem', fontWeight: 500, border: '2px dashed #cbd5f5', borderRadius: '16px', textAlign: 'center', padding: '0 24px' }}>
-                                            Adjust the year or percentage and press “Project” to animate the impact of a trust-fund cut. Then toggle back to the baseline to feel the difference.
+                                        <div className="h-full flex items-center justify-center text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+                                            <p className="text-center px-8 text-sm">
+                                                Adjust the year or percentage and press "Project" to see the impact of a trust-fund cut.<br />
+                                                Then toggle to the baseline to compare.
+                                            </p>
                                         </div>
                                     ))
-                                : chartView === 'monthly' ? <Bar data={chartData} options={chartOptions} /> :
-                                  chartView === 'cumulative' ? <Line data={chartData} options={chartOptions} /> :
-                                  chartView === 'combined' ? <Bar data={chartData} options={chartOptions} /> :
-                                  chartView === 'earlyLate' ? <Line data={chartData} options={chartOptions} /> :
-                                  post70View === 'combined' ? <Bar data={chartData} options={chartOptions} /> :
-                                  <Line data={chartData} options={chartOptions} />
+                                : chartView === 'monthly' ? <Bar data={chartData} options={{...chartOptions, maintainAspectRatio: false}} /> :
+                                  chartView === 'cumulative' ? <Line data={chartData} options={{...chartOptions, maintainAspectRatio: false}} /> :
+                                  chartView === 'combined' ? <Bar data={chartData} options={{...chartOptions, maintainAspectRatio: false}} /> :
+                                  chartView === 'earlyLate' ? <Line data={chartData} options={{...chartOptions, maintainAspectRatio: false}} /> :
+                                  post70View === 'combined' ? <Bar data={chartData} options={{...chartOptions, maintainAspectRatio: false}} /> :
+                                  <Line data={chartData} options={{...chartOptions, maintainAspectRatio: false}} />
                         }
                     </div>
+
+                    {/* SS Cuts Summary */}
                     {chartView === 'sscuts' && ssCutsSummary.length > 0 && (
-                        <div style={{ marginTop: '16px', padding: '14px 18px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', color: '#1f2937' }}>
-                            <strong style={{ display: 'block', marginBottom: '4px' }}>Cut Scenario Snapshot</strong>
-                            <div style={{ marginBottom: '6px', fontSize: '0.9rem', color: '#334155' }}>
-                                Viewing: {ssCutsActive ? 'Projected benefit cuts applied' : 'Baseline benefits (no cuts)'}
-                            </div>
-                            <ul style={{ margin: 0, paddingLeft: '18px' }}>
+                        <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <h4 className="text-sm font-semibold text-gray-900 mb-1">Summary</h4>
+                            <p className="text-xs text-gray-600 mb-2">
+                                {ssCutsActive ? 'Cuts Applied' : 'Baseline (No Cuts)'}
+                            </p>
+                            <ul className="space-y-1">
                                 {ssCutsSummary.map(item => {
                                     const diff = item.delta;
                                     return (
-                                        <li key={item.label} style={{ marginBottom: '4px' }}>
-                                            {item.label}: {currencyFormatter.format(Math.round(item.baseline))} ➝ {currencyFormatter.format(Math.round(item.projected))}
-                                            <span style={{ color: diff < 0 ? '#b91c1c' : '#16a34a', marginLeft: '6px', fontWeight: 600 }}>
+                                        <li key={item.label} className="text-xs">
+                                            <span className="font-medium">{item.label}:</span>{' '}
+                                            {currencyFormatter.format(Math.round(item.baseline))} ➝{' '}
+                                            {currencyFormatter.format(Math.round(item.projected))}
+                                            <span className={`ml-1 font-semibold ${diff < 0 ? 'text-red-600' : 'text-green-600'}`}>
                                                 ({currencyFormatter.format(Math.round(diff))})
                                             </span>
                                         </li>
@@ -1234,26 +1333,27 @@ const ShowMeTheMoneyCalculator = () => {
                     )}
                 </div>
             </div>
+
+            {/* SS Cuts Info Modal */}
             {showSsCutInfo && (
-                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
-                    <div style={{ background: '#ffffff', maxWidth: '480px', width: '90%', padding: '24px 28px', borderRadius: '16px', boxShadow: '0 25px 45px rgba(15, 23, 42, 0.35)', color: '#1f2937', lineHeight: 1.55 }}>
-                        <h3 style={{ marginTop: 0, fontSize: '1.4rem', color: '#1d4ed8' }}>About the SS Cuts Scenario</h3>
-                        <p style={{ marginTop: '8px' }}>
-                            The Social Security trustees project that the trust fund reserves may be exhausted in the early 2030s.
-                            When that happens, incoming payroll taxes would only fund a percentage of scheduled benefits, resulting in an automatic across-the-board reduction
-                            unless Congress acts. This tool applies that reduction from the selected year forward so you can stress-test your claiming strategy.
-                        </p>
-                        <p style={{ marginTop: '8px' }}>
-                            Use this projection to see how delaying benefits, coordinating with a spouse, or using bridge income may offset a future cut.
-                            The calculation keeps your inflation assumption and applies the cut to both monthly payments and the lifetime totals after the chosen year.
-                        </p>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '18px' }}>
-                            <button
-                                onClick={() => setShowSsCutInfo(false)}
-                                style={{ padding: '9px 18px', borderRadius: '10px', border: 'none', background: '#2563eb', color: '#ffffff', fontWeight: 600, cursor: 'pointer' }}
-                            >
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white max-w-lg w-full rounded-2xl shadow-2xl p-6 animate-slide-in">
+                        <h3 className="text-2xl font-bold text-primary-700 mb-4">About the SS Cuts Scenario</h3>
+                        <div className="space-y-3 text-gray-700 leading-relaxed">
+                            <p>
+                                <strong>The default values (2034, 21% cut)</strong> represent the most recent consensus projection from the Social Security Board of Trustees regarding when the trust fund reserves may be depleted and the expected benefit reduction if no legislative action is taken.
+                            </p>
+                            <p>
+                                When trust fund reserves are exhausted, incoming payroll taxes would only cover a portion of scheduled benefits, resulting in an automatic across-the-board reduction unless Congress intervenes. This tool lets you model different scenarios by adjusting the year and percentage to stress-test your claiming strategy.
+                            </p>
+                            <p>
+                                Use this projection to explore how delaying benefits, coordinating with a spouse, or using bridge income may help offset a potential future cut. The calculation maintains your inflation assumption and applies the reduction to both monthly payments and lifetime totals from the selected year forward.
+                            </p>
+                        </div>
+                        <div className="flex justify-end mt-6">
+                            <Button onClick={() => setShowSsCutInfo(false)} variant="primary">
                                 Close
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
