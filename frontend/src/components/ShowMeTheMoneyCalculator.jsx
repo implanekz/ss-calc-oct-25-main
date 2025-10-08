@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Bar, Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import annotationPlugin from 'chartjs-plugin-annotation';
 import { Checkbox, Button } from './ui';
 import { PillTabs, PillTab } from './ui';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, annotationPlugin);
 
 const FRA_LOOKUP = {
     1937: { years: 65, months: 0 },
@@ -131,7 +132,7 @@ const ShowMeTheMoneyCalculator = () => {
     const [deathYear, setDeathYear] = useState(currentCalendarYear + 1);
     const [activeRecordView, setActiveRecordView] = useState('combined');
     const [showMonthlyCashflow, setShowMonthlyCashflow] = useState(false);
-    const [post70View, setPost70View] = useState('monthly');
+    const [post70View, setPost70View] = useState('cumulative');
     const [ssCutYear, setSsCutYear] = useState(2034);
     const [ssCutPercentage, setSsCutPercentage] = useState(21);
     const [ssCutsActive, setSsCutsActive] = useState(false);
@@ -591,14 +592,79 @@ const ShowMeTheMoneyCalculator = () => {
                     }
                 };
             } else if (post70View === 'cumulative') {
+                // Calculate key milestone differences
+                const annotations = {};
+                const milestoneAges = [75, 80, 85, 90, 95];
+
+                milestoneAges.forEach(age => {
+                    const labelIndex = labelsPost70.findIndex(label => label === `Age ${age}`);
+                    if (labelIndex !== -1) {
+                        const age62Value = cumulativeAfter70(combinedProjections.age62)[labelIndex] || 0;
+                        const age70Value = cumulativeAfter70(combinedProjections.age70)[labelIndex] || 0;
+                        const diff = age70Value - age62Value;
+
+                        if (Math.abs(diff) > 1000) {
+                            // Create a flag label positioned above the line
+                            const boxHeight = age === 75 ? 0 : age === 80 ? 85 : age === 85 ? 170 : age === 90 ? 255 : 340;
+                            annotations[`box${age}`] = {
+                                type: 'label',
+                                xValue: labelIndex,
+                                yValue: 'max',
+                                yAdjust: -(boxHeight + 75),
+                                xAdjust: -75,
+                                content: [
+                                    `💡 Age ${age}`,
+                                    `Filing at 70: ${currencyFormatter.format(age70Value)}`,
+                                    `Filing at 62: ${currencyFormatter.format(age62Value)}`,
+                                    `Advantage: ${currencyFormatter.format(Math.abs(diff))}`
+                                ],
+                                backgroundColor: 'rgba(16, 185, 129, 0.95)',
+                                color: 'white',
+                                font: {
+                                    size: 11,
+                                    weight: 'bold'
+                                },
+                                padding: 8,
+                                borderRadius: 6,
+                                borderColor: 'rgba(255, 255, 255, 0.3)',
+                                borderWidth: 1,
+                                textAlign: 'center',
+                                position: 'center'
+                            };
+
+                            // Vertical line starting from bottom of flag
+                            annotations[`line${age}`] = {
+                                type: 'line',
+                                xMin: labelIndex,
+                                xMax: labelIndex,
+                                yMin: 0,
+                                yMax: 'max',
+                                yScaleID: 'y',
+                                adjustScaleRange: false,
+                                borderColor: 'rgba(147, 51, 234, 0.5)',
+                                borderWidth: 2,
+                                borderDash: [6, 4],
+                                display: true
+                            };
+                        }
+                    }
+                });
+
                 newChartData = {
                     labels: labelsPost70,
                     datasets: cumulativeDatasets
                 };
                 newChartOptions = {
                     plugins: {
-                        title: { display: true, text: 'Post-70 Cumulative Income' },
-                        tooltip: { callbacks: { label: tooltipLabelFormatter } }
+                        title: { display: true, text: 'Post-70 Cumulative Income - Filing Strategy Impact' },
+                        tooltip: {
+                            callbacks: {
+                                label: tooltipLabelFormatter
+                            }
+                        },
+                        annotation: {
+                            annotations
+                        }
                     },
                     layout: { padding: CHART_PADDING },
                     scales: {
