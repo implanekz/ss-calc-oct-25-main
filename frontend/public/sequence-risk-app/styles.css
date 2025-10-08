@@ -187,6 +187,12 @@ th:first-child, td:first-child {
   text-align: left;
 }
 
+td.negative,
+.negative {
+  color: #dc2626;
+  font-weight: 600;
+}
+
 .mini-table .summary {
   margin-top: 12px;
   font-weight: 600;

@@ -198,12 +198,13 @@ const renderTables = (historicalScenario, strategyOneScenario, strategyTwoScenar
       const withdrawalAmount = row.withdrawal || 0;
       const withdrawalDisplay = withdrawalAmount ? formatCurrency(withdrawalAmount) : '$0';
       totalWithdrawn += withdrawalAmount;
+      const endingClass = row.ending < 0 ? ' class="negative"' : '';
 
       tr.innerHTML = `
         <td>${row.year}</td>
         <td>${(row.appliedReturn * 100).toFixed(2)}%</td>
         <td>${withdrawalDisplay}</td>
-        <td>${formatCurrency(row.ending)}</td>
+        <td${endingClass}>${formatCurrency(row.ending)}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -213,9 +214,10 @@ const renderTables = (historicalScenario, strategyOneScenario, strategyTwoScenar
 
     const summary = document.createElement('div');
     summary.className = 'summary';
+    const endingBalanceClass = scenario.endingBalance < 0 ? ' class="negative"' : '';
     summary.innerHTML = `
       Total Withdrawals: ${formatCurrency(totalWithdrawn)}<br />
-      Ending Balance: ${formatCurrency(scenario.endingBalance)}
+      Ending Balance: <span${endingBalanceClass}>${formatCurrency(scenario.endingBalance)}</span>
     `;
     content.appendChild(summary);
 
