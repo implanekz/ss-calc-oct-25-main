@@ -54,6 +54,7 @@ label {
   font-size: 0.92rem;
 }
 
+input[type='text'],
 input[type='number'],
 select {
   padding: 10px 12px;
@@ -61,6 +62,12 @@ select {
   border-radius: 8px;
   font-size: 1rem;
   background: #fffdf7;
+}
+
+.controls .field input,
+.controls .field select {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 button {

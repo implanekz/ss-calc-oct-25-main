@@ -89,6 +89,7 @@ const stressState = {
   scenarioKey: '',
   targetYear: '',
 };
+let latestScenarios = null;
 
 const generateSpanKey = (returns) => {
   if (!returns.length) return 'empty';
@@ -241,8 +242,8 @@ const renderTables = (historicalScenario, strategyOneScenario, strategyTwoScenar
   const inner = document.createElement('div');
   inner.className = 'table-group';
   inner.appendChild(makeMiniTable('Historical Sequence', historicalScenario));
-  inner.appendChild(makeMiniTable('Strategy 1: Guard Downturns', strategyOneScenario, { collapsible: true, key: 'strategy1' }));
-  inner.appendChild(makeMiniTable('Strategy 2: Guard Tail Risk', strategyTwoScenario, { collapsible: true, key: 'strategy2' }));
+  inner.appendChild(makeMiniTable('Strategy 1 Sequence', strategyOneScenario, { collapsible: true, key: 'strategy1' }));
+  inner.appendChild(makeMiniTable('Strategy 2 Sequence', strategyTwoScenario, { collapsible: true, key: 'strategy2' }));
   card.appendChild(inner);
 
   wrapper.appendChild(card);
@@ -265,7 +266,7 @@ const renderChart = (historicalScenario, strategyOneScenario, strategyTwoScenari
         tension: 0.25,
       },
       {
-        label: 'Strategy 1',
+        label: 'Strategy 1 Sequence',
         data: strategyOneScenario.rows.map((row) => Math.round(row.ending)),
         borderColor: '#22c55e',
         backgroundColor: 'rgba(34, 197, 94, 0.15)',
@@ -273,7 +274,7 @@ const renderChart = (historicalScenario, strategyOneScenario, strategyTwoScenari
         tension: 0.25,
       },
       {
-        label: 'Strategy 2',
+        label: 'Strategy 2 Sequence',
         data: strategyTwoScenario.rows.map((row) => Math.round(row.ending)),
         borderColor: '#f97316',
         backgroundColor: 'rgba(249, 115, 22, 0.15)',
@@ -315,18 +316,31 @@ const renderChart = (historicalScenario, strategyOneScenario, strategyTwoScenari
   });
 };
 
-const withdrawalRates = [0.03, 0.035, 0.04, 0.045, 0.05, 0.055, 0.06];
+const withdrawalRates = Array.from({ length: 13 }, (_, idx) => idx / 100); // 0% through 12%
+
+const DEFAULTS = {
+  initialBalance: 250000,
+  withdrawalRate: 0.04,
+  startYear: 2000,
+  endYear: 2012,
+};
 
 const populateWithdrawalSelect = () => {
   const select = document.getElementById('withdrawal-rate');
   select.innerHTML = '';
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = 'Select rate';
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  select.appendChild(placeholder);
+
   withdrawalRates.forEach((rate) => {
     const option = document.createElement('option');
     option.value = rate;
     option.textContent = `${(rate * 100).toFixed(1)}% of balance`;
     select.appendChild(option);
   });
-  select.value = withdrawalRates[0];
 };
 
 const populateInitialBalanceOptions = () => {
@@ -341,7 +355,6 @@ const populateInitialBalanceOptions = () => {
 const sanitizeCurrencyInput = (input) => {
   const value = input.value.replace(/[^0-9.]/g, '');
   if (!value) {
-    input.value = '';
     return 0;
   }
   const numericValue = Number(value);
@@ -390,6 +403,7 @@ const initStressControls = () => {
     stressState.enabled = !stressState.enabled;
     toggle.setAttribute('aria-expanded', stressState.enabled.toString());
     controls.hidden = !stressState.enabled;
+    infoButton.hidden = !stressState.enabled || !stressState.scenarioKey;
     yearSelect.disabled = !stressState.enabled;
     if (!stressState.enabled) {
       stressState.scenarioKey = '';
@@ -403,6 +417,7 @@ const initStressControls = () => {
 
   scenarioSelect.addEventListener('change', () => {
     stressState.scenarioKey = scenarioSelect.value;
+    infoButton.hidden = !stressState.scenarioKey;
     const years = getReturnsSlice(
       Number(document.getElementById('start-year').value),
       Number(document.getElementById('end-year').value),
@@ -446,8 +461,17 @@ const initStressControls = () => {
 };
 
 const runSimulation = () => {
-  const initialBalance = sanitizeCurrencyInput(document.getElementById('initial-balance'));
-  const withdrawalRate = Number(document.getElementById('withdrawal-rate').value);
+  const initialBalanceInput = document.getElementById('initial-balance');
+  const rawBalance = initialBalanceInput.value.trim();
+  const sanitizedBalance = sanitizeCurrencyInput(initialBalanceInput);
+  const initialBalance = rawBalance === '' ? DEFAULTS.initialBalance : sanitizedBalance;
+  initialBalanceInput.value = formatCurrency(initialBalance);
+
+  const withdrawalRateSelect = document.getElementById('withdrawal-rate');
+  const withdrawalRate = withdrawalRateSelect.value === ''
+    ? 0
+    : Number(withdrawalRateSelect.value);
+
   const startYear = sanitizeNumberInput(document.getElementById('start-year'), 1926, 2024);
   const endYear = sanitizeNumberInput(document.getElementById('end-year'), startYear + 1, 2024);
   document.getElementById('end-year').min = startYear + 1;
@@ -468,6 +492,7 @@ const init = () => {
   populateWithdrawalSelect();
   populateInitialBalanceOptions();
   initStressControls();
+  document.getElementById('stress-info').hidden = true;
   runSimulation();
 
   document.getElementById('randomize').addEventListener('click', () => {
@@ -483,11 +508,23 @@ const init = () => {
     stressState.enabled = false;
     stressState.scenarioKey = '';
     stressState.targetYear = '';
+    expandedTables.strategy1 = false;
+    expandedTables.strategy2 = false;
     document.getElementById('stress-toggle').setAttribute('aria-expanded', 'false');
     document.getElementById('stress-controls').hidden = true;
+    document.getElementById('stress-info').hidden = true;
     document.getElementById('stress-scenario').value = '';
     document.getElementById('stress-year').replaceChildren(new Option('Select year', '', true, true));
     document.getElementById('stress-year').disabled = true;
+    document.getElementById('initial-balance').value = formatCurrency(DEFAULTS.initialBalance);
+    const withdrawalSelect = document.getElementById('withdrawal-rate');
+    withdrawalSelect.value = '';
+    withdrawalSelect.selectedIndex = 0;
+    document.getElementById('start-year').value = DEFAULTS.startYear;
+    document.getElementById('end-year').value = DEFAULTS.endYear;
+    document.getElementById('end-year').min = DEFAULTS.startYear + 1;
+    document.getElementById('stress-modal').hidden = true;
+    document.getElementById('stress-modal').setAttribute('aria-hidden', 'true');
     runSimulation();
   });
 
