@@ -140,6 +140,7 @@ const ShowMeTheMoneyCalculator = () => {
     const [ssCutsSummary, setSsCutsSummary] = useState([]);
     const [ssCutsPayload, setSsCutsPayload] = useState(null);
     const [showSsCutInfo, setShowSsCutInfo] = useState(false);
+    const [ssCutsAxisRanges, setSsCutsAxisRanges] = useState(null);
 
     useEffect(() => {
         if (!isMarried && activeRecordView === 'spouse') {
@@ -361,33 +362,73 @@ const ShowMeTheMoneyCalculator = () => {
         if (chartView === 'sscuts') {
             const comparisonLabel = ssCutsActive ? 'Projected Cuts Applied' : 'Baseline (No Cuts)';
             newChartData = ssCutsChartData || { labels: [], datasets: [] };
+
+            // Build scales with fixed ranges if available
+            let yMonthlyScale = {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                title: { text: 'Monthly Benefit ($)', display: true },
+                ticks: {
+                    callback: formatCurrencyTick,
+                    precision: 0
+                },
+                bounds: 'data'
+            };
+
+            let yCumulativeScale = {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                title: { text: 'Cumulative Benefits ($)', display: true },
+                grid: { drawOnChartArea: false },
+                ticks: {
+                    callback: formatCurrencyTick,
+                    precision: 0
+                },
+                bounds: 'data'
+            };
+
+            // Apply fixed ranges if they exist - FORCE the axis limits
+            if (ssCutsAxisRanges) {
+                console.log('Applying fixed Y-axis ranges:', ssCutsAxisRanges);
+                const monthlyMin = ssCutsAxisRanges.monthly.min;
+                const monthlyMax = ssCutsAxisRanges.monthly.max;
+                const cumulativeMin = ssCutsAxisRanges.cumulative.min;
+                const cumulativeMax = ssCutsAxisRanges.cumulative.max;
+
+                yMonthlyScale.min = monthlyMin;
+                yMonthlyScale.max = monthlyMax;
+                yMonthlyScale.beginAtZero = false;
+
+                yCumulativeScale.min = cumulativeMin;
+                yCumulativeScale.max = cumulativeMax;
+                yCumulativeScale.beginAtZero = false;
+            } else {
+                console.log('No ssCutsAxisRanges found');
+            }
+
             newChartOptions = {
                 plugins: {
                     title: { display: true, text: `SS Reserve Fund Cuts – ${comparisonLabel}` },
                     tooltip: { callbacks: { label: tooltipLabelFormatter } },
                     legend: { position: 'bottom' }
                 },
-                animation: { duration: 700, easing: 'easeOutQuart' },
+                animation: {
+                    duration: 700,
+                    easing: 'easeInOutQuart'
+                },
                 layout: { padding: CHART_PADDING },
                 scales: {
                     x: { title: { text: 'Age' }, ticks: { autoSkip: false } },
-                    y_monthly: {
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        title: { text: 'Monthly Benefit ($)', display: true },
-                        ticks: { callback: formatCurrencyTick }
-                    },
-                    y_cumulative: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        title: { text: 'Cumulative Benefits ($)', display: true },
-                        grid: { drawOnChartArea: false },
-                        ticks: { callback: formatCurrencyTick }
-                    }
-                }
+                    y_monthly: yMonthlyScale,
+                    y_cumulative: yCumulativeScale
+                },
+                maintainAspectRatio: false,
+                responsive: true
             };
+
+            console.log('Final chart options for sscuts:', JSON.stringify(newChartOptions.scales, null, 2));
 
             setChartData(newChartData);
             setChartOptions(newChartOptions);
@@ -804,15 +845,169 @@ const ShowMeTheMoneyCalculator = () => {
         setChartData(newChartData);
         setChartOptions(newChartOptions);
 
-    }, [scenarioData, chartView, activeRecordView, showMonthlyCashflow, post70View, ssCutsChartData, ssCutsActive, isMarried]);
+    }, [scenarioData, chartView, activeRecordView, showMonthlyCashflow, post70View, ssCutsChartData, ssCutsActive, isMarried, ssCutsAxisRanges]);
 
     useEffect(() => {
         setSsCutsChartData(null);
         setSsCutsSummary([]);
         setSsCutsPayload(null);
         setSsCutsActive(false);
+        setSsCutsAxisRanges(null);
     }, [scenarioData, activeRecordView]);
 
+    // Auto-calculate and show baseline when switching to SS Cuts tab
+    useEffect(() => {
+        if (chartView === 'sscuts' && !ssCutsPayload && scenarioData) {
+            // Automatically calculate the baseline when tab is opened
+            const calculateSsCuts = () => {
+                const {
+                    primaryProjections,
+                    spouseProjections,
+                    combinedProjections,
+                    birthYearPrimary,
+                    birthYearSpouse,
+                    primaryYears,
+                    spouseYears
+                } = scenarioData;
+
+                const baseProjections =
+                    activeRecordView === 'primary'
+                        ? primaryProjections
+                        : activeRecordView === 'spouse' && spouseProjections
+                            ? spouseProjections
+                            : combinedProjections;
+
+                let displayYearsForData = primaryYears;
+                let labels = primaryYears.map(year => `Age ${year - birthYearPrimary}`);
+
+                if (activeRecordView === 'spouse' && spouseYears) {
+                    displayYearsForData = spouseYears;
+                    labels = spouseYears.map(year => `Age ${year - birthYearSpouse}`);
+                } else if (activeRecordView === 'combined' && isMarried && birthYearSpouse !== null) {
+                    displayYearsForData = primaryYears;
+                    labels = primaryYears.map(year => {
+                        const age1 = year - birthYearPrimary;
+                        const age2 = year - birthYearSpouse;
+                        return `Ages ${age1}/${age2}`;
+                    });
+                }
+
+                const scenarioConfigs = [
+                    { key: 'age62', label: 'File at 62', barColor: 'rgba(239, 68, 68, 0.78)', lineColor: 'rgba(239, 68, 68, 1)' },
+                    { key: 'preferred', label: 'Preferred Age', barColor: 'rgba(59, 130, 246, 0.78)', lineColor: 'rgba(59, 130, 246, 1)' },
+                    { key: 'age70', label: 'File at 70', barColor: 'rgba(45, 212, 191, 0.78)', lineColor: 'rgba(20, 184, 166, 1)' },
+                ];
+
+                const reductionFactor = Math.min(1, Math.max(0, 1 - (Number(ssCutPercentage) || 0) / 100));
+                const cutYearValue = Number(ssCutYear) || ssCutYear;
+
+                const applyCuts = (projection) => {
+                    const yearKeys = Array.from(new Set([
+                        ...Object.keys(projection.monthly || {}),
+                        ...Object.keys(projection.cumulative || {})
+                    ])).map(Number).sort((a, b) => a - b);
+
+                    const monthly = {};
+                    const cumulative = {};
+                    let running = 0;
+
+                    yearKeys.forEach(year => {
+                        const baseMonthly = projection.monthly?.[year] || 0;
+                        const adjustedMonthly = year >= cutYearValue ? baseMonthly * reductionFactor : baseMonthly;
+                        const roundedMonthly = Number(adjustedMonthly.toFixed(2));
+                        monthly[year] = roundedMonthly;
+                        running = Number((running + roundedMonthly * 12).toFixed(2));
+                        cumulative[year] = running;
+                    });
+
+                    return { monthly, cumulative };
+                };
+
+                const scenarios = [];
+
+                scenarioConfigs.forEach((config) => {
+                    const baseProjection = baseProjections?.[config.key];
+                    if (!baseProjection) return;
+
+                    const cutProjection = applyCuts(baseProjection);
+
+                    const baselineMonthly = displayYearsForData.map(year => Number((baseProjection.monthly?.[year] || 0).toFixed(2)));
+                    const baselineCumulative = displayYearsForData.map(year => Number((baseProjection.cumulative?.[year] || 0).toFixed(2)));
+                    const cutMonthly = displayYearsForData.map(year => Number((cutProjection.monthly?.[year] || 0).toFixed(2)));
+                    const cutCumulative = displayYearsForData.map(year => Number((cutProjection.cumulative?.[year] || 0).toFixed(2)));
+
+                    const baselineTotal = baselineCumulative[baselineCumulative.length - 1] || 0;
+                    const cutTotal = cutCumulative[cutCumulative.length - 1] || 0;
+
+                    scenarios.push({
+                        label: config.label,
+                        barColor: config.barColor,
+                        lineColor: config.lineColor,
+                        baselineMonthly,
+                        baselineCumulative,
+                        cutMonthly,
+                        cutCumulative,
+                        baselineTotal,
+                        cutTotal
+                    });
+                });
+
+                if (!scenarios.length) return;
+
+                const summary = scenarios.map((scenario) => ({
+                    label: scenario.label,
+                    baseline: Math.round(scenario.baselineTotal),
+                    projected: Math.round(scenario.cutTotal),
+                    delta: Math.round(scenario.cutTotal - scenario.baselineTotal)
+                }));
+
+                // Calculate min/max across both baseline and cuts to freeze the Y-axis
+                let minMonthly = Infinity;
+                let maxMonthly = -Infinity;
+                let minCumulative = Infinity;
+                let maxCumulative = -Infinity;
+
+                scenarios.forEach((scenario) => {
+                    [...scenario.baselineMonthly, ...scenario.cutMonthly].forEach(val => {
+                        minMonthly = Math.min(minMonthly, val);
+                        maxMonthly = Math.max(maxMonthly, val);
+                    });
+
+                    [...scenario.baselineCumulative, ...scenario.cutCumulative].forEach(val => {
+                        minCumulative = Math.min(minCumulative, val);
+                        maxCumulative = Math.max(maxCumulative, val);
+                    });
+                });
+
+                const monthlyPadding = (maxMonthly - minMonthly) * 0.1;
+                const cumulativePadding = (maxCumulative - minCumulative) * 0.1;
+
+                const yAxisRanges = {
+                    monthly: {
+                        min: 0,
+                        max: Math.ceil(maxMonthly + monthlyPadding)
+                    },
+                    cumulative: {
+                        min: 0,
+                        max: Math.ceil(maxCumulative + cumulativePadding)
+                    }
+                };
+
+                const payload = {
+                    labels,
+                    scenarios,
+                    summary,
+                    yAxisRanges
+                };
+
+                setSsCutsAxisRanges(yAxisRanges);
+                setSsCutsPayload(payload);
+                applySsCutsMode(false, payload); // Show baseline initially
+            };
+
+            calculateSsCuts();
+        }
+    }, [chartView, ssCutsPayload, scenarioData, activeRecordView, isMarried, ssCutYear, ssCutPercentage]);
 
     const handlePrimaryOnlyToggle = (event) => {
         setActiveRecordView(event.target.checked ? 'primary' : 'combined');
@@ -830,7 +1025,11 @@ const ShowMeTheMoneyCalculator = () => {
             return;
         }
 
+        console.log('applySsCutsMode called with projected:', projected);
+        console.log('Payload yAxisRanges:', payload.yAxisRanges);
+
         const datasets = [];
+
         payload.scenarios.forEach((scenario) => {
             if (!scenario) {
                 return;
@@ -868,7 +1067,8 @@ const ShowMeTheMoneyCalculator = () => {
 
         setSsCutsChartData({
             labels: payload.labels,
-            datasets
+            datasets,
+            yAxisRanges: payload.yAxisRanges // Use the ranges from the payload
         });
         setSsCutsSummary(payload.summary);
         setSsCutsActive(projected);
@@ -987,12 +1187,53 @@ const ShowMeTheMoneyCalculator = () => {
             delta: Math.round(scenario.cutTotal - scenario.baselineTotal)
         }));
 
+        // Calculate min/max across both baseline and cuts to freeze the Y-axis
+        let minMonthly = Infinity;
+        let maxMonthly = -Infinity;
+        let minCumulative = Infinity;
+        let maxCumulative = -Infinity;
+
+        scenarios.forEach((scenario) => {
+            // Check both baseline and cuts for min/max
+            [...scenario.baselineMonthly, ...scenario.cutMonthly].forEach(val => {
+                minMonthly = Math.min(minMonthly, val);
+                maxMonthly = Math.max(maxMonthly, val);
+            });
+
+            [...scenario.baselineCumulative, ...scenario.cutCumulative].forEach(val => {
+                minCumulative = Math.min(minCumulative, val);
+                maxCumulative = Math.max(maxCumulative, val);
+            });
+        });
+
+        // Add 10% padding to the ranges
+        const monthlyPadding = (maxMonthly - minMonthly) * 0.1;
+        const cumulativePadding = (maxCumulative - minCumulative) * 0.1;
+
+        const yAxisRanges = {
+            monthly: {
+                min: 0, // Start monthly at 0 for clear visual comparison
+                max: Math.ceil(maxMonthly + monthlyPadding)
+            },
+            cumulative: {
+                min: 0, // Start cumulative at 0 for clear visual comparison
+                max: Math.ceil(maxCumulative + cumulativePadding)
+            }
+        };
+
+        console.log('Calculated Y-axis ranges for SS Cuts:', yAxisRanges);
+        console.log('Monthly range:', minMonthly, 'to', maxMonthly);
+        console.log('Cumulative range:', minCumulative, 'to', maxCumulative);
+
         const payload = {
             labels,
             scenarios,
-            summary
+            summary,
+            yAxisRanges
         };
 
+        // Store axis ranges in persistent state
+        setSsCutsAxisRanges(yAxisRanges);
         setSsCutsPayload(payload);
         applySsCutsMode(true, payload);
         setChartView('sscuts');
@@ -1355,7 +1596,7 @@ const ShowMeTheMoneyCalculator = () => {
                         {
                             chartView === 'sscuts'
                                 ? (ssCutsChartData && ssCutsChartData.labels && ssCutsChartData.labels.length > 0
-                                    ? <Bar data={chartData} options={{...chartOptions, maintainAspectRatio: false}} />
+                                    ? <Bar key="sscuts-chart" data={chartData} options={chartOptions} />
                                     : (
                                         <div className="h-full flex items-center justify-center text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
                                             <p className="text-center px-8 text-sm">
