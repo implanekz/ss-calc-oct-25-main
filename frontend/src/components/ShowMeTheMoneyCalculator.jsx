@@ -2,10 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Bar, Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import annotationPlugin from 'chartjs-plugin-annotation';
+import { SankeyController, Flow } from 'chartjs-chart-sankey';
 import { Checkbox, Button } from './ui';
 import { PillTabs, PillTab } from './ui';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, annotationPlugin);
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, annotationPlugin, SankeyController, Flow);
 
 const FRA_LOOKUP = {
     1937: { years: 65, months: 0 },
@@ -102,6 +103,667 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 0
 });
 
+// Flow Visualization Component - Three Scenarios Side-by-Side
+const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, isMarried, inflationRate, currentAge, selectedStrategy, setSelectedStrategy, piaStrategy, setPiaStrategy }) => {
+    if (!scenarioData) {
+        return <div className="h-full flex items-center justify-center text-gray-500">Loading...</div>;
+    }
+
+    const { primaryProjections, spouseProjections, combinedProjections, birthYearPrimary, earlyLateProjection, preferredLateProjection, bothLateProjection } = scenarioData;
+
+    const projections = activeRecordView === 'primary'
+        ? primaryProjections
+        : activeRecordView === 'spouse' && spouseProjections
+            ? spouseProjections
+            : combinedProjections;
+
+    // Calculate the calendar year for the selected age
+    const calendarYear = birthYearPrimary + age;
+
+    // Get monthly values for each filing scenario
+    // When married and viewing combined, use early/late strategy projections
+    const useEarlyLateStrategy = isMarried && activeRecordView === 'combined';
+
+    const age62Monthly = useEarlyLateStrategy
+        ? (earlyLateProjection?.monthly[calendarYear] || 0)
+        : (projections.age62.monthly[calendarYear] || 0);
+    const age67Monthly = useEarlyLateStrategy
+        ? (preferredLateProjection?.monthly[calendarYear] || 0)
+        : (projections.preferred.monthly[calendarYear] || 0);
+    const age70Monthly = useEarlyLateStrategy
+        ? (bothLateProjection?.monthly[calendarYear] || 0)
+        : (projections.age70.monthly[calendarYear] || 0);
+
+    // Apply inflation to monthly needs from current age to selected age
+    const yearsFromNow = age - currentAge;
+    const inflatedMonthlyNeeds = monthlyNeeds * Math.pow(1 + inflationRate, yearsFromNow);
+
+    // For the hybrid column, we need to show the two individual spouse benefits when married
+    const showHybridColumn = isMarried && activeRecordView === 'combined';
+
+    // Get individual spouse values for the hybrid (62/70) column
+    let bottomSegmentAmount = 0;  // Person who files at 62 - shown as bottom/first segment
+    let topSegmentAmount = 0; // Person who files at 70 - shown as top/second segment (only when age >= 70)
+
+    if (showHybridColumn && primaryProjections && spouseProjections) {
+        // Get the benefit amounts for each spouse at the current calendar year
+        // These already include proper reduction factors and inflation adjustments
+        const primary62AtCurrentAge = primaryProjections.age62.monthly[calendarYear] || 0;
+        const spouse62AtCurrentAge = spouseProjections.age62.monthly[calendarYear] || 0;
+        const primary70AtCurrentAge = primaryProjections.age70.monthly[calendarYear] || 0;
+        const spouse70AtCurrentAge = spouseProjections.age70.monthly[calendarYear] || 0;
+
+        // Determine which spouse has lower PIA based on their age 62 benefits (proxy for PIA)
+        const primaryIsLowerPia = primary62AtCurrentAge <= spouse62AtCurrentAge;
+
+        // Hybrid strategy logic: ALWAYS use the optimal strategy
+        // - Lower PIA spouse files at 62 and gets reduced benefits ongoing
+        // - Higher PIA spouse waits until 70 to file for maximum benefits
+        // - At ages before 70, we only show the lower PIA's benefit
+        // - At age 70+, we show both: lower PIA (who filed at 62) + higher PIA (filing at 70)
+
+        if (primaryIsLowerPia) {
+            // Primary (lower PIA) files at 62
+            bottomSegmentAmount = primary62AtCurrentAge;
+            // Spouse (higher PIA) files at 70
+            topSegmentAmount = age >= 70 ? spouse70AtCurrentAge : 0;
+        } else {
+            // Spouse (lower PIA) files at 62
+            bottomSegmentAmount = spouse62AtCurrentAge;
+            // Primary (higher PIA) files at 70
+            topSegmentAmount = age >= 70 ? primary70AtCurrentAge : 0;
+        }
+    }
+
+    const hybridTotalIncome = bottomSegmentAmount + topSegmentAmount;
+
+    // Calculate coverage for each scenario
+    const scenarios = [
+        {
+            label: 'File at 62',
+            age: 62,
+            income: age62Monthly,
+            covered: Math.min(age62Monthly, inflatedMonthlyNeeds),
+            gap: Math.max(0, inflatedMonthlyNeeds - age62Monthly),
+            color: '#EF4444'
+        },
+        {
+            label: 'File at 67',
+            age: 67,
+            income: age67Monthly,
+            covered: Math.min(age67Monthly, inflatedMonthlyNeeds),
+            gap: Math.max(0, inflatedMonthlyNeeds - age67Monthly),
+            color: '#3B82F6'
+        },
+        {
+            label: 'File at 70',
+            age: 70,
+            income: age70Monthly,
+            covered: Math.min(age70Monthly, inflatedMonthlyNeeds),
+            gap: Math.max(0, inflatedMonthlyNeeds - age70Monthly),
+            color: '#14B8A6'
+        }
+    ];
+
+    const gapColor = '#9CA3AF'; // Gray for gaps
+
+    // SVG dimensions - use more vertical space for drama
+    const width = 1200;
+    const height = 600;
+    const barWidth = 100;
+    const barSpacing = 80;
+    const startX = 100;
+    const rightX = 950;
+    const maxValue = Math.max(inflatedMonthlyNeeds, age70Monthly) * 1.1; // Add 10% padding
+
+    // Calculate heights proportional to values - use more vertical space
+    const availableHeight = 450; // More vertical space
+    const getHeight = (value) => Math.max(30, (value / maxValue) * availableHeight);
+
+    // Target bar is 50% taller to give room for swoopy curves
+    const getTargetHeight = (value) => getHeight(value) * 1.5;
+
+    // Generate dramatic curved flow path - only for selected strategy
+    // Handle hybrid column (index 3) differently
+    const selectedScenario = selectedStrategy === 3
+        ? {
+            label: 'File at 62/70',
+            age: age >= 70 ? '62/70' : age >= 67 ? 67 : 62,
+            income: hybridTotalIncome,
+            covered: Math.min(hybridTotalIncome, inflatedMonthlyNeeds),
+            gap: Math.max(0, inflatedMonthlyNeeds - hybridTotalIncome),
+            color: '#9333EA'
+          }
+        : scenarios[selectedStrategy];
+
+    const selectedBarX = selectedStrategy === 3
+        ? startX  // Hybrid column is at far left
+        : startX + (barWidth + barSpacing) + selectedStrategy * (barWidth + barSpacing);  // Shift other columns right
+    const baseY = height - 80;
+
+    // Calculate control points for swoopy Sankey flow
+    // Flow from bottom of strategy bar to bottom of target bar,
+    // and from top of strategy bar to the coverage point on target bar
+    const targetHeight = getTargetHeight(inflatedMonthlyNeeds);
+    const targetBottom = baseY;
+    const targetCoveragePoint = selectedScenario ? baseY - (selectedScenario.covered / inflatedMonthlyNeeds) * targetHeight : baseY;
+
+    const strategyBottom = baseY;
+    const strategyTop = selectedScenario ? baseY - getHeight(selectedScenario.covered) : baseY;
+
+    const midX = (selectedBarX + barWidth + rightX) / 2;
+
+    // Create swoopy flow path - different logic for hybrid column
+    let flowPath = null;
+    let flowPathLower = null;
+    let flowPathHigher = null;
+
+    if (selectedStrategy === 3 && showHybridColumn) {
+        // Two separate flows for the hybrid column (only when age >= 70)
+        const lowerHeight = getHeight(bottomSegmentAmount);
+        const higherHeight = getHeight(topSegmentAmount);
+        const totalCombined = hybridTotalIncome;
+
+        if (totalCombined > 0 && age >= 70 && topSegmentAmount > 0) {
+            // Two-segment flow when both spouses have filed
+            const lowerTop = baseY - lowerHeight;
+            const lowerCoveragePoint = baseY - (bottomSegmentAmount / inflatedMonthlyNeeds) * targetHeight;
+
+            flowPathLower = `
+                M ${selectedBarX + barWidth} ${baseY}
+                C ${midX} ${baseY},
+                  ${midX} ${baseY},
+                  ${rightX} ${baseY}
+                L ${rightX} ${lowerCoveragePoint}
+                C ${midX} ${lowerCoveragePoint},
+                  ${midX} ${lowerTop},
+                  ${selectedBarX + barWidth} ${lowerTop}
+                Z
+            `;
+
+            // Higher segment flow (from 70 benefit stacked on top to target)
+            const higherBottom = baseY - lowerHeight;
+            const higherTop = baseY - lowerHeight - higherHeight;
+            const higherCoverageStart = lowerCoveragePoint;
+            const higherCoverageEnd = baseY - ((bottomSegmentAmount + topSegmentAmount) / inflatedMonthlyNeeds) * targetHeight;
+
+            flowPathHigher = `
+                M ${selectedBarX + barWidth} ${higherBottom}
+                C ${midX} ${higherBottom},
+                  ${midX} ${higherCoverageStart},
+                  ${rightX} ${higherCoverageStart}
+                L ${rightX} ${higherCoverageEnd}
+                C ${midX} ${higherCoverageEnd},
+                  ${midX} ${higherTop},
+                  ${selectedBarX + barWidth} ${higherTop}
+                Z
+            `;
+        } else if (totalCombined > 0) {
+            // Single flow when only lower PIA has filed (age < 70)
+            flowPath = `
+                M ${selectedBarX + barWidth} ${strategyBottom}
+                C ${midX} ${strategyBottom},
+                  ${midX} ${targetBottom},
+                  ${rightX} ${targetBottom}
+                L ${rightX} ${targetCoveragePoint}
+                C ${midX} ${targetCoveragePoint},
+                  ${midX} ${strategyTop},
+                  ${selectedBarX + barWidth} ${strategyTop}
+                Z
+            `;
+        }
+    } else if (selectedScenario && selectedScenario.income > 0) {
+        // Standard flow for single-column scenarios
+        flowPath = `
+            M ${selectedBarX + barWidth} ${strategyBottom}
+            C ${midX} ${strategyBottom},
+              ${midX} ${targetBottom},
+              ${rightX} ${targetBottom}
+            L ${rightX} ${targetCoveragePoint}
+            C ${midX} ${targetCoveragePoint},
+              ${midX} ${strategyTop},
+              ${selectedBarX + barWidth} ${strategyTop}
+            Z
+        `;
+    }
+
+    // Calculate coverage percentage for tooltips
+    const coveragePercent = inflatedMonthlyNeeds > 0
+        ? (selectedScenario.covered / inflatedMonthlyNeeds * 100).toFixed(0)
+        : 0;
+    const gapPercent = inflatedMonthlyNeeds > 0
+        ? (selectedScenario.gap / inflatedMonthlyNeeds * 100).toFixed(0)
+        : 0;
+
+    return (
+        <div className="h-full flex flex-col p-6">
+            <div className="text-center mb-4">
+                <div className="text-3xl font-bold text-gray-900 mb-2">
+                    Impact of Filing Strategy at Age {age}
+                </div>
+                <div className="text-lg text-gray-600">
+                    Monthly Expense Needs: {currencyFormatter.format(Math.round(inflatedMonthlyNeeds))}
+                    {yearsFromNow > 0 && (
+                        <span className="text-sm text-gray-500 ml-2">
+                            ({currencyFormatter.format(Math.round(monthlyNeeds))} today + {(inflationRate * 100).toFixed(1)}% inflation)
+                        </span>
+                    )}
+                </div>
+            </div>
+
+            <div className="flex-1 flex items-center justify-center overflow-x-auto">
+                <svg width={width} height={height} className="mx-auto" viewBox={`0 0 ${width} ${height}`}>
+                    <style>
+                        {`
+                            .flow-bar {
+                                transition: all 0.7s cubic-bezier(0.4, 0.0, 0.2, 1);
+                            }
+                            .flow-bar:hover {
+                                opacity: 1 !important;
+                                filter: brightness(1.1);
+                            }
+                            .flow-path {
+                                transition: all 0.7s cubic-bezier(0.4, 0.0, 0.2, 1);
+                            }
+                            .flow-path:hover {
+                                opacity: 0.7 !important;
+                            }
+                            .flow-text {
+                                transition: all 0.5s ease-in-out;
+                            }
+                            .tooltip-group {
+                                pointer-events: none;
+                                opacity: 0;
+                                transition: opacity 0.2s ease-in-out;
+                            }
+                            .flow-bar-group:hover .tooltip-group {
+                                opacity: 1;
+                            }
+                        `}
+                    </style>
+
+                    {/* Flow path - only for selected strategy */}
+                    {flowPath && (
+                        <g>
+                            <path
+                                d={flowPath}
+                                fill={selectedScenario.color}
+                                opacity="0.5"
+                                className="flow-path"
+                            />
+                            <title>
+                                {`SS Income covers ${coveragePercent}% of monthly needs\n`}
+                                {`${currencyFormatter.format(Math.round(selectedScenario.covered))} out of ${currencyFormatter.format(Math.round(inflatedMonthlyNeeds))}\n`}
+                                {selectedScenario.gap > 0 && `Remaining ${gapPercent}% must come from savings`}
+                            </title>
+                        </g>
+                    )}
+
+                    {/* Flow paths for hybrid column - two separate flows */}
+                    {flowPathLower && (
+                        <g>
+                            <path
+                                d={flowPathLower}
+                                fill="#EF4444"
+                                opacity="0.5"
+                                className="flow-path"
+                            />
+                            <title>
+                                {`Lower PIA files at ${age >= 70 ? 62 : age >= 67 ? 67 : 62}\n`}
+                                {`${currencyFormatter.format(Math.round(bottomSegmentAmount))} per month\n`}
+                                {`Early filing provides immediate income`}
+                            </title>
+                        </g>
+                    )}
+                    {flowPathHigher && (
+                        <g>
+                            <path
+                                d={flowPathHigher}
+                                fill="#14B8A6"
+                                opacity="0.5"
+                                className="flow-path"
+                            />
+                            <title>
+                                {`Higher PIA files at 70\n`}
+                                {`${currencyFormatter.format(Math.round(topSegmentAmount))} per month\n`}
+                                {`Late filing maximizes lifetime benefits`}
+                            </title>
+                        </g>
+                    )}
+
+                    {/* Hybrid (62/70) Column - only shown when married and viewing combined - positioned at far left */}
+                    {showHybridColumn && (
+                        <g>
+                            {(() => {
+                                const hybridX = startX;  // Far left position
+                                const lowerHeight = getHeight(bottomSegmentAmount);
+                                const higherHeight = getHeight(topSegmentAmount);
+                                const isHybridSelected = selectedStrategy === 3;
+                                const barOpacity = isHybridSelected ? 1 : 0.1;
+
+                                return (
+                                    <>
+                                        {/* Radio button */}
+                                        <circle
+                                            cx={hybridX + barWidth / 2}
+                                            cy={baseY - lowerHeight - higherHeight - 30}
+                                            r="8"
+                                            fill="white"
+                                            stroke="#9333EA"
+                                            strokeWidth="2"
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={() => setSelectedStrategy(3)}
+                                        />
+                                        {isHybridSelected && (
+                                            <circle
+                                                cx={hybridX + barWidth / 2}
+                                                cy={baseY - lowerHeight - higherHeight - 30}
+                                                r="4"
+                                                fill="#9333EA"
+                                                style={{ cursor: 'pointer' }}
+                                                onClick={() => setSelectedStrategy(3)}
+                                            />
+                                        )}
+
+                                        {/* Lower PIA segment (bottom, red) */}
+                                        {bottomSegmentAmount > 0 && (
+                                            <g>
+                                                <rect
+                                                    x={hybridX}
+                                                    y={baseY - lowerHeight}
+                                                    width={barWidth}
+                                                    height={lowerHeight}
+                                                    fill="#EF4444"
+                                                    rx="8"
+                                                    opacity={barOpacity}
+                                                    className="flow-bar"
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={() => setSelectedStrategy(3)}
+                                                />
+                                                <title>
+                                                    {`Lower PIA files at ${age >= 70 ? 62 : age >= 67 ? 67 : 62}\n`}
+                                                    {`${currencyFormatter.format(Math.round(bottomSegmentAmount))} per month\n`}
+                                                    {`Early filing provides immediate income`}
+                                                </title>
+                                            </g>
+                                        )}
+
+                                        {/* Higher PIA segment (top, teal) - only shown when age >= 70 */}
+                                        {topSegmentAmount > 0 && (
+                                            <g>
+                                                <rect
+                                                    x={hybridX}
+                                                    y={baseY - lowerHeight - higherHeight}
+                                                    width={barWidth}
+                                                    height={higherHeight}
+                                                    fill="#14B8A6"
+                                                    rx="8"
+                                                    opacity={barOpacity}
+                                                    className="flow-bar"
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={() => setSelectedStrategy(3)}
+                                                />
+                                                <title>
+                                                    {`Higher PIA files at 70\n`}
+                                                    {`${currencyFormatter.format(Math.round(topSegmentAmount))} per month\n`}
+                                                    {`Late filing maximizes lifetime benefits`}
+                                                </title>
+                                            </g>
+                                        )}
+
+                                        {/* Label */}
+                                        <text
+                                            x={hybridX + barWidth / 2}
+                                            y={baseY + 25}
+                                            textAnchor="middle"
+                                            fontSize="14"
+                                            fontWeight="600"
+                                            fill="#374151"
+                                        >
+                                            File at 62/70
+                                        </text>
+
+                                        {/* Description of hybrid strategy */}
+                                        <text x={hybridX + barWidth / 2} y={baseY + 60} textAnchor="middle" fontSize="11" fill="#6B7280">
+                                            Lower PIA files @ 62
+                                        </text>
+                                        <text x={hybridX + barWidth / 2} y={baseY + 75} textAnchor="middle" fontSize="11" fill="#6B7280">
+                                            Higher PIA files @ 70
+                                        </text>
+                                    </>
+                                );
+                            })()}
+                        </g>
+                    )}
+
+                    {/* Three scenario bars - shifted right when hybrid column is shown */}
+                    {scenarios.map((scenario, i) => {
+                        const barX = showHybridColumn
+                            ? startX + (barWidth + barSpacing) + i * (barWidth + barSpacing)  // Shift right
+                            : startX + i * (barWidth + barSpacing);
+                        const totalHeight = getHeight(inflatedMonthlyNeeds);
+                        const coveredHeight = getHeight(scenario.covered);
+                        const gapHeight = getHeight(scenario.gap);
+                        const isSelected = i === selectedStrategy;
+                        const barOpacity = isSelected ? 1 : 0.1;
+
+                        // Calculate percentages for this scenario
+                        const scenarioCoveragePercent = inflatedMonthlyNeeds > 0
+                            ? (scenario.covered / inflatedMonthlyNeeds * 100).toFixed(0)
+                            : 0;
+                        const scenarioGapPercent = inflatedMonthlyNeeds > 0
+                            ? (scenario.gap / inflatedMonthlyNeeds * 100).toFixed(0)
+                            : 0;
+
+                        return (
+                            <g key={`scenario-${i}`} className="flow-bar-group">
+                                {/* Radio button */}
+                                <circle
+                                    cx={barX + barWidth / 2}
+                                    cy={baseY - totalHeight - 30}
+                                    r="8"
+                                    fill="white"
+                                    stroke={scenario.color}
+                                    strokeWidth="2"
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => setSelectedStrategy(i)}
+                                />
+                                {isSelected && (
+                                    <circle
+                                        cx={barX + barWidth / 2}
+                                        cy={baseY - totalHeight - 30}
+                                        r="4"
+                                        fill={scenario.color}
+                                        style={{ cursor: 'pointer' }}
+                                        onClick={() => setSelectedStrategy(i)}
+                                    />
+                                )}
+
+                                {/* Covered portion (SS Income) */}
+                                {scenario.covered > 0 && (
+                                    <g>
+                                        <rect
+                                            x={barX}
+                                            y={baseY - coveredHeight}
+                                            width={barWidth}
+                                            height={coveredHeight}
+                                            fill={scenario.color}
+                                            rx="8"
+                                            opacity={barOpacity}
+                                            className="flow-bar"
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={() => setSelectedStrategy(i)}
+                                        />
+                                        <title>
+                                            {`${scenario.label}: SS Income Covers ${scenarioCoveragePercent}% of needs\n`}
+                                            {`${currencyFormatter.format(Math.round(scenario.income))} per month\n`}
+                                            {`SS income does the heavy lifting in retirement!`}
+                                        </title>
+                                    </g>
+                                )}
+
+                                {/* Gap portion (Unfunded) - GRAY */}
+                                {scenario.gap > 0 && (
+                                    <g>
+                                        <rect
+                                            x={barX}
+                                            y={baseY - coveredHeight - gapHeight}
+                                            width={barWidth}
+                                            height={gapHeight}
+                                            fill={gapColor}
+                                            rx="8"
+                                            opacity={barOpacity}
+                                            className="flow-bar"
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={() => setSelectedStrategy(i)}
+                                        />
+                                        <title>
+                                            {`${scenario.label}: ${scenarioGapPercent}% shortfall\n`}
+                                            {`${currencyFormatter.format(Math.round(scenario.gap))} per month from savings\n`}
+                                            {`Filing later reduces your savings burden!`}
+                                        </title>
+                                    </g>
+                                )}
+
+                                {/* Labels */}
+                                <text
+                                    x={barX + barWidth / 2}
+                                    y={baseY + 25}
+                                    textAnchor="middle"
+                                    fontSize="14"
+                                    fontWeight="600"
+                                    fill="#374151"
+                                >
+                                    {scenario.label}
+                                </text>
+
+                                {/* SS Income amount */}
+                                <text
+                                    x={barX + barWidth / 2}
+                                    y={baseY - coveredHeight / 2 - 8}
+                                    textAnchor="middle"
+                                    fill="white"
+                                    fontSize="13"
+                                    fontWeight="600"
+                                    className="flow-text"
+                                >
+                                    SS: {currencyFormatter.format(Math.round(scenario.income))}
+                                </text>
+
+                                {/* Gap amount */}
+                                {scenario.gap > 0 && gapHeight > 30 && (
+                                    <text
+                                        x={barX + barWidth / 2}
+                                        y={baseY - coveredHeight - gapHeight / 2}
+                                        textAnchor="middle"
+                                        fill="white"
+                                        fontSize="12"
+                                        fontWeight="600"
+                                        className="flow-text"
+                                    >
+                                        Gap: {currencyFormatter.format(Math.round(scenario.gap))}
+                                    </text>
+                                )}
+                            </g>
+                        );
+                    })}
+
+                    {/* Monthly needs reference bar on right - 50% taller for visual flow */}
+                    {/* Split into covered portion (deep burnt orange) and gap portion (contrasting color) */}
+                    <g>
+                        {/* Covered portion - deep dark burnt orange */}
+                        <g>
+                            <rect
+                                x={rightX}
+                                y={baseY - (selectedScenario.covered / inflatedMonthlyNeeds) * targetHeight}
+                                width={barWidth}
+                                height={(selectedScenario.covered / inflatedMonthlyNeeds) * targetHeight}
+                                fill="#C2410C"
+                                rx="8"
+                                opacity="0.9"
+                                className="flow-bar"
+                            />
+                            <title>
+                                {`${coveragePercent}% covered by Social Security\n`}
+                                {`${currencyFormatter.format(Math.round(selectedScenario.covered))} per month\n`}
+                                {`SS provides reliable retirement income`}
+                            </title>
+                        </g>
+
+                        {/* Gap portion - light coral/salmon for contrast */}
+                        {selectedScenario.gap > 0 && (
+                            <g>
+                                <rect
+                                    x={rightX}
+                                    y={baseY - targetHeight}
+                                    width={barWidth}
+                                    height={(selectedScenario.gap / inflatedMonthlyNeeds) * targetHeight}
+                                    fill="#FB923C"
+                                    rx="8"
+                                    opacity="0.7"
+                                    className="flow-bar"
+                                />
+                                <title>
+                                    {`${gapPercent}% must come from savings\n`}
+                                    {`${currencyFormatter.format(Math.round(selectedScenario.gap))} per month\n`}
+                                    {`Consider filing later to reduce this burden`}
+                                </title>
+                                {/* Unmet need amount label in gap segment */}
+                                {((selectedScenario.gap / inflatedMonthlyNeeds) * targetHeight) > 40 && (
+                                    <text
+                                        x={rightX + barWidth / 2}
+                                        y={baseY - targetHeight + ((selectedScenario.gap / inflatedMonthlyNeeds) * targetHeight) / 2}
+                                        textAnchor="middle"
+                                        fill="white"
+                                        fontSize="12"
+                                        fontWeight="600"
+                                        className="flow-text"
+                                    >
+                                        {currencyFormatter.format(Math.round(selectedScenario.gap))}
+                                    </text>
+                                )}
+                            </g>
+                        )}
+                    </g>
+
+                    {/* Title labels - larger font */}
+                    <text x={startX + (barWidth * 3 + barSpacing * 2) / 2} y={25} textAnchor="middle" fontSize="18" fontWeight="700" fill="#374151">
+                        Filing Strategies
+                    </text>
+
+                    {/* Target label positioned higher above the column */}
+                    <text x={rightX + barWidth / 2} y={baseY - targetHeight - 35} textAnchor="middle" fontSize="18" fontWeight="700" fill="#374151">
+                        Target: {currencyFormatter.format(Math.round(inflatedMonthlyNeeds))}
+                    </text>
+                    <text x={rightX + barWidth / 2} y={baseY - targetHeight - 18} textAnchor="middle" fontSize="12" fontWeight="600" fill="#6B7280">
+                        Monthly Expense Needs
+                    </text>
+                </svg>
+            </div>
+
+            {/* Summary stats */}
+            <div className="grid grid-cols-3 gap-4 mt-4">
+                {scenarios.map((scenario, i) => (
+                    <div key={i} className="text-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="text-xs font-semibold text-gray-600 mb-1">{scenario.label}</div>
+                        <div className="text-sm">
+                            <span className="text-gray-900 font-medium">Gap: </span>
+                            <span className={scenario.gap > 0 ? 'text-red-600 font-bold' : 'text-green-600 font-bold'}>
+                                {scenario.gap > 0 ? currencyFormatter.format(Math.round(scenario.gap)) : 'Covered!'}
+                            </span>
+                        </div>
+                        {scenario.gap > 0 && (
+                            <div className="text-xs text-gray-500 mt-1">
+                                {((scenario.gap / inflatedMonthlyNeeds) * 100).toFixed(0)}% from savings
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 const tooltipLabelFormatter = (context) => {
     const datasetLabel = context.dataset?.label ? `${context.dataset.label}: ` : '';
     const value = context.parsed?.y ?? context.raw ?? 0;
@@ -141,6 +803,10 @@ const ShowMeTheMoneyCalculator = () => {
     const [ssCutsPayload, setSsCutsPayload] = useState(null);
     const [showSsCutInfo, setShowSsCutInfo] = useState(false);
     const [ssCutsAxisRanges, setSsCutsAxisRanges] = useState(null);
+    const [flowAge, setFlowAge] = useState(70);
+    const [monthlyNeeds, setMonthlyNeeds] = useState(7000);
+    const [selectedStrategy, setSelectedStrategy] = useState(2); // 0=62, 1=67, 2=70
+    const [piaStrategy, setPiaStrategy] = useState('late'); // 'early' or 'late'
 
     useEffect(() => {
         if (!isMarried && activeRecordView === 'spouse') {
@@ -283,15 +949,35 @@ const ShowMeTheMoneyCalculator = () => {
         let bothLateProjection = primaryProjections.age70;
 
         if (isMarried && spouseProjections) {
+            // Determine which spouse files early and which files late based on piaStrategy
+            // 'early' strategy: Lower PIA @62, Higher PIA @70
+            // 'late' strategy: Higher PIA @62, Lower PIA @70
+            const shouldLowerPiaFileEarly = piaStrategy === 'early';
+
             if (primaryIsLowerPia) {
-                earlyLateProjection = combineMonthlyProjection(primaryProjections.age62, spouseProjections.age70);
-                preferredLateProjection = combineMonthlyProjection(primaryProjections.preferred, spouseProjections.age70);
-                bothLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.age70);
+                // Primary has lower PIA
+                if (shouldLowerPiaFileEarly) {
+                    // Lower PIA files at 62, higher PIA files at 70
+                    earlyLateProjection = combineMonthlyProjection(primaryProjections.age62, spouseProjections.age70);
+                    preferredLateProjection = combineMonthlyProjection(primaryProjections.preferred, spouseProjections.age70);
+                } else {
+                    // Higher PIA files at 62, lower PIA files at 70
+                    earlyLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.age62);
+                    preferredLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.preferred);
+                }
             } else {
-                earlyLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.age62);
-                preferredLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.preferred);
-                bothLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.age70);
+                // Spouse has lower PIA
+                if (shouldLowerPiaFileEarly) {
+                    // Lower PIA files at 62, higher PIA files at 70
+                    earlyLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.age62);
+                    preferredLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.preferred);
+                } else {
+                    // Higher PIA files at 62, lower PIA files at 70
+                    earlyLateProjection = combineMonthlyProjection(primaryProjections.age62, spouseProjections.age70);
+                    preferredLateProjection = combineMonthlyProjection(primaryProjections.preferred, spouseProjections.age70);
+                }
             }
+            bothLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.age70);
         }
 
         const birthYearPrimary = new Date(spouse1Dob).getFullYear();
@@ -312,7 +998,7 @@ const ShowMeTheMoneyCalculator = () => {
             primaryYears,
             spouseYears
         };
-    }, [isMarried, spouse1Dob, spouse1Pia, spouse1PreferredYear, spouse1PreferredMonth, spouse2Dob, spouse2Pia, spouse2PreferredYear, spouse2PreferredMonth, inflation, prematureDeath, deathYear]);
+    }, [isMarried, spouse1Dob, spouse1Pia, spouse1PreferredYear, spouse1PreferredMonth, spouse2Dob, spouse2Pia, spouse2PreferredYear, spouse2PreferredMonth, inflation, prematureDeath, deathYear, piaStrategy]);
 
     useEffect(() => {
         if (!scenarioData) {
@@ -1254,6 +1940,7 @@ const ShowMeTheMoneyCalculator = () => {
         { key: 'earlyLate', label: 'Early/Late' },
         { key: 'post70', label: 'Post-70' },
         { key: 'sscuts', label: 'SS Cuts' },
+        { key: 'flow', label: 'Flow' },
     ];
 
     return (
@@ -1592,9 +2279,74 @@ const ShowMeTheMoneyCalculator = () => {
                         </div>
                     )}
 
+                    {/* Flow View Controls */}
+                    {chartView === 'flow' && (
+                        <div className="mb-4 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                            <div className="flex flex-col gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Age: <span className="text-primary-600 font-bold">{flowAge}</span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="8"
+                                        value={[62, 67, 70, 75, 80, 85, 90, 95, 100].indexOf(flowAge)}
+                                        onChange={(e) => setFlowAge([62, 67, 70, 75, 80, 85, 90, 95, 100][parseInt(e.target.value)])}
+                                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                                        step="1"
+                                    />
+                                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                        <span>62</span>
+                                        <span>67</span>
+                                        <span>70</span>
+                                        <span>75</span>
+                                        <span>80</span>
+                                        <span>85</span>
+                                        <span>90</span>
+                                        <span>95</span>
+                                        <span>100</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <label className="text-sm font-medium text-gray-700">Monthly Expense Needs:</label>
+                                    <input
+                                        type="number"
+                                        value={monthlyNeeds}
+                                        onChange={(e) => setMonthlyNeeds(Number(e.target.value))}
+                                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-32"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="h-full bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                         {
-                            chartView === 'sscuts'
+                            chartView === 'flow' ? (
+                                <FlowVisualization
+                                    scenarioData={scenarioData}
+                                    age={flowAge}
+                                    monthlyNeeds={monthlyNeeds}
+                                    activeRecordView={activeRecordView}
+                                    isMarried={isMarried}
+                                    inflationRate={inflation}
+                                    piaStrategy={piaStrategy}
+                                    setPiaStrategy={setPiaStrategy}
+                                    currentAge={(() => {
+                                        const dob = new Date(spouse1Dob);
+                                        const today = new Date();
+                                        let age = today.getFullYear() - dob.getFullYear();
+                                        const monthDiff = today.getMonth() - dob.getMonth();
+                                        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                                            age--;
+                                        }
+                                        return age;
+                                    })()}
+                                    selectedStrategy={selectedStrategy}
+                                    setSelectedStrategy={setSelectedStrategy}
+                                />
+                            ) : chartView === 'sscuts'
                                 ? (ssCutsChartData && ssCutsChartData.labels && ssCutsChartData.labels.length > 0
                                     ? <Bar key="sscuts-chart" data={chartData} options={chartOptions} />
                                     : (
