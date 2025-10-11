@@ -823,15 +823,11 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
     // Calculate data for all ages and scenarios
     const calculateRaceData = (age) => {
         const calendarYear = birthYearPrimary + age;
-        const useEarlyLateStrategy = isMarried && activeRecordView === 'combined';
 
         const scenarios = [];
 
-        // File at 62
-        const age62Value = useEarlyLateStrategy
-            ? (earlyLateProjection?.cumulative[calendarYear] || 0)
-            : (projections.age62.cumulative[calendarYear] || 0);
-        
+        // File at 62 - Always use direct age62 projection
+        const age62Value = projections.age62.cumulative[calendarYear] || 0;
         scenarios.push({
             name: 'File at 62',
             value: age62Value,
@@ -839,10 +835,8 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
             since70: age >= 70 ? age62Value - (projections.age62.cumulative[birthYearPrimary + 70] || 0) : 0
         });
 
-        // File at 67 (FRA)
-        const age67Value = useEarlyLateStrategy
-            ? (preferredLateProjection?.cumulative[calendarYear] || 0)
-            : (projections.preferred.cumulative[calendarYear] || 0);
+        // File at 67 (FRA) - Always use direct preferred projection
+        const age67Value = projections.preferred.cumulative[calendarYear] || 0;
         scenarios.push({
             name: 'File at 67 (FRA)',
             value: age67Value,
@@ -850,10 +844,8 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
             since70: age >= 70 ? age67Value - (projections.preferred.cumulative[birthYearPrimary + 70] || 0) : 0
         });
 
-        // File at 70
-        const age70Value = useEarlyLateStrategy
-            ? (bothLateProjection?.cumulative[calendarYear] || 0)
-            : (projections.age70.cumulative[calendarYear] || 0);
+        // File at 70 - Always use direct age70 projection
+        const age70Value = projections.age70.cumulative[calendarYear] || 0;
         scenarios.push({
             name: 'File at 70',
             value: age70Value,
