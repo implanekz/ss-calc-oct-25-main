@@ -1996,7 +1996,7 @@ const ShowMeTheMoneyCalculator = () => {
         { key: 'post70', label: 'Post-70' },
         { key: 'sscuts', label: 'SS Cuts' },
         { key: 'flow', label: 'Flow' },
-        { key: 'bubble', label: '4% Rule' },
+        { key: 'bubble', label: 'Bubbles', tooltip: '4% Rule Equivalent' },
     ];
 
     return (
@@ -2378,6 +2378,7 @@ const ShowMeTheMoneyCalculator = () => {
                                     key={tab.key}
                                     active={chartView === tab.key}
                                     onClick={() => setChartView(tab.key)}
+                                    title={tab.tooltip || ''}
                                 >
                                     <span className="text-xs">{tab.label}</span>
                                 </PillTab>
@@ -2559,109 +2560,124 @@ const ShowMeTheMoneyCalculator = () => {
                                           <div className="mb-8">
                                               <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Age to View</h3>
                                               <div className="flex items-center gap-4">
-                                                  <input
-                                                      type="range"
-                                                      min="62"
-                                                      max="100"
-                                                      step="1"
-                                                      value={bubbleAge}
-                                                      onChange={(e) => setBubbleAge(Number(e.target.value))}
-                                                      className="flex-1"
-                                                  />
+                                                  <div className="flex-1 relative">
+                                                      {(() => {
+                                                          const keyAges = [62, 67, 70, 75, 80, 85, 90, 95, 100];
+                                                          const currentIndex = keyAges.indexOf(bubbleAge);
+                                                          const sliderIndex = currentIndex !== -1 ? currentIndex : keyAges.indexOf(70);
+                                                          
+                                                          return (
+                                                              <>
+                                                                  <input
+                                                                      type="range"
+                                                                      min="0"
+                                                                      max="8"
+                                                                      step="1"
+                                                                      value={sliderIndex}
+                                                                      onChange={(e) => setBubbleAge(keyAges[Number(e.target.value)])}
+                                                                      className="w-full"
+                                                                  />
+                                                                  {/* Age markers */}
+                                                                  <div className="flex justify-between text-xs text-gray-500 mt-2">
+                                                                      {keyAges.map(age => (
+                                                                          <button
+                                                                              key={age}
+                                                                              onClick={() => setBubbleAge(age)}
+                                                                              className={`hover:text-primary-600 hover:font-semibold transition-colors ${bubbleAge === age ? 'text-primary-600 font-semibold' : ''}`}
+                                                                          >
+                                                                              {age}
+                                                                          </button>
+                                                                      ))}
+                                                                  </div>
+                                                              </>
+                                                          );
+                                                      })()}
+                                                  </div>
                                                   <div className="text-2xl font-bold text-primary-600 min-w-[80px] text-center">
                                                       Age {bubbleAge}
                                                   </div>
-                                              </div>
-                                              {/* Age markers */}
-                                              <div className="flex justify-between text-xs text-gray-500 mt-1 px-1">
-                                                  {[62, 67, 70, 75, 80, 85, 90, 95, 100].map(age => (
-                                                      <button
-                                                          key={age}
-                                                          onClick={() => setBubbleAge(age)}
-                                                          className={`hover:text-primary-600 hover:font-semibold ${bubbleAge === age ? 'text-primary-600 font-semibold' : ''}`}
-                                                      >
-                                                          {age}
-                                                      </button>
-                                                  ))}
                                               </div>
                                           </div>
 
                                           {/* Bubble Visualization - Stacked Vertically */}
                                           <div className="flex-1 flex flex-col justify-center gap-16 py-8">
                                               {bubbleChartData && (() => {
-                                                  // Calculate dynamic bubble sizes based on values
-                                                  const scale = 0.15; // Scale factor for bubble sizes
-                                                  const minSize = 60; // Minimum bubble size in pixels
-
-                                                  const calculateSize = (value) => {
-                                                      return Math.max(minSize, Math.sqrt(value) * scale);
-                                                  };
+                                                  // Dramatic bubble sizes - Moon → Earth → Sun effect
+                                                  const monthlySize = 80;   // Moon
+                                                  const annualSize = 200;   // Earth (2.5x)
+                                                  const assetSize = 400;    // Sun (5x)
 
                                                   // Filing at 70 sizes
-                                                  const size70Monthly = calculateSize(bubbleChartData.age70.monthly);
-                                                  const size70Annual = calculateSize(bubbleChartData.age70.annual);
-                                                  const size70Asset = calculateSize(bubbleChartData.age70.assetEquiv);
+                                                  const size70Monthly = monthlySize;
+                                                  const size70Annual = annualSize;
+                                                  const size70Asset = assetSize;
 
                                                   // Filing at 62 sizes
-                                                  const size62Monthly = calculateSize(bubbleChartData.age62.monthly);
-                                                  const size62Annual = calculateSize(bubbleChartData.age62.annual);
-                                                  const size62Asset = calculateSize(bubbleChartData.age62.assetEquiv);
+                                                  const size62Monthly = monthlySize;
+                                                  const size62Annual = annualSize;
+                                                  const size62Asset = assetSize;
 
                                                   return (
                                                       <>
                                                           {/* Filing at 70 - Top */}
                                                           <div className="flex flex-col items-center">
                                                               <h4 className="text-xl font-semibold text-green-600 mb-6">Filing at Age 70</h4>
-                                                              <div className="relative flex items-center justify-center h-64">
-                                                                  {/* Monthly bubble */}
+                                                              <div className="relative w-full h-80 flex items-center justify-center">
+                                                                  {/* Monthly bubble - Left */}
                                                                   <div
-                                                                      className="absolute rounded-full flex items-center justify-center text-white font-bold shadow-2xl transition-all duration-500 ease-in-out"
+                                                                      className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
                                                                       style={{
                                                                           width: `${size70Monthly}px`,
                                                                           height: `${size70Monthly}px`,
-                                                                          left: '10%',
-                                                                          transform: 'translateX(-50%)',
+                                                                          left: '20%',
+                                                                          top: '50%',
+                                                                          transform: 'translate(-50%, -50%)',
                                                                           background: 'radial-gradient(circle at 30% 30%, rgba(74, 222, 128, 0.9), rgba(34, 197, 94, 0.7))',
-                                                                          opacity: 0.85
+                                                                          boxShadow: '0 8px 32px rgba(34, 197, 94, 0.4)',
+                                                                          opacity: 0.9
                                                                       }}
                                                                   >
-                                                                      <div className="text-center">
-                                                                          <div className="text-sm">Monthly</div>
-                                                                          <div className="text-lg font-bold">${Math.round(bubbleChartData.age70.monthly / 100)}</div>
+                                                                      <div className="text-center px-1">
+                                                                          <div className="text-xs">Monthly</div>
+                                                                          <div className="text-sm font-bold">{currencyFormatter.format(bubbleChartData.age70.monthly)}</div>
                                                                       </div>
                                                                   </div>
-                                                                  {/* Annual bubble */}
+                                                                  {/* Annual bubble - Center */}
                                                                   <div
-                                                                      className="absolute rounded-full flex items-center justify-center text-white font-bold shadow-2xl transition-all duration-500 ease-in-out"
+                                                                      className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
                                                                       style={{
                                                                           width: `${size70Annual}px`,
                                                                           height: `${size70Annual}px`,
-                                                                          left: '40%',
-                                                                          transform: 'translateX(-50%)',
+                                                                          left: '50%',
+                                                                          top: '50%',
+                                                                          transform: 'translate(-50%, -50%)',
                                                                           background: 'radial-gradient(circle at 30% 30%, rgba(134, 239, 172, 0.85), rgba(74, 222, 128, 0.65))',
-                                                                          opacity: 0.85
+                                                                          boxShadow: '0 8px 32px rgba(74, 222, 128, 0.4)',
+                                                                          opacity: 0.9
                                                                       }}
                                                                   >
-                                                                      <div className="text-center">
-                                                                          <div className="text-sm">Annual</div>
-                                                                          <div className="text-lg font-bold">${Math.round(bubbleChartData.age70.annual / 1000)}k</div>
+                                                                      <div className="text-center px-1">
+                                                                          <div className="text-xs">Annual</div>
+                                                                          <div className="text-lg font-bold">{currencyFormatter.format(bubbleChartData.age70.annual)}</div>
                                                                       </div>
                                                                   </div>
-                                                                  {/* Asset equivalent bubble */}
+                                                                  {/* Asset equivalent bubble - Right */}
                                                                   <div
-                                                                      className="absolute rounded-full flex items-center justify-center text-white font-bold shadow-2xl transition-all duration-500 ease-in-out"
+                                                                      className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
                                                                       style={{
                                                                           width: `${size70Asset}px`,
                                                                           height: `${size70Asset}px`,
-                                                                          right: '10%',
-                                                                          transform: 'translateX(50%)',
+                                                                          left: '80%',
+                                                                          top: '50%',
+                                                                          transform: 'translate(-50%, -50%)',
                                                                           background: 'radial-gradient(circle at 30% 30%, rgba(187, 247, 208, 0.8), rgba(134, 239, 172, 0.6))',
-                                                                          opacity: 0.85
+                                                                          boxShadow: '0 8px 32px rgba(134, 239, 172, 0.4)',
+                                                                          opacity: 0.9
                                                                       }}
                                                                   >
                                                                       <div className="text-center px-2">
                                                                           <div className="text-xs">4% Asset</div>
-                                                                          <div className="text-lg font-bold">${Math.round(bubbleChartData.age70.assetEquiv / 1000)}k</div>
+                                                                          <div className="text-base font-bold">{currencyFormatter.format(bubbleChartData.age70.assetEquiv)}</div>
                                                                       </div>
                                                                   </div>
                                                               </div>
@@ -2675,56 +2691,62 @@ const ShowMeTheMoneyCalculator = () => {
                                                           {/* Filing at 62 - Bottom */}
                                                           <div className="flex flex-col items-center">
                                                               <h4 className="text-xl font-semibold text-red-600 mb-6">Filing at Age 62</h4>
-                                                              <div className="relative flex items-center justify-center h-64">
-                                                                  {/* Monthly bubble */}
+                                                              <div className="relative w-full h-80 flex items-center justify-center">
+                                                                  {/* Monthly bubble - Left */}
                                                                   <div
-                                                                      className="absolute rounded-full flex items-center justify-center text-white font-bold shadow-2xl transition-all duration-500 ease-in-out"
+                                                                      className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
                                                                       style={{
                                                                           width: `${size62Monthly}px`,
                                                                           height: `${size62Monthly}px`,
-                                                                          left: '10%',
-                                                                          transform: 'translateX(-50%)',
+                                                                          left: '20%',
+                                                                          top: '50%',
+                                                                          transform: 'translate(-50%, -50%)',
                                                                           background: 'radial-gradient(circle at 30% 30%, rgba(248, 113, 113, 0.9), rgba(239, 68, 68, 0.7))',
-                                                                          opacity: 0.85
+                                                                          boxShadow: '0 8px 32px rgba(239, 68, 68, 0.4)',
+                                                                          opacity: 0.9
                                                                       }}
                                                                   >
-                                                                      <div className="text-center">
-                                                                          <div className="text-sm">Monthly</div>
-                                                                          <div className="text-lg font-bold">${Math.round(bubbleChartData.age62.monthly / 100)}</div>
+                                                                      <div className="text-center px-1">
+                                                                          <div className="text-xs">Monthly</div>
+                                                                          <div className="text-sm font-bold">{currencyFormatter.format(bubbleChartData.age62.monthly)}</div>
                                                                       </div>
                                                                   </div>
-                                                                  {/* Annual bubble */}
+                                                                  {/* Annual bubble - Center */}
                                                                   <div
-                                                                      className="absolute rounded-full flex items-center justify-center text-white font-bold shadow-2xl transition-all duration-500 ease-in-out"
+                                                                      className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
                                                                       style={{
                                                                           width: `${size62Annual}px`,
                                                                           height: `${size62Annual}px`,
-                                                                          left: '40%',
-                                                                          transform: 'translateX(-50%)',
+                                                                          left: '50%',
+                                                                          top: '50%',
+                                                                          transform: 'translate(-50%, -50%)',
                                                                           background: 'radial-gradient(circle at 30% 30%, rgba(252, 165, 165, 0.85), rgba(248, 113, 113, 0.65))',
-                                                                          opacity: 0.85
+                                                                          boxShadow: '0 8px 32px rgba(248, 113, 113, 0.4)',
+                                                                          opacity: 0.9
                                                                       }}
                                                                   >
-                                                                      <div className="text-center">
-                                                                          <div className="text-sm">Annual</div>
-                                                                          <div className="text-lg font-bold">${Math.round(bubbleChartData.age62.annual / 1000)}k</div>
+                                                                      <div className="text-center px-1">
+                                                                          <div className="text-xs">Annual</div>
+                                                                          <div className="text-lg font-bold">{currencyFormatter.format(bubbleChartData.age62.annual)}</div>
                                                                       </div>
                                                                   </div>
-                                                                  {/* Asset equivalent bubble */}
+                                                                  {/* Asset equivalent bubble - Right */}
                                                                   <div
-                                                                      className="absolute rounded-full flex items-center justify-center text-white font-bold shadow-2xl transition-all duration-500 ease-in-out"
+                                                                      className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
                                                                       style={{
                                                                           width: `${size62Asset}px`,
                                                                           height: `${size62Asset}px`,
-                                                                          right: '10%',
-                                                                          transform: 'translateX(50%)',
+                                                                          left: '80%',
+                                                                          top: '50%',
+                                                                          transform: 'translate(-50%, -50%)',
                                                                           background: 'radial-gradient(circle at 30% 30%, rgba(254, 202, 202, 0.8), rgba(252, 165, 165, 0.6))',
-                                                                          opacity: 0.85
+                                                                          boxShadow: '0 8px 32px rgba(252, 165, 165, 0.4)',
+                                                                          opacity: 0.9
                                                                       }}
                                                                   >
                                                                       <div className="text-center px-2">
                                                                           <div className="text-xs">4% Asset</div>
-                                                                          <div className="text-lg font-bold">${Math.round(bubbleChartData.age62.assetEquiv / 1000)}k</div>
+                                                                          <div className="text-base font-bold">{currencyFormatter.format(bubbleChartData.age62.assetEquiv)}</div>
                                                                       </div>
                                                                   </div>
                                                               </div>
