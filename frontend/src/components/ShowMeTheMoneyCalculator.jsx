@@ -831,6 +831,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
         const age62Value = useEarlyLateStrategy
             ? (earlyLateProjection?.cumulative[calendarYear] || 0)
             : (projections.age62.cumulative[calendarYear] || 0);
+        
         scenarios.push({
             name: 'File at 62',
             value: age62Value,
