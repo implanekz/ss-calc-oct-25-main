@@ -769,6 +769,292 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
     );
 };
 
+// Race Track Visualization Component - Animated Bar Chart Race
+const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inflationRate, currentAge }) => {
+    const [currentRaceAge, setCurrentRaceAge] = useState(62);
+    const [isPlaying, setIsPlaying] = useState(false);
+
+    // Animation effect - must be called before any conditional returns
+    useEffect(() => {
+        if (!isPlaying || !scenarioData) return;
+
+        // 60 seconds total for ages 62-95 (33 years)
+        // Base interval: 60000ms / 33 ages = ~1818ms per age
+        const baseInterval = (60000 / 33);
+
+        const timer = setInterval(() => {
+            setCurrentRaceAge(prev => {
+                if (prev >= 95) {
+                    setIsPlaying(false);
+                    // Stay at 95, don't auto-reset
+                    return 95;
+                }
+                return prev + 1;
+            });
+        }, baseInterval);
+
+        return () => clearInterval(timer);
+    }, [isPlaying, scenarioData]);
+
+    // Handle play button click - reset if at end
+    const handlePlayClick = () => {
+        if (currentRaceAge === 95 && !isPlaying) {
+            // Reset to beginning before playing
+            setCurrentRaceAge(62);
+            setTimeout(() => setIsPlaying(true), 100);
+        } else {
+            setIsPlaying(!isPlaying);
+        }
+    };
+
+    if (!scenarioData) {
+        return <div className="h-full flex items-center justify-center text-gray-500">Loading...</div>;
+    }
+
+    const { primaryProjections, spouseProjections, combinedProjections, birthYearPrimary, earlyLateProjection, preferredLateProjection, bothLateProjection } = scenarioData;
+
+    // Determine which projections to use based on view
+    const projections = activeRecordView === 'primary'
+        ? primaryProjections
+        : activeRecordView === 'spouse' && spouseProjections
+            ? spouseProjections
+            : combinedProjections;
+
+    // Calculate data for all ages and scenarios
+    const calculateRaceData = (age) => {
+        const calendarYear = birthYearPrimary + age;
+        const useEarlyLateStrategy = isMarried && activeRecordView === 'combined';
+
+        const scenarios = [];
+
+        // File at 62
+        const age62Value = useEarlyLateStrategy
+            ? (earlyLateProjection?.cumulative[calendarYear] || 0)
+            : (projections.age62.cumulative[calendarYear] || 0);
+        scenarios.push({
+            name: 'File at 62',
+            value: age62Value,
+            color: '#EF4444',
+            since70: age >= 70 ? age62Value - (projections.age62.cumulative[birthYearPrimary + 70] || 0) : 0
+        });
+
+        // File at 67 (FRA)
+        const age67Value = useEarlyLateStrategy
+            ? (preferredLateProjection?.cumulative[calendarYear] || 0)
+            : (projections.preferred.cumulative[calendarYear] || 0);
+        scenarios.push({
+            name: 'File at 67 (FRA)',
+            value: age67Value,
+            color: '#3B82F6',
+            since70: age >= 70 ? age67Value - (projections.preferred.cumulative[birthYearPrimary + 70] || 0) : 0
+        });
+
+        // File at 70
+        const age70Value = useEarlyLateStrategy
+            ? (bothLateProjection?.cumulative[calendarYear] || 0)
+            : (projections.age70.cumulative[calendarYear] || 0);
+        scenarios.push({
+            name: 'File at 70',
+            value: age70Value,
+            color: '#14B8A6',
+            since70: age >= 70 ? age70Value - (projections.age70.cumulative[birthYearPrimary + 70] || 0) : 0
+        });
+
+        // Sort by value descending (highest at top)
+        return scenarios.sort((a, b) => b.value - a.value);
+    };
+
+    const raceData = calculateRaceData(currentRaceAge);
+    const maxValue = Math.max(...raceData.map(d => d.value)) * 1.1;
+
+    // SVG dimensions
+    const width = 1200;
+    const height = 450; // Back to previous value
+    const barHeight = 80;
+    const barSpacing = 20;
+    const leftMargin = 200;
+    const rightMargin = 150;
+    const topMargin = 80; // Back to previous value
+
+    const getBarWidth = (value) => {
+        return ((value / maxValue) * (width - leftMargin - rightMargin));
+    };
+
+    return (
+        <div className="h-full flex flex-col p-4">
+            {/* Age Display and Play Button at Top */}
+            <div className="flex items-center justify-center gap-3">
+                <button
+                    onClick={handlePlayClick}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-semibold"
+                >
+                    {isPlaying ? '⏸ Pause' : '▶ Play'}
+                </button>
+                <div className="text-center">
+                    <div className="text-5xl font-bold text-gray-900">{currentRaceAge}</div>
+                    <div className="text-xs font-semibold text-gray-600">Current Age</div>
+                </div>
+            </div>
+
+            {/* Race Track Visualization */}
+            <div className="flex-1 flex items-center justify-center overflow-hidden -mt-4">
+                <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+                    <style>
+                        {`
+                            .race-bar {
+                                transition: all 0.3s ease-in-out;
+                            }
+                            .race-bar:hover {
+                                opacity: 0.8;
+                            }
+                            .revenue-line {
+                                stroke-width: 3;
+                                stroke-dasharray: 5, 5;
+                                transition: all 0.3s ease-in-out;
+                            }
+                        `}
+                    </style>
+
+                    {/* Title */}
+                    <text x={width / 2} y={40} textAnchor="middle" fontSize="24" fontWeight="700" fill="#374151">
+                        Filing Strategy Race: Cumulative Benefits
+                    </text>
+                    <text x={width / 2} y={65} textAnchor="middle" fontSize="14" fill="#6B7280">
+                        Watching benefits accumulate over time
+                    </text>
+
+                    {/* Bars */}
+                    {raceData.map((scenario, index) => {
+                        const y = topMargin + index * (barHeight + barSpacing);
+                        const barWidth = getBarWidth(scenario.value);
+
+                        return (
+                            <g key={scenario.name}>
+                                {/* Bar background */}
+                                <rect
+                                    x={leftMargin}
+                                    y={y}
+                                    width={width - leftMargin - rightMargin}
+                                    height={barHeight}
+                                    fill="#F3F4F6"
+                                    rx="8"
+                                />
+
+                                {/* Animated bar */}
+                                <rect
+                                    x={leftMargin}
+                                    y={y}
+                                    width={barWidth}
+                                    height={barHeight}
+                                    fill={scenario.color}
+                                    rx="8"
+                                    className="race-bar"
+                                >
+                                    <title>{`${scenario.name}: ${currencyFormatter.format(Math.round(scenario.value))}`}</title>
+                                </rect>
+
+                                {/* Strategy label (left) */}
+                                <text
+                                    x={leftMargin - 10}
+                                    y={y + barHeight / 2}
+                                    textAnchor="end"
+                                    alignmentBaseline="middle"
+                                    fontSize="16"
+                                    fontWeight="600"
+                                    fill="#374151"
+                                >
+                                    {scenario.name}
+                                </text>
+
+                                {/* Value label (inside bar or at end) */}
+                                <text
+                                    x={leftMargin + barWidth + 10}
+                                    y={y + barHeight / 2}
+                                    textAnchor="start"
+                                    alignmentBaseline="middle"
+                                    fontSize="14"
+                                    fontWeight="700"
+                                    fill="#374151"
+                                >
+                                    {currencyFormatter.format(Math.round(scenario.value))}
+                                </text>
+
+                                {/* "Since 70" label inside bar (when age >= 70) */}
+                                {currentRaceAge >= 70 && scenario.since70 > 0 && barWidth > 150 && (
+                                    <text
+                                        x={leftMargin + barWidth / 2}
+                                        y={y + barHeight / 2}
+                                        textAnchor="middle"
+                                        alignmentBaseline="middle"
+                                        fontSize="16"
+                                        fontWeight="700"
+                                        fill="white"
+                                    >
+                                        Since 70: {currencyFormatter.format(Math.round(scenario.since70))}
+                                    </text>
+                                )}
+
+                                {/* Revenue line since age 70 (if applicable) */}
+                                {currentRaceAge >= 70 && scenario.since70 > 0 && (
+                                    <g>
+                                        <line
+                                            x1={leftMargin}
+                                            y1={y + barHeight + 5}
+                                            x2={leftMargin + getBarWidth(scenario.since70)}
+                                            y2={y + barHeight + 5}
+                                            stroke={scenario.color}
+                                            className="revenue-line"
+                                        />
+                                        <text
+                                            x={leftMargin + getBarWidth(scenario.since70) + 5}
+                                            y={y + barHeight + 10}
+                                            fontSize="11"
+                                            fill={scenario.color}
+                                            fontWeight="600"
+                                        >
+                                            Since 70: {currencyFormatter.format(Math.round(scenario.since70))}
+                                        </text>
+                                    </g>
+                                )}
+                            </g>
+                        );
+                    })}
+
+                    {/* Dashed lines legend - below bars */}
+                    {currentRaceAge >= 70 && (
+                        <g>
+                            <text x={width / 2} y={topMargin + 3 * (barHeight + barSpacing) + 30} textAnchor="middle" fontSize="12" fontWeight="600" fill="#6B7280">
+                                Dashed lines show cumulative benefits since age 70
+                            </text>
+                        </g>
+                    )}
+                </svg>
+            </div>
+
+            {/* Summary stats - moved up with bigger, bolder text */}
+            <div className="mt-2 grid grid-cols-3 gap-4">
+                {raceData.map((scenario, index) => (
+                    <div key={scenario.name} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className="w-5 h-5 rounded" style={{ backgroundColor: scenario.color }}></div>
+                            <div className="text-sm font-bold text-gray-700">{scenario.name}</div>
+                            {index === 0 && <span className="ml-auto text-sm font-bold text-green-600">🏆 Leading</span>}
+                        </div>
+                        <div className="text-lg font-bold text-gray-900">
+                            {currencyFormatter.format(Math.round(scenario.value))}
+                        </div>
+                        {currentRaceAge >= 70 && (
+                            <div className="text-sm font-semibold text-gray-600 mt-1">
+                                Since 70: {currencyFormatter.format(Math.round(scenario.since70))}
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 const tooltipLabelFormatter = (context) => {
     const datasetLabel = context.dataset?.label ? `${context.dataset.label}: ` : '';
     const value = context.parsed?.y ?? context.raw ?? 0;
@@ -2002,6 +2288,7 @@ const ShowMeTheMoneyCalculator = () => {
         { key: 'sscuts', label: 'SS Cuts' },
         { key: 'flow', label: 'Flow' },
         { key: 'bubble', label: 'Bubbles', tooltip: '4% Rule Equivalent' },
+        { key: 'race', label: 'Race' },
     ];
 
     return (
@@ -2543,6 +2830,23 @@ const ShowMeTheMoneyCalculator = () => {
                                     })()}
                                     selectedStrategy={selectedStrategy}
                                     setSelectedStrategy={setSelectedStrategy}
+                                />
+                            ) : chartView === 'race' ? (
+                                <RaceTrackVisualization
+                                    scenarioData={scenarioData}
+                                    activeRecordView={activeRecordView}
+                                    isMarried={isMarried}
+                                    inflationRate={inflation}
+                                    currentAge={(() => {
+                                        const dob = new Date(spouse1Dob);
+                                        const today = new Date();
+                                        let age = today.getFullYear() - dob.getFullYear();
+                                        const monthDiff = today.getMonth() - dob.getMonth();
+                                        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                                            age--;
+                                        }
+                                        return age;
+                                    })()}
                                 />
                             ) : chartView === 'sscuts'
                                 ? (ssCutsChartData && ssCutsChartData.labels && ssCutsChartData.labels.length > 0
