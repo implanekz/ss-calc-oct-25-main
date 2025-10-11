@@ -245,6 +245,22 @@ td.negative,
   box-shadow: 0 20px 32px -28px rgba(12, 34, 70, 0.5);
 }
 
+.description-card {
+  background: #fbf7eb;
+  border-radius: 14px;
+  padding: 20px 26px;
+  border: 1px solid #ddd1b6;
+  box-shadow: 0 14px 28px -22px rgba(12, 34, 70, 0.5);
+}
+
+.description-card p {
+  margin: 0;
+  color: #4f5d73;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
 footer {
   padding: 16px 0 40px;
   text-align: center;
