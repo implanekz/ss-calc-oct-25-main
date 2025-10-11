@@ -9,32 +9,14 @@ const iframeStyle = {
 };
 
 const containerStyle = {
-  padding: '24px',
+  padding: '0',
   maxWidth: '1200px',
   margin: '0 auto',
   fontFamily: 'Inter, system-ui, sans-serif',
 };
 
-const headerStyle = {
-  marginBottom: '18px',
-};
-
-const paragraphStyle = {
-  color: '#475569',
-  margin: 0,
-  maxWidth: '760px',
-};
-
 const SequenceOfReturnsApp = () => (
   <div style={containerStyle}>
-    <header style={headerStyle}>
-      <h1 style={{ marginBottom: '8px', color: '#0f172a' }}>Sequence of Returns Simulator</h1>
-      <p style={paragraphStyle}>
-        Shuffle historical returns, apply guardrail strategies, and see how the order of gains and losses shapes a
-        retirement income plan. Use this to create wake-up calls about timing risk before diving into the full Social
-        Security analysis.
-      </p>
-    </header>
     <iframe
       title="Sequence of Returns Risk"
       src="/sequence-risk-app/index.html"
