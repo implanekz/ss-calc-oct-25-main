@@ -807,6 +807,7 @@ const ShowMeTheMoneyCalculator = () => {
     const [monthlyNeeds, setMonthlyNeeds] = useState(7000);
     const [selectedStrategy, setSelectedStrategy] = useState(2); // 0=62, 1=67, 2=70
     const [piaStrategy, setPiaStrategy] = useState('late'); // 'early' or 'late'
+    const [showPiaFraModal, setShowPiaFraModal] = useState(false);
 
     useEffect(() => {
         if (!isMarried && activeRecordView === 'spouse') {
@@ -2003,7 +2004,16 @@ const ShowMeTheMoneyCalculator = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs text-gray-600 mb-1">PIA at FRA ($)</label>
+                                <label className="block text-xs text-gray-600 mb-1 flex items-center gap-1">
+                                    PIA at FRA ($)
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPiaFraModal(true)}
+                                        className="text-primary-600 hover:text-primary-700 underline text-xs"
+                                    >
+                                        What's This?
+                                    </button>
+                                </label>
                                 <input
                                     type="number"
                                     value={spouse1Pia}
@@ -2067,7 +2077,16 @@ const ShowMeTheMoneyCalculator = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs text-gray-600 mb-1">PIA at FRA ($)</label>
+                                    <label className="block text-xs text-gray-600 mb-1 flex items-center gap-1">
+                                        PIA at FRA ($)
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPiaFraModal(true)}
+                                            className="text-primary-600 hover:text-primary-700 underline text-xs"
+                                        >
+                                            What's This?
+                                        </button>
+                                    </label>
                                     <input
                                         type="number"
                                         value={spouse2Pia}
@@ -2413,6 +2432,126 @@ const ShowMeTheMoneyCalculator = () => {
                             <Button onClick={() => setShowSsCutInfo(false)} variant="primary">
                                 Close
                             </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* PIA & FRA Information Modal */}
+            {showPiaFraModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6">
+                            <div className="flex justify-between items-start mb-4">
+                                <h2 className="text-2xl font-bold text-gray-900">Understanding PIA & FRA</h2>
+                                <button
+                                    onClick={() => setShowPiaFraModal(false)}
+                                    className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                                >
+                                    ×
+                                </button>
+                            </div>
+
+                            {/* What is FRA? */}
+                            <div className="mb-6">
+                                <h3 className="text-xl font-semibold text-primary-600 mb-3">What is FRA?</h3>
+                                <p className="text-gray-700 mb-4">
+                                    <strong>FRA (Full Retirement Age)</strong> is the age at which you're entitled to receive 100% of your Social Security benefit.
+                                </p>
+
+                                <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                                    <h4 className="font-semibold text-gray-900 mb-3">Your FRA by Birth Year:</h4>
+                                    <div className="overflow-x-auto">
+                                        <table className="min-w-full divide-y divide-gray-200">
+                                            <thead>
+                                                <tr className="bg-primary-600 text-white">
+                                                    <th className="px-4 py-2 text-left text-sm font-semibold">Year of Birth</th>
+                                                    <th className="px-4 py-2 text-left text-sm font-semibold">Full Retirement Age</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="bg-white divide-y divide-gray-200">
+                                                <tr>
+                                                    <td className="px-4 py-2 text-sm text-gray-900">1955</td>
+                                                    <td className="px-4 py-2 text-sm text-gray-700">66 and 2 months</td>
+                                                </tr>
+                                                <tr className="bg-gray-50">
+                                                    <td className="px-4 py-2 text-sm text-gray-900">1956</td>
+                                                    <td className="px-4 py-2 text-sm text-gray-700">66 and 4 months</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="px-4 py-2 text-sm text-gray-900">1957</td>
+                                                    <td className="px-4 py-2 text-sm text-gray-700">66 and 6 months</td>
+                                                </tr>
+                                                <tr className="bg-gray-50">
+                                                    <td className="px-4 py-2 text-sm text-gray-900">1958</td>
+                                                    <td className="px-4 py-2 text-sm text-gray-700">66 and 8 months</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="px-4 py-2 text-sm text-gray-900">1959</td>
+                                                    <td className="px-4 py-2 text-sm text-gray-700">66 and 10 months</td>
+                                                </tr>
+                                                <tr className="bg-primary-50">
+                                                    <td className="px-4 py-2 text-sm font-semibold text-primary-700">1960 or later</td>
+                                                    <td className="px-4 py-2 text-sm font-semibold text-primary-700">67</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <p className="text-sm italic text-gray-600 mt-3">
+                                        For 95% of people planning today, FRA is age 67.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* What is PIA? */}
+                            <div className="mb-6">
+                                <h3 className="text-xl font-semibold text-primary-600 mb-3">What is PIA?</h3>
+                                <p className="text-gray-700 mb-3">
+                                    <strong>PIA (Primary Insurance Amount)</strong> is your monthly benefit amount at Full Retirement Age. It's calculated based on your 35 highest-earning years.
+                                </p>
+                                <p className="text-gray-700 mb-4">
+                                    If you claim before FRA, your benefit is reduced. If you wait until after FRA, your benefit is increased.
+                                </p>
+                            </div>
+
+                            {/* How to Find Your PIA */}
+                            <div className="mb-6">
+                                <h3 className="text-xl font-semibold text-primary-600 mb-3">How to Find Your PIA</h3>
+                                <p className="text-gray-700 mb-3">
+                                    You can get your specific benefit estimate at{' '}
+                                    <a
+                                        href="https://www.ssa.gov"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-primary-600 hover:text-primary-700 underline font-medium"
+                                    >
+                                        SSA.gov
+                                    </a>{' '}
+                                    by creating a "my Social Security" account.
+                                </p>
+
+                                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+                                    <div className="flex">
+                                        <div className="flex-shrink-0">
+                                            <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div className="ml-3">
+                                            <p className="text-sm font-semibold text-gray-900">Don't know your number?</p>
+                                            <p className="text-sm text-gray-700 mt-1">
+                                                The average individual Social Security benefit in 2025 is $2,006/month. Use this as a starting point, then get your actual estimate from SSA.gov for more accurate planning.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end mt-6">
+                                <Button onClick={() => setShowPiaFraModal(false)} variant="primary">
+                                    Got It
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
