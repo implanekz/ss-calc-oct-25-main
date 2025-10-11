@@ -809,6 +809,15 @@ const ShowMeTheMoneyCalculator = () => {
     const [piaStrategy, setPiaStrategy] = useState('late'); // 'early' or 'late'
     const [showPiaFraModal, setShowPiaFraModal] = useState(false);
 
+    // Already Filed state variables
+    const [spouse1AlreadyFiled, setSpouse1AlreadyFiled] = useState(false);
+    const [spouse1CurrentBenefit, setSpouse1CurrentBenefit] = useState(null);
+    const [spouse1FiledAge, setSpouse1FiledAge] = useState(65);
+    const [spouse2AlreadyFiled, setSpouse2AlreadyFiled] = useState(false);
+    const [spouse2CurrentBenefit, setSpouse2CurrentBenefit] = useState(null);
+    const [spouse2FiledAge, setSpouse2FiledAge] = useState(65);
+    const [showAlreadyFiledModal, setShowAlreadyFiledModal] = useState(false);
+
     useEffect(() => {
         if (!isMarried && activeRecordView === 'spouse') {
             setActiveRecordView('combined');
@@ -2003,6 +2012,23 @@ const ShowMeTheMoneyCalculator = () => {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Already Filed Checkbox */}
+                            <div className="flex items-center gap-2 py-2">
+                                <input
+                                    type="checkbox"
+                                    id="spouse1AlreadyFiled"
+                                    checked={spouse1AlreadyFiled}
+                                    onChange={e => setSpouse1AlreadyFiled(e.target.checked)}
+                                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                />
+                                <label htmlFor="spouse1AlreadyFiled" className="text-sm text-gray-700 cursor-pointer">
+                                    Already receiving SS benefits?
+                                </label>
+                            </div>
+
+                            {/* Conditional: Show PIA fields if NOT already filed */}
+                            {!spouse1AlreadyFiled && (
                             <div>
                                 <label className="block text-xs text-gray-600 mb-1 flex items-center gap-1">
                                     PIA at FRA ($)
@@ -2021,6 +2047,47 @@ const ShowMeTheMoneyCalculator = () => {
                                     className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                                 />
                             </div>
+                            )}
+
+                            {/* Conditional: Show current benefit fields if ALREADY filed */}
+                            {spouse1AlreadyFiled && (
+                            <>
+                            <div>
+                                <label className="block text-xs text-gray-600 mb-1 flex items-center gap-1">
+                                    Current Monthly Benefit ($)
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAlreadyFiledModal(true)}
+                                        className="text-primary-600 hover:text-primary-700 underline text-xs"
+                                    >
+                                        Why this matters?
+                                    </button>
+                                </label>
+                                <input
+                                    type="number"
+                                    value={spouse1CurrentBenefit || ''}
+                                    onChange={e => setSpouse1CurrentBenefit(Number(e.target.value))}
+                                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                                    placeholder="e.g., 3200"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs text-gray-600 mb-1">Age When Filed</label>
+                                <select
+                                    value={spouse1FiledAge}
+                                    onChange={e => setSpouse1FiledAge(Number(e.target.value))}
+                                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                                >
+                                    {[62, 63, 64, 65, 66, 67, 68, 69, 70].map(age => (
+                                        <option key={age} value={age}>{age}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            </>
+                            )}
+
+                            {/* Filing Age - only show if NOT already filed */}
+                            {!spouse1AlreadyFiled && (
                             <div className="bg-primary-100 rounded p-2">
                                 <label className="block text-xs font-medium text-gray-700 mb-1">Filing Age</label>
                                 <div className="grid grid-cols-2 gap-2">
@@ -2044,6 +2111,7 @@ const ShowMeTheMoneyCalculator = () => {
                                     </div>
                                 </div>
                             </div>
+                            )}
                         </div>
                     </div>
 
@@ -2076,6 +2144,23 @@ const ShowMeTheMoneyCalculator = () => {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Already Filed Checkbox */}
+                                <div className="flex items-center gap-2 py-2">
+                                    <input
+                                        type="checkbox"
+                                        id="spouse2AlreadyFiled"
+                                        checked={spouse2AlreadyFiled}
+                                        onChange={e => setSpouse2AlreadyFiled(e.target.checked)}
+                                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                    />
+                                    <label htmlFor="spouse2AlreadyFiled" className="text-sm text-gray-700 cursor-pointer">
+                                        Already receiving SS benefits?
+                                    </label>
+                                </div>
+
+                                {/* Conditional: Show PIA fields if NOT already filed */}
+                                {!spouse2AlreadyFiled && (
                                 <div>
                                     <label className="block text-xs text-gray-600 mb-1 flex items-center gap-1">
                                         PIA at FRA ($)
@@ -2094,6 +2179,47 @@ const ShowMeTheMoneyCalculator = () => {
                                         className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                                     />
                                 </div>
+                                )}
+
+                                {/* Conditional: Show current benefit fields if ALREADY filed */}
+                                {spouse2AlreadyFiled && (
+                                <>
+                                <div>
+                                    <label className="block text-xs text-gray-600 mb-1 flex items-center gap-1">
+                                        Current Monthly Benefit ($)
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAlreadyFiledModal(true)}
+                                            className="text-primary-600 hover:text-primary-700 underline text-xs"
+                                        >
+                                            Why this matters?
+                                        </button>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={spouse2CurrentBenefit || ''}
+                                        onChange={e => setSpouse2CurrentBenefit(Number(e.target.value))}
+                                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                                        placeholder="e.g., 1800"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-gray-600 mb-1">Age When Filed</label>
+                                    <select
+                                        value={spouse2FiledAge}
+                                        onChange={e => setSpouse2FiledAge(Number(e.target.value))}
+                                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                                    >
+                                        {[62, 63, 64, 65, 66, 67, 68, 69, 70].map(age => (
+                                            <option key={age} value={age}>{age}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                </>
+                                )}
+
+                                {/* Filing Age - only show if NOT already filed */}
+                                {!spouse2AlreadyFiled && (
                                 <div className="bg-primary-100 rounded p-2">
                                     <label className="block text-xs font-medium text-gray-700 mb-1">Filing Age</label>
                                     <div className="grid grid-cols-2 gap-2">
@@ -2117,6 +2243,7 @@ const ShowMeTheMoneyCalculator = () => {
                                         </div>
                                     </div>
                                 </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -2549,6 +2676,113 @@ const ShowMeTheMoneyCalculator = () => {
 
                             <div className="flex justify-end mt-6">
                                 <Button onClick={() => setShowPiaFraModal(false)} variant="primary">
+                                    Got It
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Already Filed Modal */}
+            {showAlreadyFiledModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6">
+                            <div className="flex justify-between items-start mb-4">
+                                <h2 className="text-2xl font-bold text-gray-900">Already Receiving Benefits?</h2>
+                                <button
+                                    onClick={() => setShowAlreadyFiledModal(false)}
+                                    className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                                >
+                                    ×
+                                </button>
+                            </div>
+
+                            {/* What We Do */}
+                            <div className="mb-6">
+                                <h3 className="text-xl font-semibold text-primary-600 mb-3">How This Works</h3>
+                                <p className="text-gray-700 mb-4">
+                                    When you're already receiving Social Security benefits, we use a different calculation approach:
+                                </p>
+
+                                <div className="space-y-3">
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex-shrink-0 mt-1">
+                                            <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-900">We use your actual current monthly amount</p>
+                                            <p className="text-sm text-gray-600">No need to calculate from PIA - we start with what you're receiving now</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex-shrink-0 mt-1">
+                                            <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-900">We adjust it forward for COLA/inflation</p>
+                                            <p className="text-sm text-gray-600">Your benefit grows with cost-of-living adjustments over time</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex-shrink-0 mt-1">
+                                            <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-900">Filing age helps us calculate survivor benefits</p>
+                                            <p className="text-sm text-gray-600">If married/widowed, we need to know when you filed for accurate planning</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Where to Find Current Benefit */}
+                            <div className="mb-6">
+                                <h3 className="text-xl font-semibold text-primary-600 mb-3">Where to Find Your Current Benefit</h3>
+                                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                                    <p className="text-sm text-gray-700"><strong>1. Check your bank statement</strong> - Look for the monthly direct deposit from Social Security</p>
+                                    <p className="text-sm text-gray-700"><strong>2. Log in to{' '}
+                                        <a
+                                            href="https://www.ssa.gov"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-primary-600 hover:text-primary-700 underline"
+                                        >
+                                            SSA.gov
+                                        </a>
+                                    </strong> - Your benefit details are in your "my Social Security" account</p>
+                                    <p className="text-sm text-gray-700"><strong>3. Review your Social Security statement</strong> - The mailed or online statement shows your current benefit</p>
+                                </div>
+                            </div>
+
+                            {/* Important Note */}
+                            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded mb-4">
+                                <div className="flex">
+                                    <div className="flex-shrink-0">
+                                        <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-3">
+                                        <p className="text-sm font-semibold text-gray-900">Important: Use Gross Amount</p>
+                                        <p className="text-sm text-gray-700 mt-1">
+                                            Enter the gross amount BEFORE any deductions (Medicare premiums, taxes, etc.). We want your full Social Security benefit amount.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end mt-6">
+                                <Button onClick={() => setShowAlreadyFiledModal(false)} variant="primary">
                                     Got It
                                 </Button>
                             </div>
