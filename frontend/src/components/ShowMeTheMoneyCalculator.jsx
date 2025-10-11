@@ -858,7 +858,15 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
     };
 
     const raceData = calculateRaceData(currentRaceAge);
-    const maxValue = Math.max(...raceData.map(d => d.value)) * 1.1;
+    
+    // Calculate fixed max value across ALL ages (62-95) for ALL scenarios
+    // This ensures bars grow from small to large rather than constantly rescaling
+    const allAges = Array.from({ length: 95 - 62 + 1 }, (_, i) => 62 + i);
+    const allValues = allAges.flatMap(age => {
+        const ageData = calculateRaceData(age);
+        return ageData.map(d => d.value);
+    });
+    const maxValue = Math.max(...allValues) * 1.1;
 
     // SVG dimensions
     const width = 1200;
