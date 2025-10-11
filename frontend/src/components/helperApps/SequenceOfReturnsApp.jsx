@@ -2,7 +2,7 @@ import React from 'react';
 
 const iframeStyle = {
   width: '100%',
-  minHeight: '900px',
+  height: 'calc(100vh - 56px)',
   border: 'none',
   borderRadius: '16px',
   boxShadow: '0 20px 45px rgba(15, 23, 42, 0.15)',
