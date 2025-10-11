@@ -209,7 +209,7 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
 
     // SVG dimensions - use more vertical space for drama
     const width = 1200;
-    const height = 600;
+    const height = 700; // Height to accommodate visualization with heading moved to side
     const barWidth = 100;
     const barSpacing = 80;
     const startX = 100;
@@ -217,7 +217,7 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
     const maxValue = Math.max(inflatedMonthlyNeeds, age70Monthly) * 1.1; // Add 10% padding
 
     // Calculate heights proportional to values - use more vertical space
-    const availableHeight = 450; // More vertical space
+    const availableHeight = 420; // Adjusted for better proportions
     const getHeight = (value) => Math.max(30, (value / maxValue) * availableHeight);
 
     // Target bar is 50% taller to give room for swoopy curves
@@ -238,8 +238,10 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
 
     const selectedBarX = selectedStrategy === 3
         ? startX  // Hybrid column is at far left
-        : startX + (barWidth + barSpacing) + selectedStrategy * (barWidth + barSpacing);  // Shift other columns right
-    const baseY = height - 80;
+        : showHybridColumn
+            ? startX + (barWidth + barSpacing) + selectedStrategy * (barWidth + barSpacing)  // Shift right when hybrid shown
+            : startX + selectedStrategy * (barWidth + barSpacing);  // No shift when hybrid not shown
+    const baseY = height - 100; // Increased from 80 to give more space for labels above target bar
 
     // Calculate control points for swoopy Sankey flow
     // Flow from bottom of strategy bar to bottom of target bar,
@@ -337,7 +339,7 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
 
     return (
         <div className="h-full flex flex-col p-6">
-            <div className="text-center mb-4">
+            <div className="mb-4 ml-8">
                 <div className="text-3xl font-bold text-gray-900 mb-2">
                     Impact of Filing Strategy at Age {age}
                 </div>
@@ -669,10 +671,10 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
                     })}
 
                     {/* Monthly needs reference bar on right - 50% taller for visual flow */}
-                    {/* Split into covered portion (deep burnt orange) and gap portion (contrasting color) */}
-                    <g>
-                        {/* Covered portion - deep dark burnt orange */}
+                    {/* Split into covered portion (SS benefits) and shortfall portion (from savings) */}
+                    {selectedScenario && (
                         <g>
+                            {/* Covered portion (bottom) - deep dark burnt orange representing SS benefits */}
                             <rect
                                 x={rightX}
                                 y={baseY - (selectedScenario.covered / inflatedMonthlyNeeds) * targetHeight}
@@ -688,55 +690,58 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
                                 {`${currencyFormatter.format(Math.round(selectedScenario.covered))} per month\n`}
                                 {`SS provides reliable retirement income`}
                             </title>
-                        </g>
 
-                        {/* Gap portion - light coral/salmon for contrast */}
-                        {selectedScenario.gap > 0 && (
-                            <g>
-                                <rect
-                                    x={rightX}
-                                    y={baseY - targetHeight}
-                                    width={barWidth}
-                                    height={(selectedScenario.gap / inflatedMonthlyNeeds) * targetHeight}
-                                    fill="#FB923C"
-                                    rx="8"
-                                    opacity="0.7"
-                                    className="flow-bar"
-                                />
-                                <title>
-                                    {`${gapPercent}% must come from savings\n`}
-                                    {`${currencyFormatter.format(Math.round(selectedScenario.gap))} per month\n`}
-                                    {`Consider filing later to reduce this burden`}
-                                </title>
-                                {/* Unmet need amount label in gap segment */}
-                                {((selectedScenario.gap / inflatedMonthlyNeeds) * targetHeight) > 40 && (
-                                    <text
-                                        x={rightX + barWidth / 2}
-                                        y={baseY - targetHeight + ((selectedScenario.gap / inflatedMonthlyNeeds) * targetHeight) / 2}
-                                        textAnchor="middle"
-                                        fill="white"
-                                        fontSize="12"
-                                        fontWeight="600"
-                                        className="flow-text"
-                                    >
-                                        {currencyFormatter.format(Math.round(selectedScenario.gap))}
-                                    </text>
-                                )}
-                            </g>
-                        )}
-                    </g>
+                            {/* Shortfall portion (top) - salmon/coral representing gap that needs savings */}
+                            {selectedScenario.gap > 0 && (
+                                <g>
+                                    <rect
+                                        x={rightX}
+                                        y={baseY - targetHeight}
+                                        width={barWidth}
+                                        height={(selectedScenario.gap / inflatedMonthlyNeeds) * targetHeight}
+                                        fill="#FB923C"
+                                        rx="8"
+                                        opacity="0.85"
+                                        className="flow-bar"
+                                    />
+                                    <title>
+                                        {`${gapPercent}% shortfall - must come from savings\n`}
+                                        {`${currencyFormatter.format(Math.round(selectedScenario.gap))} per month\n`}
+                                        {`Consider filing later to reduce this burden`}
+                                    </title>
+                                    {/* Shortfall amount label */}
+                                    {((selectedScenario.gap / inflatedMonthlyNeeds) * targetHeight) > 40 && (
+                                        <text
+                                            x={rightX + barWidth / 2}
+                                            y={baseY - targetHeight + ((selectedScenario.gap / inflatedMonthlyNeeds) * targetHeight) / 2}
+                                            textAnchor="middle"
+                                            fill="white"
+                                            fontSize="13"
+                                            fontWeight="600"
+                                            className="flow-text"
+                                        >
+                                            {currencyFormatter.format(Math.round(selectedScenario.gap))}
+                                        </text>
+                                    )}
+                                </g>
+                            )}
+
+                            {/* Labels above the column - stacked with clear hierarchy */}
+                            <text x={rightX + barWidth / 2} y={baseY - targetHeight - 60} textAnchor="middle" fontSize="16" fontWeight="700" fill="#374151">
+                                Target
+                            </text>
+                            <text x={rightX + barWidth / 2} y={baseY - targetHeight - 42} textAnchor="middle" fontSize="13" fontWeight="600" fill="#6B7280">
+                                Monthly Expense Needs
+                            </text>
+                            <text x={rightX + barWidth / 2} y={baseY - targetHeight - 20} textAnchor="middle" fontSize="18" fontWeight="700" fill="#374151">
+                                {currencyFormatter.format(Math.round(inflatedMonthlyNeeds))}
+                            </text>
+                        </g>
+                    )}
 
                     {/* Title labels - larger font */}
-                    <text x={startX + (barWidth * 3 + barSpacing * 2) / 2} y={25} textAnchor="middle" fontSize="18" fontWeight="700" fill="#374151">
+                    <text x={showHybridColumn ? startX + (barWidth * 4 + barSpacing * 3) / 2 : startX + (barWidth * 3 + barSpacing * 2) / 2} y={25} textAnchor="middle" fontSize="18" fontWeight="700" fill="#374151">
                         Filing Strategies
-                    </text>
-
-                    {/* Target label positioned higher above the column */}
-                    <text x={rightX + barWidth / 2} y={baseY - targetHeight - 35} textAnchor="middle" fontSize="18" fontWeight="700" fill="#374151">
-                        Target: {currencyFormatter.format(Math.round(inflatedMonthlyNeeds))}
-                    </text>
-                    <text x={rightX + barWidth / 2} y={baseY - targetHeight - 18} textAnchor="middle" fontSize="12" fontWeight="600" fill="#6B7280">
-                        Monthly Expense Needs
                     </text>
                 </svg>
             </div>
