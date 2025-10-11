@@ -11,16 +11,16 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <main class="container">
-    <header>
-      <h1>Sequence of Returns Risk</h1>
-      <p>
-        Explore how the order of market returns affects a retirement portfolio when you withdraw a steady income each
-        year.
-      </p>
-    </header>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <header class="sidebar-header">
+        <h1>Sequence of Returns Risk</h1>
+        <p>
+          Explore how the order of market returns affects a retirement portfolio when you withdraw a steady income each year.
+        </p>
+      </header>
 
-    <section class="controls">
+      <section class="controls">
       <div class="field">
         <label for="initial-balance">Initial Balance</label>
         <input id="initial-balance" class="numeric" type="text" value="$250,000" list="initial-balance-options" />
@@ -57,14 +57,17 @@
           </div>
         </div>
       </div>
-    </section>
+      </section>
+    </aside>
 
-    <section class="tables-wrapper" id="tables-wrapper"></section>
+    <main class="main-content">
+      <section class="tables-wrapper" id="tables-wrapper"></section>
 
-    <section class="chart-card">
-      <canvas id="sequence-chart" height="180"></canvas>
-    </section>
-  </main>
+      <section class="chart-card">
+        <canvas id="sequence-chart" height="180"></canvas>
+      </section>
+    </main>
+  </div>
 
   <footer>
     <small>

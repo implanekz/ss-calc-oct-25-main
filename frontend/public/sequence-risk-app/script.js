@@ -250,7 +250,8 @@ const renderTables = (historicalScenario, strategyOneScenario, strategyTwoScenar
   inner.className = 'table-group';
   inner.appendChild(makeMiniTable('Historical Sequence', historicalScenario));
   inner.appendChild(makeMiniTable('Strategy 1 Sequence', strategyOneScenario, { collapsible: true, key: 'strategy1' }));
-  inner.appendChild(makeMiniTable('Strategy 2 Sequence', strategyTwoScenario, { collapsible: true, key: 'strategy2' }));
+  // Strategy 2 hidden but calculation logic preserved
+  // inner.appendChild(makeMiniTable('Strategy 2 Sequence', strategyTwoScenario, { collapsible: true, key: 'strategy2' }));
   card.appendChild(inner);
 
   wrapper.appendChild(card);
@@ -274,7 +275,7 @@ const renderChart = (historicalScenario, strategyOneScenario, strategyTwoScenari
         hidden: false,
       },
       {
-        label: 'Strategy 1 Sequence',
+        label: 'Strategy 1',
         data: strategyOneScenario.rows.map((row) => Math.round(row.ending)),
         borderColor: '#22c55e',
         backgroundColor: 'rgba(34, 197, 94, 0.15)',
@@ -282,15 +283,16 @@ const renderChart = (historicalScenario, strategyOneScenario, strategyTwoScenari
         tension: 0.25,
         hidden: !expandedTables.strategy1,
       },
-      {
-        label: 'Strategy 2 Sequence',
-        data: strategyTwoScenario.rows.map((row) => Math.round(row.ending)),
-        borderColor: '#f97316',
-        backgroundColor: 'rgba(249, 115, 22, 0.15)',
-        fill: false,
-        tension: 0.25,
-        hidden: !expandedTables.strategy2,
-      },
+      // Strategy 2 hidden from chart
+      // {
+      //   label: 'Strategy 2 Sequence',
+      //   data: strategyTwoScenario.rows.map((row) => Math.round(row.ending)),
+      //   borderColor: '#f97316',
+      //   backgroundColor: 'rgba(249, 115, 22, 0.15)',
+      //   fill: false,
+      //   tension: 0.25,
+      //   hidden: true,
+      // },
     ],
   };
 

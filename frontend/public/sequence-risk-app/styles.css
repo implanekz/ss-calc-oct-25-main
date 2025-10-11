@@ -11,36 +11,49 @@ body {
   flex-direction: column;
 }
 
-.container {
-  width: min(1080px, 94vw);
-  margin: 40px auto;
+.app-layout {
   display: flex;
-  flex-direction: column;
-  gap: 28px;
+  min-height: calc(100vh - 100px);
+  gap: 0;
 }
 
-header h1 {
+.sidebar {
+  width: 260px;
+  background: #fbf7eb;
+  border-right: 1px solid #ddd1b6;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sidebar-header h1 {
   margin: 0 0 8px;
-  font-size: 2.2rem;
+  font-size: 1.5rem;
   color: #0c2246;
 }
 
-header p {
+.sidebar-header p {
   margin: 0;
   color: #4f5d73;
-  max-width: 720px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.main-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .controls {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  column-gap: 24px;
-  row-gap: 16px;
-  padding: 24px;
-  background: #fbf7eb;
-  border-radius: 14px;
-  box-shadow: 0 18px 35px -22px rgba(12, 34, 70, 0.45);
-  border: 1px solid #ddd1b6;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .field {
@@ -140,8 +153,8 @@ button:hover {
 
 .table-group {
   display: grid;
-  gap: 24px;
-  grid-template-columns: repeat(3, minmax(240px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
 }
 
 .mini-table-title,
@@ -169,6 +182,20 @@ button:hover {
 .mini-table-toggle:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 4px;
+}
+
+.mini-table.collapsible {
+  transition: background-color 0.3s ease;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.mini-table.collapsible .mini-table-toggle.active {
+  color: #1d4ed8;
+}
+
+.mini-table.collapsible:has(.mini-table-toggle.active) {
+  background-color: rgba(187, 247, 208, 0.3);
 }
 
 .mini-table table {
@@ -227,21 +254,26 @@ footer {
 
 .button-row {
   display: flex;
+  flex-direction: column;
   gap: 12px;
-  align-items: center;
+  align-items: stretch;
+}
+
+.button-row button {
+  align-self: stretch;
+  text-align: center;
 }
 
 .stress-test-group {
   display: flex;
+  flex-direction: column;
   gap: 8px;
-  position: relative;
-  align-items: center;
 }
 
 .stress-controls {
   display: flex;
-  gap: 6px;
-  align-items: center;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .stress-controls[hidden] {
@@ -253,6 +285,7 @@ footer {
   border-radius: 8px;
   border: 1px solid #d6c8a8;
   background: #fffdf7;
+  font-size: 0.9rem;
 }
 
 .stress-info-button {
@@ -262,6 +295,7 @@ footer {
   background: #fff;
   color: #327431;
   cursor: pointer;
+  align-self: flex-start;
 }
 
 .modal {
