@@ -151,50 +151,24 @@ class WidowSSCalculator(BaseSSCalculator):
         own_start = self.get_claiming_date(own_claiming_age)
         death_date = self.birth_date + relativedelta(years=longevity_age)
 
-        total_benefits = 0
-
-        # Phase 1: Survivor benefits
-        current_date = survivor_start
-        years_after_claim = 0
-
-        while current_date < own_start:
-            from .benefit_math import benefit_after_claim
-            current_benefit = benefit_after_claim(survivor_monthly, years_after_claim, inflation_rate)
-
-            year_end = min(
-                date(current_date.year + 1, 1, 1) - relativedelta(days=1),
-                own_start
-            )
-
-            months_in_year = relativedelta(year_end, current_date).months + 1
-            if current_date.year != year_end.year:
-                months_in_year = 12 - current_date.month + 1
-
-            total_benefits += current_benefit * months_in_year
-            years_after_claim += 1
-            current_date = date(current_date.year + 1, 1, 1)
-
-        # Phase 2: Own benefits
         own_monthly = self.calculate_monthly_benefit(own_claiming_age, 0, inflation_rate)
-        current_date = own_start
-        years_after_own_claim = 0
+        survivor_phase = self._build_benefit_timeline(
+            survivor_start,
+            own_start,
+            survivor_monthly,
+            inflation_rate,
+            'survivor'
+        )
+        own_phase = self._build_benefit_timeline(
+            own_start,
+            death_date,
+            own_monthly,
+            inflation_rate,
+            'own'
+        )
 
-        while current_date < death_date:
-            from .benefit_math import benefit_after_claim
-            current_benefit = benefit_after_claim(own_monthly, years_after_own_claim, inflation_rate)
-
-            year_end = min(
-                date(current_date.year + 1, 1, 1) - relativedelta(days=1),
-                death_date
-            )
-
-            months_in_year = relativedelta(year_end, current_date).months + 1
-            if current_date.year != year_end.year:
-                months_in_year = 12 - current_date.month + 1
-
-            total_benefits += current_benefit * months_in_year
-            years_after_own_claim += 1
-            current_date = date(current_date.year + 1, 1, 1)
+        total_benefits = survivor_phase['total'] + own_phase['total']
+        combined_timeline = survivor_phase['timeline'] + own_phase['timeline']
 
         return {
             'valid': True,
@@ -202,7 +176,8 @@ class WidowSSCalculator(BaseSSCalculator):
             'own_monthly': round(own_monthly, 2),
             'lifetime_total': round(total_benefits, 2),
             'survivor_years': own_claiming_age - survivor_claiming_age,
-            'own_years': longevity_age - own_claiming_age
+            'own_years': longevity_age - own_claiming_age,
+            'timeline': combined_timeline
         }
 
     def calculate_optimal_strategy(
@@ -235,7 +210,8 @@ class WidowSSCalculator(BaseSSCalculator):
                     'claiming_age': claiming_age,
                     'type': 'own_only',
                     'initial_monthly': own_benefits['initial_monthly_benefit'],
-                    'lifetime_total': own_benefits['total_lifetime_benefits']
+                    'lifetime_total': own_benefits['total_lifetime_benefits'],
+                    'benefit_timeline': own_benefits['annual_breakdown']
                 })
 
         # Strategy 2: Survivor benefit only (if eligible)
@@ -244,37 +220,24 @@ class WidowSSCalculator(BaseSSCalculator):
                 if claiming_age <= longevity_age:
                     survivor_monthly = self.calculate_survivor_benefit(claiming_age, inflation_rate)
 
-                    # Calculate lifetime value
                     claiming_date = self.get_claiming_date(claiming_age)
                     death_date = self.birth_date + relativedelta(years=longevity_age)
 
-                    total_benefits = 0
-                    current_date = claiming_date
-                    years_after_claim = 0
-
-                    while current_date < death_date:
-                        from .benefit_math import benefit_after_claim
-                        current_benefit = benefit_after_claim(survivor_monthly, years_after_claim, inflation_rate)
-
-                        year_end = min(
-                            date(current_date.year + 1, 1, 1) - relativedelta(days=1),
-                            death_date
-                        )
-
-                        months_in_year = relativedelta(year_end, current_date).months + 1
-                        if current_date.year != year_end.year:
-                            months_in_year = 12 - current_date.month + 1
-
-                        total_benefits += current_benefit * months_in_year
-                        years_after_claim += 1
-                        current_date = date(current_date.year + 1, 1, 1)
+                    timeline = self._build_benefit_timeline(
+                        claiming_date,
+                        death_date,
+                        survivor_monthly,
+                        inflation_rate,
+                        'survivor'
+                    )
 
                     strategies.append({
                         'strategy': f"Survivor benefit only at {claiming_age}",
                         'claiming_age': claiming_age,
                         'type': 'survivor_only',
                         'initial_monthly': round(survivor_monthly, 2),
-                        'lifetime_total': round(total_benefits, 2)
+                        'lifetime_total': timeline['total'],
+                        'benefit_timeline': timeline['timeline']
                     })
 
             # Strategy 3: Crossover strategies (if eligible)
@@ -300,7 +263,8 @@ class WidowSSCalculator(BaseSSCalculator):
                             'switched_monthly': crossover['own_monthly'],
                             'lifetime_total': crossover['lifetime_total'],
                             'survivor_years': crossover['survivor_years'],
-                            'own_years': crossover['own_years']
+                            'own_years': crossover['own_years'],
+                            'benefit_timeline': crossover.get('timeline', [])
                         })
 
             # Strategy 4: Reverse crossover (Own early → Survivor later)
@@ -321,48 +285,25 @@ class WidowSSCalculator(BaseSSCalculator):
 
                     total_benefits = 0
 
-                    # Phase 1: Own benefits
-                    current_date = own_start
-                    years_after_claim = 0
+                    own_phase = self._build_benefit_timeline(
+                        own_start,
+                        survivor_start,
+                        own_monthly,
+                        inflation_rate,
+                        'own'
+                    )
 
-                    while current_date < survivor_start:
-                        from .benefit_math import benefit_after_claim
-                        current_benefit = benefit_after_claim(own_monthly, years_after_claim, inflation_rate)
-
-                        year_end = min(
-                            date(current_date.year + 1, 1, 1) - relativedelta(days=1),
-                            survivor_start
-                        )
-
-                        months_in_year = relativedelta(year_end, current_date).months + 1
-                        if current_date.year != year_end.year:
-                            months_in_year = 12 - current_date.month + 1
-
-                        total_benefits += current_benefit * months_in_year
-                        years_after_claim += 1
-                        current_date = date(current_date.year + 1, 1, 1)
-
-                    # Phase 2: Survivor benefits
                     survivor_monthly = self.calculate_survivor_benefit(survivor_age, inflation_rate)
-                    current_date = survivor_start
-                    years_after_survivor_claim = 0
+                    survivor_phase = self._build_benefit_timeline(
+                        survivor_start,
+                        death_date,
+                        survivor_monthly,
+                        inflation_rate,
+                        'survivor'
+                    )
 
-                    while current_date < death_date:
-                        from .benefit_math import benefit_after_claim
-                        current_benefit = benefit_after_claim(survivor_monthly, years_after_survivor_claim, inflation_rate)
-
-                        year_end = min(
-                            date(current_date.year + 1, 1, 1) - relativedelta(days=1),
-                            death_date
-                        )
-
-                        months_in_year = relativedelta(year_end, current_date).months + 1
-                        if current_date.year != year_end.year:
-                            months_in_year = 12 - current_date.month + 1
-
-                        total_benefits += current_benefit * months_in_year
-                        years_after_survivor_claim += 1
-                        current_date = date(current_date.year + 1, 1, 1)
+                    total_benefits = own_phase['total'] + survivor_phase['total']
+                    timeline = own_phase['timeline'] + survivor_phase['timeline']
 
                     strategies.append({
                         'strategy': f"Own at {own_age}, switch to survivor at {survivor_age}",
@@ -371,7 +312,8 @@ class WidowSSCalculator(BaseSSCalculator):
                         'type': 'reverse_crossover',
                         'initial_monthly': round(own_monthly, 2),
                         'switched_monthly': round(survivor_monthly, 2),
-                        'lifetime_total': round(total_benefits, 2)
+                        'lifetime_total': round(total_benefits, 2),
+                        'benefit_timeline': timeline
                     })
 
         # Find optimal strategy

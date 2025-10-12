@@ -214,7 +214,8 @@ class DivorcedSSCalculator(BaseSSCalculator):
                     'claiming_age': claiming_age,
                     'type': 'own',
                     'initial_monthly': own_benefits['initial_monthly_benefit'],
-                    'lifetime_total': own_benefits['total_lifetime_benefits']
+                    'lifetime_total': own_benefits['total_lifetime_benefits'],
+                    'benefit_timeline': own_benefits['annual_breakdown']
                 })
 
         # Strategy 2: Ex-spouse benefit at various ages (if eligible)
@@ -223,37 +224,24 @@ class DivorcedSSCalculator(BaseSSCalculator):
                 if claiming_age <= longevity_age:
                     ex_spouse_monthly = self.calculate_ex_spouse_benefit(claiming_age, inflation_rate)
 
-                    # Calculate lifetime value
                     claiming_date = self.get_claiming_date(claiming_age)
                     death_date = self.birth_date + relativedelta(years=longevity_age)
 
-                    total_benefits = 0
-                    current_date = claiming_date
-                    years_after_claim = 0
-
-                    while current_date < death_date:
-                        from .benefit_math import benefit_after_claim
-                        current_benefit = benefit_after_claim(ex_spouse_monthly, years_after_claim, inflation_rate)
-
-                        year_end = min(
-                            date(current_date.year + 1, 1, 1) - relativedelta(days=1),
-                            death_date
-                        )
-
-                        months_in_year = relativedelta(year_end, current_date).months + 1
-                        if current_date.year != year_end.year:
-                            months_in_year = 12 - current_date.month + 1
-
-                        total_benefits += current_benefit * months_in_year
-                        years_after_claim += 1
-                        current_date = date(current_date.year + 1, 1, 1)
+                    timeline = self._build_benefit_timeline(
+                        claiming_date,
+                        death_date,
+                        ex_spouse_monthly,
+                        inflation_rate,
+                        'ex_spouse'
+                    )
 
                     strategies.append({
                         'strategy': f"Ex-spouse benefit at {claiming_age}",
                         'claiming_age': claiming_age,
                         'type': 'ex_spouse',
                         'initial_monthly': round(ex_spouse_monthly, 2),
-                        'lifetime_total': round(total_benefits, 2)
+                        'lifetime_total': timeline['total'],
+                        'benefit_timeline': timeline['timeline']
                     })
 
             # Strategy 3: Switching strategies (if eligible)
@@ -267,49 +255,25 @@ class DivorcedSSCalculator(BaseSSCalculator):
                         switch_date = self.get_claiming_date(switch_age)
                         death_date = self.birth_date + relativedelta(years=longevity_age)
 
-                        total_benefits = 0
-                        current_date = self.get_claiming_date(ex_spouse_age)
-                        years_after_claim = 0
+                        ex_phase = self._build_benefit_timeline(
+                            self.get_claiming_date(ex_spouse_age),
+                            switch_date,
+                            ex_spouse_monthly,
+                            inflation_rate,
+                            'ex_spouse'
+                        )
 
-                        # Ex-spouse benefits period
-                        while current_date < switch_date:
-                            from .benefit_math import benefit_after_claim
-                            current_benefit = benefit_after_claim(ex_spouse_monthly, years_after_claim, inflation_rate)
-
-                            year_end = min(
-                                date(current_date.year + 1, 1, 1) - relativedelta(days=1),
-                                switch_date
-                            )
-
-                            months_in_year = relativedelta(year_end, current_date).months + 1
-                            if current_date.year != year_end.year:
-                                months_in_year = 12 - current_date.month + 1
-
-                            total_benefits += current_benefit * months_in_year
-                            years_after_claim += 1
-                            current_date = date(current_date.year + 1, 1, 1)
-
-                        # Own benefits period
                         own_monthly = self.calculate_monthly_benefit(switch_age, 0, inflation_rate)
-                        current_date = switch_date
-                        years_after_own_claim = 0
+                        own_phase = self._build_benefit_timeline(
+                            switch_date,
+                            death_date,
+                            own_monthly,
+                            inflation_rate,
+                            'own'
+                        )
 
-                        while current_date < death_date:
-                            from .benefit_math import benefit_after_claim
-                            current_benefit = benefit_after_claim(own_monthly, years_after_own_claim, inflation_rate)
-
-                            year_end = min(
-                                date(current_date.year + 1, 1, 1) - relativedelta(days=1),
-                                death_date
-                            )
-
-                            months_in_year = relativedelta(year_end, current_date).months + 1
-                            if current_date.year != year_end.year:
-                                months_in_year = 12 - current_date.month + 1
-
-                            total_benefits += current_benefit * months_in_year
-                            years_after_own_claim += 1
-                            current_date = date(current_date.year + 1, 1, 1)
+                        total_benefits = ex_phase['total'] + own_phase['total']
+                        timeline = ex_phase['timeline'] + own_phase['timeline']
 
                         strategies.append({
                             'strategy': f"Ex-spouse at {ex_spouse_age}, switch to own at {switch_age}",
@@ -318,20 +282,34 @@ class DivorcedSSCalculator(BaseSSCalculator):
                             'type': 'switching',
                             'initial_monthly': round(ex_spouse_monthly, 2),
                             'switched_monthly': round(own_monthly, 2),
-                            'lifetime_total': round(total_benefits, 2)
+                            'lifetime_total': round(total_benefits, 2),
+                            'benefit_timeline': timeline
                         })
 
         # Strategy 4: Child-in-care benefits
         child_in_care = self.calculate_child_in_care_benefit(inflation_rate)
         if child_in_care['eligible']:
+            current_date = date.today()
+            end_date = current_date + relativedelta(months=child_in_care['months_of_benefits'])
+            timeline = self._build_benefit_timeline(
+                current_date,
+                end_date,
+                child_in_care['monthly_benefit'],
+                inflation_rate,
+                'child_in_care'
+            )
+            child_in_care['total_lifetime_value'] = timeline['total']
+            child_in_care['benefit_timeline'] = timeline['timeline']
+
             strategies.append({
                 'strategy': f"Child-in-care benefit NOW (until child turns 16)",
                 'claiming_age': int((date.today() - self.birth_date).days / 365.25),
                 'type': 'child_in_care',
                 'initial_monthly': child_in_care['monthly_benefit'],
-                'lifetime_total': child_in_care['total_lifetime_value'],
+                'lifetime_total': timeline['total'],
                 'years_of_benefits': child_in_care['years_of_benefits'],
-                'note': f"Plus additional benefits from age 62+, not included in this total"
+                'note': f"Plus additional benefits from age 62+, not included in this total",
+                'benefit_timeline': timeline['timeline']
             })
 
         # Find optimal strategy

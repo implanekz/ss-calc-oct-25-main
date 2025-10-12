@@ -6,7 +6,7 @@ Provides shared logic for married, divorced, and widowed calculators
 
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 from enum import Enum
 
 # Import benefit math helpers
@@ -98,6 +98,85 @@ class BaseSSCalculator:
     def get_claiming_date(self, claiming_age_years: int, claiming_age_months: int = 0) -> date:
         """Get the date when benefits would start based on claiming age"""
         return self.birth_date + relativedelta(years=claiming_age_years, months=claiming_age_months)
+
+    def _age_at_date(self, target_date: date) -> float:
+        """Return age in years (one decimal) at a specific date."""
+        return round((target_date - self.birth_date).days / 365.25, 1)
+
+    def _months_in_period(self, start_date: date, end_date: date) -> int:
+        """
+        Count the number of benefit months in [start_date, end_date).
+        Benefits are issued monthly, so we advance month by month.
+        """
+        if start_date >= end_date:
+            return 0
+
+        months = 0
+        current = start_date
+        while current < end_date:
+            months += 1
+            current = current + relativedelta(months=1)
+        return months
+
+    def _build_benefit_timeline(
+        self,
+        start_date: date,
+        end_date: date,
+        initial_monthly: float,
+        inflation_rate: float,
+        phase_label: str
+    ) -> Dict[str, Any]:
+        """
+        Generate year-by-year benefit timeline for a given phase.
+
+        Args:
+            start_date: First month benefits are paid for this phase.
+            end_date: Date when this phase stops paying (exclusive).
+            initial_monthly: Monthly benefit at the start of the phase.
+            inflation_rate: Annual COLA assumption applied after claiming.
+            phase_label: Identifier for the phase (own, survivor, ex_spouse, etc.).
+
+        Returns:
+            Dict with total for the phase, final monthly value, and yearly timeline entries.
+        """
+        from .benefit_math import benefit_after_claim
+
+        timeline: List[Dict[str, Any]] = []
+        total_benefits = 0.0
+
+        current_date = start_date
+        years_after_claim = 0
+        final_monthly = initial_monthly
+
+        while current_date < end_date:
+            current_benefit = benefit_after_claim(initial_monthly, years_after_claim, inflation_rate)
+            final_monthly = current_benefit
+
+            next_year_start = date(current_date.year + 1, 1, 1)
+            period_end = min(next_year_start, end_date)
+            months_in_period = self._months_in_period(current_date, period_end)
+
+            if months_in_period > 0:
+                year_benefits = current_benefit * months_in_period
+                total_benefits += year_benefits
+
+                timeline.append({
+                    'year': current_date.year,
+                    'age': self._age_at_date(current_date),
+                    'monthly_benefit': round(current_benefit, 2),
+                    'annual_total': round(year_benefits, 2),
+                    'months_paid': months_in_period,
+                    'phase': phase_label
+                })
+
+            years_after_claim += 1
+            current_date = period_end
+
+        return {
+            'timeline': timeline,
+            'total': round(total_benefits, 2),
+            'final_monthly': round(final_monthly, 2) if timeline else round(initial_monthly, 2)
+        }
 
     def _calculate_inflated_pia(self, claiming_age_years: int, inflation_rate: float) -> float:
         """
@@ -240,7 +319,9 @@ class BaseSSCalculator:
                 'year': current_date.year,
                 'monthly_benefit': round(current_benefit, 2),
                 'months_paid': months_in_year,
-                'annual_total': round(year_benefits, 2)
+                'annual_total': round(year_benefits, 2),
+                'phase': 'own',
+                'age': self._age_at_date(current_date)
             })
 
             final_monthly_benefit = current_benefit

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { StrategyTimelineToaster } from './ui';
 
 const DivorcedCalculator = () => {
     // Form inputs
@@ -16,8 +17,13 @@ const DivorcedCalculator = () => {
 
     // Results
     const [results, setResults] = useState(null);
-    const [loading, setLoading] = useState(false);
+   const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [activeStrategyDetails, setActiveStrategyDetails] = useState(null);
+
+    useEffect(() => {
+        setActiveStrategyDetails(null);
+    }, [results]);
 
     const calculateAge = (birthDateStr) => {
         const today = new Date();
@@ -31,6 +37,24 @@ const DivorcedCalculator = () => {
     };
 
     const currentAge = calculateAge(birthDate);
+    const showStrategyDetails = (strategy) => {
+        if (!strategy || !strategy.benefit_timeline || strategy.benefit_timeline.length === 0) {
+            return;
+        }
+        setActiveStrategyDetails({
+            ...strategy,
+            description: describeStrategy(strategy)
+        });
+    };
+
+    const dismissStrategyDetails = () => setActiveStrategyDetails(null);
+
+    const handleStrategyKey = (event, strategy) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            showStrategyDetails(strategy);
+        }
+    };
 
     const handleCalculate = async () => {
         setLoading(true);
@@ -99,6 +123,23 @@ const DivorcedCalculator = () => {
             'bg-pink-50 border-pink-500'
         ];
         return colors[index % colors.length];
+    };
+
+    const describeStrategy = (strategy) => {
+        if (!strategy) return '';
+
+        switch (strategy.type) {
+            case 'switching':
+                return `Start with the ex-spouse benefit at age ${strategy.claiming_age}, then switch to your own benefit at age ${strategy.switch_age}.`;
+            case 'ex_spouse':
+                return `Collect the divorced spouse benefit from age ${strategy.claiming_age} onward.`;
+            case 'own':
+                return `Rely on your own retirement benefit starting at age ${strategy.claiming_age}.`;
+            case 'child_in_care':
+                return `Receive child-in-care benefits for approximately ${strategy.years_of_benefits?.toFixed?.(1) || strategy.years_of_benefits} years while your child remains under 16.`;
+            default:
+                return 'Review the projected income for this strategy before you lock it in.';
+        }
     };
 
     return (
@@ -351,7 +392,15 @@ const DivorcedCalculator = () => {
 
                                 {/* Optimal Strategy */}
                                 {results.optimal_strategy && (
-                                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-600 rounded-lg shadow-sm p-6">
+                                    <div
+                                        className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-600 rounded-lg shadow-sm p-6 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2"
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => showStrategyDetails(results.optimal_strategy)}
+                                        onMouseEnter={() => showStrategyDetails(results.optimal_strategy)}
+                                        onFocus={() => showStrategyDetails(results.optimal_strategy)}
+                                        onKeyDown={(event) => handleStrategyKey(event, results.optimal_strategy)}
+                                    >
                                         <h2 className="text-2xl font-bold text-green-900 mb-4">
                                             🏆 Optimal Strategy
                                         </h2>
@@ -532,11 +581,20 @@ const DivorcedCalculator = () => {
                                         <h2 className="text-xl font-semibold text-gray-900 mb-4">
                                             📊 All Strategies Compared
                                         </h2>
+                                        <p className="text-sm text-gray-500 mb-3">
+                                            Hover or click any strategy to preview the detailed income timeline.
+                                        </p>
                                         <div className="space-y-3">
                                             {results.all_strategies.map((strategy, index) => (
                                                 <div
                                                     key={index}
-                                                    className={`border-l-4 rounded-lg p-4 ${getStrategyColor(index)}`}
+                                                    className={`border-l-4 rounded-lg p-4 cursor-pointer transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 ${getStrategyColor(index)}`}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onClick={() => showStrategyDetails(strategy)}
+                                                    onMouseEnter={() => showStrategyDetails(strategy)}
+                                                    onFocus={() => showStrategyDetails(strategy)}
+                                                    onKeyDown={(event) => handleStrategyKey(event, strategy)}
                                                 >
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div className="flex-1">
@@ -593,6 +651,11 @@ const DivorcedCalculator = () => {
                     </div>
                 </div>
             </div>
+            <StrategyTimelineToaster
+                strategy={activeStrategyDetails}
+                onClose={dismissStrategyDetails}
+                clientType="divorced"
+            />
         </div>
     );
 };
