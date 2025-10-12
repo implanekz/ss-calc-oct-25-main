@@ -362,6 +362,144 @@ const WidowCalculator = () => {
                                     </div>
                                 )}
 
+                                {/* Strategy Comparison Bar Chart */}
+                                {results.all_strategies && results.all_strategies.length > 0 && (
+                                    <div className="bg-white rounded-lg shadow-sm p-6">
+                                        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                                            📊 Strategy Comparison: Worst to Best
+                                        </h2>
+                                        <p className="text-sm text-gray-600 mb-6">
+                                            Visual comparison of all {results.all_strategies.length} strategies analyzed
+                                        </p>
+
+                                        <div className="relative">
+                                            {(() => {
+                                                const strategies = results.all_strategies;
+                                                const allValues = strategies.map(s => s.lifetime_total);
+                                                const minValue = Math.min(...allValues);
+                                                const maxValue = Math.max(...allValues);
+                                                const rawRange = Math.max(maxValue - minValue, Math.max(maxValue * 0.05, 5000));
+                                                const bottomPadding = rawRange * 0.15;
+                                                const topPadding = rawRange * 0.05;
+                                                const rawMin = Math.max(0, minValue - bottomPadding);
+                                                const rawMax = maxValue + topPadding;
+                                                const roundingIncrement = rawMax >= 1000000 ? 25000 : 10000;
+                                                const yAxisMin = Math.floor(rawMin / roundingIncrement) * roundingIncrement;
+                                                const yAxisMax = Math.ceil(rawMax / roundingIncrement) * roundingIncrement;
+                                                const computedRange = yAxisMax - yAxisMin;
+                                                const yAxisRange = computedRange > 0 ? computedRange : (yAxisMax || 1);
+
+                                                const formatAxisLabel = (value) => {
+                                                    if (value >= 1000000) {
+                                                        return `$${(value / 1000000).toFixed(1)}M`;
+                                                    }
+                                                    return `$${Math.round(value / 1000)}K`;
+                                                };
+
+                                                return (
+                                                    <>
+                                                        {/* Y-axis with values */}
+                                                        <div className="flex items-start gap-2 mb-2">
+                                                            <div className="text-xs text-gray-500">Lifetime Value</div>
+                                                            <div className="text-xs text-gray-600">
+                                                                (Y-axis: {formatAxisLabel(yAxisMin)} to {formatAxisLabel(yAxisMax)})
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Bar chart container */}
+                                                        <div className="flex items-end justify-between gap-2 h-96 border-b-2 border-l-2 border-gray-300 pl-2 pb-2">
+                                                            {strategies.map((strategy, index) => {
+                                                                // Calculate bar height based on dynamic Y-axis
+                                                                const heightPercent = Math.min(100, Math.max(0,
+                                                                    ((strategy.lifetime_total - yAxisMin) / yAxisRange) * 100
+                                                                ));
+
+                                                                // Color gradient: red (worst) → yellow (middle) → green (best)
+                                                                const totalStrategies = strategies.length;
+                                                                const reverseIndex = totalStrategies - 1 - index;
+                                                                const denominator = Math.max(totalStrategies - 1, 1);
+                                                                const colorPercent = reverseIndex / denominator;
+
+                                                               let bgColor, borderColor;
+                                                               if (colorPercent < 0.33) {
+                                                                   // Worst third: Red
+                                                                   bgColor = 'bg-red-400';
+                                                                    borderColor = 'border-red-600';
+                                                                } else if (colorPercent < 0.67) {
+                                                                    // Middle third: Yellow/Orange
+                                                                    bgColor = 'bg-yellow-400';
+                                                                    borderColor = 'border-yellow-600';
+                                                                } else {
+                                                                    // Best third: Green
+                                                                    bgColor = 'bg-green-400';
+                                                                    borderColor = 'border-green-600';
+                                                                }
+
+                                                                // Highlight the optimal strategy
+                                                                const isOptimal = index === 0;
+
+                                                                return (
+                                                                    <div key={index} className="flex-1 flex flex-col justify-end items-center group relative h-full">
+                                                                        {/* Tooltip on hover - positioned above bar */}
+                                                                        <div className="hidden group-hover:block absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs rounded py-2 px-3 whitespace-nowrap z-20 shadow-lg pointer-events-none">
+                                                                            <div className="font-semibold mb-1">{strategy.strategy}</div>
+                                                                            <div className="text-green-300">{formatCurrency(strategy.lifetime_total)}</div>
+                                                                            {isOptimal && <div className="text-yellow-300 mt-1">👑 Optimal</div>}
+                                                                            {/* Arrow */}
+                                                                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                                                                        </div>
+
+                                                                        {/* Bar */}
+                                                                        <div
+                                                                            className={`w-full ${bgColor} ${borderColor} border-2 rounded-t transition-all group-hover:opacity-80 cursor-pointer ${isOptimal ? 'ring-4 ring-emerald-500 ring-opacity-50' : ''}`}
+                                                                            style={{ height: `${heightPercent}%` }}
+                                                                        >
+                                                                        </div>
+
+                                                                        {/* Value label on top of bar (for optimal strategy) */}
+                                                                        {isOptimal && (
+                                                                            <div className="absolute -top-10 text-xs font-bold text-emerald-700 whitespace-nowrap">
+                                                                                👑 {formatCurrency(strategy.lifetime_total)}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+
+                                                        {/* Legend */}
+                                                        <div className="flex items-center justify-center gap-6 mt-6 text-sm">
+                                                            <div className="flex items-center gap-2">
+                                                    <div className="w-4 h-4 bg-green-400 border-2 border-green-600 rounded"></div>
+                                                    <span className="text-gray-700">Highest Value</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-4 h-4 bg-yellow-400 border-2 border-yellow-600 rounded"></div>
+                                                    <span className="text-gray-700">Mid-Range</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-4 h-4 bg-red-400 border-2 border-red-600 rounded"></div>
+                                                    <span className="text-gray-700">Lowest Value</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Key insight */}
+                                            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                                <p className="text-sm text-blue-900">
+                                                    <span className="font-semibold">💡 Key Insight:</span> The difference between the optimal strategy and the worst strategy is{' '}
+                                                    <span className="font-bold text-blue-700">
+                                                        {formatCurrency(strategies[0].lifetime_total - strategies[strategies.length - 1].lifetime_total)}
+                                                    </span>
+                                                    {' '}over your lifetime. Hover over each bar to see details.
+                                                </p>
+                                            </div>
+                                                    </>
+                                                );
+                                            })()}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* All Strategies Comparison */}
                                 {results.all_strategies && results.all_strategies.length > 0 && (
                                     <div className="bg-white rounded-lg shadow-sm p-6">
