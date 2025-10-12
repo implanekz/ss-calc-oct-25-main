@@ -23,6 +23,7 @@ from .ss_core_calculator import (
     IndividualSSCalculator,
     HouseholdSSCalculator
 )
+from .divorced_calculator import DivorcedSSCalculator
 from .ssa_xml_processor import SSAXMLProcessor, EarningsRecord
 # from .bcr_generator import generate_bcr_data, bar_chart_race
 
@@ -124,7 +125,28 @@ class BCRRequest(BaseModel):
     pia: float
     longevity_age: int = 95
     inflation_rate: float = 0.025
-    
+
+class DivorcedCalculationRequest(BaseModel):
+    """Request for divorced individual calculation"""
+    birth_date: date
+    own_pia: float = Field(..., gt=0, description="Person's own PIA")
+    ex_spouse_pia: float = Field(..., gt=0, description="Ex-spouse's PIA")
+    marriage_duration_years: int = Field(..., ge=0, le=100, description="Length of marriage in years")
+    divorce_date: date
+    is_remarried: bool = False
+    has_child_under_16: bool = False
+    child_birth_date: Optional[date] = None
+    longevity_age: int = Field(95, ge=70, le=100)
+    inflation_rate: float = Field(0.025, ge=0.0, le=0.10)
+
+class DivorcedCalculationResponse(BaseModel):
+    """Response for divorced individual calculation"""
+    eligible_for_ex_spouse: bool
+    eligibility_reason: str
+    optimal_strategy: Optional[Dict[str, Any]]
+    all_strategies: List[Dict[str, Any]]
+    child_in_care_details: Optional[Dict[str, Any]]
+
 # Initialize FastAPI app
 app = FastAPI(
     title="Social Security K.I.N.D. Platform API",
@@ -560,14 +582,14 @@ def _calculate_survivor_impact(spouse1_calc: IndividualSSCalculator, spouse2_cal
     """Calculate impact of premature death on surviving spouse"""
     if not request.is_married or not spouse2_calc:
         return None
-    
+
     # Pass inflation to get correct benefit amounts
     spouse1_benefit = spouse1_calc.calculate_monthly_benefit(request.spouse1_claiming_age, inflation_rate=request.inflation_rate)
     spouse2_benefit = spouse2_calc.calculate_monthly_benefit(request.spouse2_claiming_age, inflation_rate=request.inflation_rate)
-    
+
     survivor_benefit = max(spouse1_benefit, spouse2_benefit)
     lost_benefit = min(spouse1_benefit, spouse2_benefit)
-    
+
     return {
         'income_before_death': spouse1_benefit + spouse2_benefit,
         'income_after_death': survivor_benefit,
@@ -575,6 +597,43 @@ def _calculate_survivor_impact(spouse1_calc: IndividualSSCalculator, spouse2_cal
         'annual_income_loss': lost_benefit * 12,
         'analysis': f"Income drops from ${(spouse1_benefit + spouse2_benefit):,.0f} to ${survivor_benefit:,.0f} per month"
     }
+
+@app.post("/calculate-divorced", response_model=DivorcedCalculationResponse)
+async def calculate_divorced(request: DivorcedCalculationRequest):
+    """
+    Calculate optimal strategy for divorced individual
+    Compares own benefits, ex-spouse benefits, and switching strategies
+    """
+    try:
+        # Create divorced calculator
+        calc = DivorcedSSCalculator(
+            birth_date=request.birth_date,
+            own_pia=request.own_pia,
+            ex_spouse_pia=request.ex_spouse_pia,
+            marriage_duration_years=request.marriage_duration_years,
+            divorce_date=request.divorce_date,
+            is_remarried=request.is_remarried,
+            has_child_under_16=request.has_child_under_16,
+            child_birth_date=request.child_birth_date
+        )
+
+        # Calculate optimal strategy
+        result = calc.calculate_optimal_strategy(
+            longevity_age=request.longevity_age,
+            inflation_rate=request.inflation_rate
+        )
+
+        return DivorcedCalculationResponse(
+            eligible_for_ex_spouse=result['eligible_for_ex_spouse'],
+            eligibility_reason=result['eligibility_reason'],
+            optimal_strategy=result.get('optimal_strategy'),
+            all_strategies=result.get('all_strategies', []),
+            child_in_care_details=result.get('child_in_care_details')
+        )
+
+    except Exception as e:
+        logger.error(f"Divorced calculation error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Divorced calculation failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
