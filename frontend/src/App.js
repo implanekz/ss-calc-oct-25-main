@@ -42,17 +42,50 @@ function App() {
             <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide items-center">
               {/* Calculator Type Dropdown - Only show when SS is active */}
               {activeApp === 'ss' && (
-                <select
-                  value={calculatorType}
-                  onChange={(e) => setCalculatorType(e.target.value)}
-                  className="px-3 py-2 bg-slate-700 text-slate-200 rounded-full font-semibold text-sm border border-slate-600 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                >
-                  {calculatorTypes.map((type) => (
-                    <option key={type.id} value={type.id} disabled={type.disabled}>
-                      {type.icon} {type.label}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex flex-col items-start">
+                  <select
+                    value={calculatorType}
+                    onChange={(e) => setCalculatorType(e.target.value)}
+                    className="px-3 py-2 bg-slate-700 text-slate-200 rounded-full font-semibold text-sm border border-slate-600 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    {calculatorTypes.map((type) => (
+                      <option key={type.id} value={type.id} disabled={type.disabled}>
+                        {type.icon} {type.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Simple guidance - only shows when SS is active */}
+                  <details className="text-xs text-slate-300 mt-1 cursor-pointer">
+                    <summary className="hover:text-white list-none flex items-center gap-1">
+                      <span className="text-[10px]">💡</span> Need help choosing?
+                    </summary>
+                    <div className="absolute mt-2 p-3 bg-slate-800 rounded-lg shadow-xl border border-slate-600 z-50 w-64">
+                      <p className="text-slate-200 font-semibold mb-2">Quick guide:</p>
+                      <ul className="space-y-1.5 text-slate-400">
+                        <li className="flex items-start gap-2">
+                          <span className="text-slate-500">•</span>
+                          <span><strong className="text-slate-300">Married or single?</strong> → Married/Single</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-slate-500">•</span>
+                          <span><strong className="text-slate-300">Divorced (ex-spouse alive)?</strong> → Divorced</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-slate-500">•</span>
+                          <span><strong className="text-slate-300">Divorced (ex-spouse deceased)?</strong> → Widowed</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-slate-500">•</span>
+                          <span><strong className="text-slate-300">Widowed?</strong> → Widowed</span>
+                        </li>
+                      </ul>
+                      <p className="text-[10px] text-slate-500 mt-2 italic">
+                        Tip: If ex-spouse is deceased, you may qualify for survivor benefits (not ex-spouse benefits)
+                      </p>
+                    </div>
+                  </details>
+                </div>
               )}
 
               {navItems.map((item) => (

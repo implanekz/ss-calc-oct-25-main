@@ -52,7 +52,19 @@ const DivorcedCalculator = () => {
 
             setResults(response.data);
         } catch (err) {
-            setError(err.response?.data?.detail || 'Calculation failed. Please check your inputs.');
+            // Handle validation errors from FastAPI (array format)
+            let errorMessage = 'Calculation failed. Please check your inputs.';
+            if (err.response?.data?.detail) {
+                if (Array.isArray(err.response.data.detail)) {
+                    // Pydantic validation errors
+                    errorMessage = err.response.data.detail
+                        .map(e => e.msg || JSON.stringify(e))
+                        .join(', ');
+                } else if (typeof err.response.data.detail === 'string') {
+                    errorMessage = err.response.data.detail;
+                }
+            }
+            setError(errorMessage);
             console.error('Calculation error:', err);
         } finally {
             setLoading(false);

@@ -62,7 +62,19 @@ const WidowCalculator = () => {
 
             setResults(response.data);
         } catch (err) {
-            setError(err.response?.data?.detail || 'Calculation failed. Please check your inputs.');
+            // Handle validation errors from FastAPI (array format)
+            let errorMessage = 'Calculation failed. Please check your inputs.';
+            if (err.response?.data?.detail) {
+                if (Array.isArray(err.response.data.detail)) {
+                    // Pydantic validation errors
+                    errorMessage = err.response.data.detail
+                        .map(e => e.msg || JSON.stringify(e))
+                        .join(', ');
+                } else if (typeof err.response.data.detail === 'string') {
+                    errorMessage = err.response.data.detail;
+                }
+            }
+            setError(errorMessage);
             console.error('Calculation error:', err);
         } finally {
             setLoading(false);
@@ -357,7 +369,7 @@ const WidowCalculator = () => {
                                             📊 All Strategies Compared
                                         </h2>
                                         <div className="space-y-3">
-                                            {results.all_strategies.slice(0, 8).map((strategy, index) => (
+                                            {results.all_strategies.map((strategy, index) => (
                                                 <div
                                                     key={index}
                                                     className={`border-l-4 rounded-lg p-4 ${getStrategyColor(index)}`}
@@ -390,11 +402,9 @@ const WidowCalculator = () => {
                                                 </div>
                                             ))}
                                         </div>
-                                        {results.all_strategies.length > 8 && (
-                                            <p className="text-sm text-gray-500 mt-3 text-center">
-                                                Showing top 8 of {results.all_strategies.length} strategies
-                                            </p>
-                                        )}
+                                        <p className="text-sm text-gray-500 mt-3 text-center">
+                                            Analyzed {results.all_strategies.length} strategies to find your optimal solution
+                                        </p>
                                     </div>
                                 )}
                             </div>
