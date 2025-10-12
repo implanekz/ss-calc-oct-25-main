@@ -24,6 +24,7 @@ from .ss_core_calculator import (
     HouseholdSSCalculator
 )
 from .divorced_calculator import DivorcedSSCalculator
+from .widow_calculator import WidowSSCalculator
 from .ssa_xml_processor import SSAXMLProcessor, EarningsRecord
 # from .bcr_generator import generate_bcr_data, bar_chart_race
 
@@ -146,6 +147,24 @@ class DivorcedCalculationResponse(BaseModel):
     optimal_strategy: Optional[Dict[str, Any]]
     all_strategies: List[Dict[str, Any]]
     child_in_care_details: Optional[Dict[str, Any]]
+
+class WidowCalculationRequest(BaseModel):
+    """Request for widowed individual calculation"""
+    birth_date: date
+    own_pia: float = Field(..., gt=0, description="Person's own PIA")
+    deceased_spouse_pia: float = Field(..., gt=0, description="Deceased spouse's PIA")
+    deceased_spouse_death_date: date
+    is_remarried: bool = False
+    remarriage_date: Optional[date] = None
+    longevity_age: int = Field(95, ge=70, le=100)
+    inflation_rate: float = Field(0.025, ge=0.0, le=0.10)
+
+class WidowCalculationResponse(BaseModel):
+    """Response for widowed individual calculation"""
+    eligible_for_survivor: bool
+    eligibility_reason: str
+    optimal_strategy: Optional[Dict[str, Any]]
+    all_strategies: List[Dict[str, Any]]
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -634,6 +653,40 @@ async def calculate_divorced(request: DivorcedCalculationRequest):
     except Exception as e:
         logger.error(f"Divorced calculation error: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Divorced calculation failed: {str(e)}")
+
+@app.post("/calculate-widow", response_model=WidowCalculationResponse)
+async def calculate_widow(request: WidowCalculationRequest):
+    """
+    Calculate optimal strategy for widowed individual
+    Compares own benefits, survivor benefits, and crossover strategies
+    """
+    try:
+        # Create widow calculator
+        calc = WidowSSCalculator(
+            birth_date=request.birth_date,
+            own_pia=request.own_pia,
+            deceased_spouse_pia=request.deceased_spouse_pia,
+            deceased_spouse_death_date=request.deceased_spouse_death_date,
+            is_remarried=request.is_remarried,
+            remarriage_date=request.remarriage_date
+        )
+
+        # Calculate optimal strategy
+        result = calc.calculate_optimal_strategy(
+            longevity_age=request.longevity_age,
+            inflation_rate=request.inflation_rate
+        )
+
+        return WidowCalculationResponse(
+            eligible_for_survivor=result['eligible_for_survivor'],
+            eligibility_reason=result['eligibility_reason'],
+            optimal_strategy=result.get('optimal_strategy'),
+            all_strategies=result.get('all_strategies', [])
+        )
+
+    except Exception as e:
+        logger.error(f"Widow calculation error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Widow calculation failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

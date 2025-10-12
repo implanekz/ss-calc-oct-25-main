@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ShowMeTheMoneyCalculator from './components/ShowMeTheMoneyCalculator.jsx';
 import DivorcedCalculator from './components/DivorcedCalculator.jsx';
+import WidowCalculator from './components/WidowCalculator.jsx';
 import RetirementSpendingApp from './components/helperApps/RetirementSpendingApp.jsx';
 import RetirementIncomeNeedsApp from './components/helperApps/RetirementIncomeNeedsApp.jsx';
 import SequenceOfReturnsApp from './components/helperApps/SequenceOfReturnsApp.jsx';
@@ -12,7 +13,7 @@ function App() {
   const calculatorTypes = [
     { id: 'married', label: 'Married/Single', icon: '👫' },
     { id: 'divorced', label: 'Divorced', icon: '💔' },
-    { id: 'widowed', label: 'Widowed', icon: '🕊️', disabled: true }, // Coming soon
+    { id: 'widowed', label: 'Widowed', icon: '🕊️' }, // Now available!
   ];
 
   const navItems = [
@@ -84,13 +85,7 @@ function App() {
           <>
             {calculatorType === 'married' && <ShowMeTheMoneyCalculator />}
             {calculatorType === 'divorced' && <DivorcedCalculator />}
-            {calculatorType === 'widowed' && (
-              <div className="max-w-4xl mx-auto mt-12 p-8 bg-white rounded-lg shadow-sm text-center">
-                <div className="text-6xl mb-4">🕊️</div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Widowed Calculator</h2>
-                <p className="text-gray-600">Coming soon! This calculator will help you optimize survivor benefits and crossover strategies.</p>
-              </div>
-            )}
+            {calculatorType === 'widowed' && <WidowCalculator />}
           </>
         )}
         {activeApp === 'helper-spending' && <RetirementSpendingApp />}
