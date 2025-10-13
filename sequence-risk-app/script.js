@@ -97,8 +97,10 @@ const generateSpanKey = (returns) => {
   return `${base}${stressSuffix}`;
 };
 
+const cloneEntries = (entries) => entries.map((entry) => ({ ...entry }));
+
 const shuffleReturns = (returns) => {
-  const copy = [...returns];
+  const copy = cloneEntries(returns);
   for (let i = copy.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1));
     [copy[i], copy[j]] = [copy[j], copy[i]];
@@ -114,10 +116,10 @@ const getOrderedSequence = (baseReturns, { forceRandom = false } = {}) => {
     return currentOrder;
   }
   if (!currentOrder || currentSpanKey !== spanKey) {
-    currentOrder = [...baseReturns];
+    currentOrder = cloneEntries(baseReturns);
     currentSpanKey = spanKey;
   }
-  return [...currentOrder];
+  return cloneEntries(currentOrder);
 };
 
 const getReturnsSlice = (startYear, endYear) => {
