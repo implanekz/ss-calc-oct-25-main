@@ -828,7 +828,8 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
 
         // File at 62 - Total cumulative
         const age62Value = projections.age62.cumulative[calendarYear] || 0;
-        const age62Since70 = age >= 70 ? age62Value - (projections.age62.cumulative[birthYearPrimary + 70] || 0) : 0;
+        // Use age 69 as baseline so age 70 includes the first year of benefits
+        const age62Since70 = age >= 70 ? age62Value - (projections.age62.cumulative[birthYearPrimary + 69] || 0) : 0;
         
         scenarios.push({
             name: 'File at 62 - Total',
@@ -848,7 +849,8 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
 
         // File at 67 (FRA) - Total cumulative
         const age67Value = projections.preferred.cumulative[calendarYear] || 0;
-        const age67Since70 = age >= 70 ? age67Value - (projections.preferred.cumulative[birthYearPrimary + 70] || 0) : 0;
+        // Use age 69 as baseline so age 70 includes the first year of benefits
+        const age67Since70 = age >= 70 ? age67Value - (projections.preferred.cumulative[birthYearPrimary + 69] || 0) : 0;
         
         scenarios.push({
             name: 'File at 67 - Total',
@@ -868,7 +870,8 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
 
         // File at 70 - Total cumulative
         const age70Value = projections.age70.cumulative[calendarYear] || 0;
-        const age70Since70 = age >= 70 ? age70Value - (projections.age70.cumulative[birthYearPrimary + 70] || 0) : 0;
+        // Use age 69 as baseline so age 70 includes the first year of benefits
+        const age70Since70 = age >= 70 ? age70Value - (projections.age70.cumulative[birthYearPrimary + 69] || 0) : 0;
         
         scenarios.push({
             name: 'File at 70 - Total',
@@ -1040,7 +1043,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                             <div className="text-sm">
                                 <span className="text-gray-600">Since 70: </span>
                                 <span className="font-semibold text-gray-700">
-                                    {currencyFormatter.format(Math.round((projections.age62.cumulative[birthYearPrimary + currentRaceAge] || 0) - (projections.age62.cumulative[birthYearPrimary + 70] || 0)))}
+                                    {currencyFormatter.format(Math.round((projections.age62.cumulative[birthYearPrimary + currentRaceAge] || 0) - (projections.age62.cumulative[birthYearPrimary + 69] || 0)))}
                                 </span>
                             </div>
                         )}
@@ -1064,7 +1067,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                             <div className="text-sm">
                                 <span className="text-gray-600">Since 70: </span>
                                 <span className="font-semibold text-gray-700">
-                                    {currencyFormatter.format(Math.round((projections.preferred.cumulative[birthYearPrimary + currentRaceAge] || 0) - (projections.preferred.cumulative[birthYearPrimary + 70] || 0)))}
+                                    {currencyFormatter.format(Math.round((projections.preferred.cumulative[birthYearPrimary + currentRaceAge] || 0) - (projections.preferred.cumulative[birthYearPrimary + 69] || 0)))}
                                 </span>
                             </div>
                         )}
@@ -1089,7 +1092,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                             <div className="text-sm">
                                 <span className="text-gray-600">Since 70: </span>
                                 <span className="font-semibold text-gray-700">
-                                    {currencyFormatter.format(Math.round((projections.age70.cumulative[birthYearPrimary + currentRaceAge] || 0) - (projections.age70.cumulative[birthYearPrimary + 70] || 0)))}
+                                    {currencyFormatter.format(Math.round((projections.age70.cumulative[birthYearPrimary + currentRaceAge] || 0) - (projections.age70.cumulative[birthYearPrimary + 69] || 0)))}
                                 </span>
                             </div>
                         )}
