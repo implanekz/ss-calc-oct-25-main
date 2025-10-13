@@ -1560,6 +1560,13 @@ const ShowMeTheMoneyCalculator = () => {
                 ? 'Monthly Household Income ($)'
                 : 'Annual Household Income ($)';
 
+            // Create title with toggle switch
+            const earlyLateTitle = {
+                display: true,
+                text: 'Early vs Late Filing Cash Flow',
+                padding: { bottom: 20 }
+            };
+
             newChartData = {
                 labels: cashflowLabels,
                 datasets: [
@@ -1594,7 +1601,7 @@ const ShowMeTheMoneyCalculator = () => {
             };
             newChartOptions = {
                 plugins: {
-                    title: { display: true, text: 'Early vs Late Filing Cash Flow' },
+                    title: earlyLateTitle,
                     tooltip: { callbacks: { label: tooltipLabelFormatter } }
                 },
                 layout: { padding: CHART_PADDING },
@@ -2726,16 +2733,6 @@ const ShowMeTheMoneyCalculator = () => {
                             ))}
                         </PillTabs>
 
-                        {/* Chart Controls */}
-                        {chartView === 'earlyLate' && (
-                            <div className="flex items-center">
-                                <Checkbox
-                                    label={<span className="text-xs">Monthly</span>}
-                                    checked={showMonthlyCashflow}
-                                    onChange={e => setShowMonthlyCashflow(e.target.checked)}
-                                />
-                            </div>
-                        )}
                     </div>
 
                     {chartView === 'sscuts' && (
@@ -2809,6 +2806,34 @@ const ShowMeTheMoneyCalculator = () => {
                                         {option.label}
                                     </button>
                                 ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Early/Late Toggle Switch */}
+                    {chartView === 'earlyLate' && (
+                        <div className="mb-4 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                            <div className="flex items-center justify-center gap-2">
+                                <span className={`text-sm font-medium transition-colors ${!showMonthlyCashflow ? 'text-primary-600' : 'text-gray-500'}`}>
+                                    Annual
+                                </span>
+                                <button
+                                    onClick={() => setShowMonthlyCashflow(!showMonthlyCashflow)}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                                        showMonthlyCashflow ? 'bg-primary-600' : 'bg-gray-300'
+                                    }`}
+                                    role="switch"
+                                    aria-checked={showMonthlyCashflow}
+                                >
+                                    <span
+                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                            showMonthlyCashflow ? 'translate-x-6' : 'translate-x-1'
+                                        }`}
+                                    />
+                                </button>
+                                <span className={`text-sm font-medium transition-colors ${showMonthlyCashflow ? 'text-primary-600' : 'text-gray-500'}`}>
+                                    Monthly
+                                </span>
                             </div>
                         </div>
                     )}
