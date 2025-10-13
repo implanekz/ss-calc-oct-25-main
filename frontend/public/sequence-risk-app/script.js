@@ -63,6 +63,17 @@ const STRESS_SCENARIOS = {
       `,
     },
   },
+  custom: {
+    key: 'custom',
+    label: 'Create Your Own Crisis',
+    loss: -0.25, // default value, will be overridden
+    modal: {
+      title: 'Create Your Own Crisis',
+      body: `
+        <p>Define your own market crash scenario by selecting a year and specifying the percentage loss.</p>
+      `,
+    },
+  },
 };
 
 const formatCurrency = (value) => {
@@ -88,6 +99,7 @@ const stressState = {
   enabled: false,
   scenarioKey: '',
   targetYear: '',
+  customLossPercent: -25, // default -25%
 };
 let latestScenarios = null;
 
@@ -385,9 +397,12 @@ const computeStressReturns = (baseReturns) => {
     return baseReturns;
   }
   const scenario = STRESS_SCENARIOS[stressState.scenarioKey];
+  const lossToApply = stressState.scenarioKey === 'custom' 
+    ? stressState.customLossPercent / 100 
+    : scenario.loss;
   return baseReturns.map((entry) => {
     if (entry.year === Number(stressState.targetYear)) {
-      return { ...entry, return: scenario.loss };
+      return { ...entry, return: lossToApply };
     }
     return entry;
   });
@@ -398,18 +413,29 @@ const initStressControls = () => {
   const controls = document.getElementById('stress-controls');
   const scenarioSelect = document.getElementById('stress-scenario');
   const yearSelect = document.getElementById('stress-year');
+  const lossSelect = document.getElementById('stress-loss');
   const infoButton = document.getElementById('stress-info');
   const modal = document.getElementById('stress-modal');
   const modalClose = document.getElementById('stress-modal-close');
   const modalBody = document.getElementById('stress-modal-body');
   const modalTitle = document.getElementById('stress-modal-title');
 
+  // Populate scenario dropdown
   Object.values(STRESS_SCENARIOS).forEach((scenario) => {
     const option = document.createElement('option');
     option.value = scenario.key;
     option.textContent = scenario.label;
     scenarioSelect.appendChild(option);
   });
+
+  // Populate loss percentage dropdown (-5% to -75% in 5% increments)
+  for (let loss = -5; loss >= -75; loss -= 5) {
+    const option = document.createElement('option');
+    option.value = loss;
+    option.textContent = `${loss}%`;
+    lossSelect.appendChild(option);
+  }
+  lossSelect.value = -25; // default to -25%
 
   toggle.addEventListener('click', () => {
     stressState.enabled = !stressState.enabled;
@@ -423,6 +449,7 @@ const initStressControls = () => {
       scenarioSelect.value = '';
       yearSelect.replaceChildren(new Option('Select year', '', true, true));
       yearSelect.disabled = true;
+      lossSelect.hidden = true;
     }
     runSimulation();
   });
@@ -430,6 +457,11 @@ const initStressControls = () => {
   scenarioSelect.addEventListener('change', () => {
     stressState.scenarioKey = scenarioSelect.value;
     infoButton.hidden = !stressState.scenarioKey;
+    
+    // Show/hide loss percentage dropdown based on scenario selection
+    const isCustom = stressState.scenarioKey === 'custom';
+    lossSelect.hidden = !isCustom;
+    
     const years = getReturnsSlice(
       Number(document.getElementById('start-year').value),
       Number(document.getElementById('end-year').value),
@@ -447,6 +479,11 @@ const initStressControls = () => {
 
   yearSelect.addEventListener('change', () => {
     stressState.targetYear = yearSelect.value;
+    runSimulation();
+  });
+
+  lossSelect.addEventListener('change', () => {
+    stressState.customLossPercent = Number(lossSelect.value);
     runSimulation();
   });
 
@@ -515,7 +552,8 @@ const init = () => {
     const startYear = Number(document.getElementById('start-year').value);
     const endYear = Number(document.getElementById('end-year').value);
     const returnsSlice = getReturnsSlice(startYear, endYear);
-    getOrderedSequence(returnsSlice, { forceRandom: true });
+    const stressedReturns = computeStressReturns(returnsSlice);
+    getOrderedSequence(stressedReturns, { forceRandom: true });
     runSimulation();
   });
 
@@ -524,6 +562,7 @@ const init = () => {
     stressState.enabled = false;
     stressState.scenarioKey = '';
     stressState.targetYear = '';
+    stressState.customLossPercent = -25;
     expandedTables.strategy1 = false;
     expandedTables.strategy2 = false;
     document.getElementById('stress-toggle').setAttribute('aria-expanded', 'false');
@@ -532,6 +571,8 @@ const init = () => {
     document.getElementById('stress-scenario').value = '';
     document.getElementById('stress-year').replaceChildren(new Option('Select year', '', true, true));
     document.getElementById('stress-year').disabled = true;
+    document.getElementById('stress-loss').value = -25;
+    document.getElementById('stress-loss').hidden = true;
     document.getElementById('initial-balance').value = formatCurrency(DEFAULTS.initialBalance);
     const withdrawalSelect = document.getElementById('withdrawal-rate');
     withdrawalSelect.value = '';
