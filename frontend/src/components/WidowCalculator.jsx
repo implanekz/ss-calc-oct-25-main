@@ -11,6 +11,8 @@ const WidowCalculator = () => {
     const [deceasedSpouseDeathDate, setDeceasedSpouseDeathDate] = useState('2023-01-01');
     const [isRemarried, setIsRemarried] = useState(false);
     const [remarriageDate, setRemarriageDate] = useState('');
+    const [hasChildUnder16, setHasChildUnder16] = useState(false);
+    const [childBirthDate, setChildBirthDate] = useState('2015-01-01');
     const [longevityAge, setLongevityAge] = useState(95);
     const [inflationRate, setInflationRate] = useState(0.025);
 
@@ -83,6 +85,8 @@ const WidowCalculator = () => {
                 deceased_spouse_death_date: deceasedSpouseDeathDate,
                 is_remarried: isRemarried,
                 remarriage_date: isRemarried && remarriageDate ? remarriageDate : null,
+                has_child_under_16: hasChildUnder16,
+                child_birth_date: hasChildUnder16 ? childBirthDate : null,
                 longevity_age: longevityAge,
                 inflation_rate: inflationRate
             });
@@ -308,6 +312,41 @@ const WidowCalculator = () => {
 
                             <hr className="my-4" />
 
+                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Child-in-Care Benefits</h3>
+
+                            {/* Has Child Under 16 */}
+                            <div className="mb-4">
+                                <label className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={hasChildUnder16}
+                                        onChange={(e) => setHasChildUnder16(e.target.checked)}
+                                        className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    <span className="text-sm font-medium text-gray-700">I have a child under 16</span>
+                                </label>
+                            </div>
+
+                            {/* Child Birth Date */}
+                            {hasChildUnder16 && (
+                                <div className="mb-4 ml-6">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Child's Birth Date
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={childBirthDate}
+                                        onChange={(e) => setChildBirthDate(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <p className="text-xs text-green-600 mt-1">
+                                        💡 You may be eligible for survivor benefits NOW (any age!)
+                                    </p>
+                                </div>
+                            )}
+
+                            <hr className="my-4" />
+
                             <h3 className="text-lg font-semibold text-gray-900 mb-3">Planning Assumptions</h3>
 
                             {/* Longevity */}
@@ -358,9 +397,12 @@ const WidowCalculator = () => {
                             <p className="text-sm text-amber-800">
                                 This calculator does not handle Social Security Disability Insurance (SSDI) or
                                 Supplemental Security Income (SSI). If you or the deceased spouse were receiving
-                                disability benefits—or if caregiving for a child under 16—there are special survivor
-                                rules outside the scope of this tool. Please review your case with Social Security or
-                                a qualified advisor.
+                                disability benefits, there are special survivor rules outside the scope of this tool. 
+                                Please reach out to us by email at{' '}
+                                <a href="mailto:help@Ret1re.com" className="text-amber-900 font-semibold underline hover:text-amber-700">
+                                    help@Ret1re.com
+                                </a>
+                                {' '}or review your case with Social Security or a qualified advisor.
                             </p>
                         </div>
                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -389,6 +431,41 @@ const WidowCalculator = () => {
 
                         {results && (
                             <div className="space-y-6">
+                                {/* Child-in-Care Benefits */}
+                                {results.child_in_care_details && results.child_in_care_details.eligible && (
+                                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-500 rounded-lg shadow-sm p-6">
+                                        <h2 className="text-2xl font-bold text-purple-900 mb-2">
+                                            🎉 Child-in-Care Survivor Benefits - Eligible NOW!
+                                        </h2>
+                                        <p className="text-purple-800 mb-4 font-medium">
+                                            You don't have to wait until age 60! You can collect survivor benefits RIGHT NOW.
+                                        </p>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="bg-white bg-opacity-60 rounded-lg p-4">
+                                                <p className="text-sm text-gray-600 mb-1">Monthly Benefit</p>
+                                                <p className="text-2xl font-bold text-purple-900">
+                                                    {formatCurrency(results.child_in_care_details.monthly_benefit)}
+                                                </p>
+                                            </div>
+                                            <div className="bg-white bg-opacity-60 rounded-lg p-4">
+                                                <p className="text-sm text-gray-600 mb-1">Years of Benefits</p>
+                                                <p className="text-2xl font-bold text-purple-900">
+                                                    {results.child_in_care_details.years_of_benefits} years
+                                                </p>
+                                            </div>
+                                            <div className="bg-white bg-opacity-60 rounded-lg p-4 col-span-2">
+                                                <p className="text-sm text-gray-600 mb-1">Total Value Until Child Turns 16</p>
+                                                <p className="text-3xl font-bold text-purple-900">
+                                                    {formatCurrency(results.child_in_care_details.total_lifetime_value)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <p className="text-sm text-purple-700 mt-4 italic">
+                                            💡 Plus you can collect additional survivor benefits from age 60 onwards!
+                                        </p>
+                                    </div>
+                                )}
+
                                 {/* Eligibility Status */}
                                 <div className={`rounded-lg shadow-sm p-6 ${results.eligible_for_survivor ? 'bg-green-50 border-2 border-green-500' : 'bg-amber-50 border-2 border-amber-500'}`}>
                                     <h2 className="text-xl font-semibold mb-2">
