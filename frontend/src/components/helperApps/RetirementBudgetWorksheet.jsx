@@ -13,84 +13,84 @@ const RetirementBudgetWorksheet = () => {
             label: 'Housing Expenses',
             simple: 0,
             items: {
-                mortgageRent: { label: 'Mortgage/Rent', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                homeownersIns: { label: 'Homeowners Insurance', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                propertyTaxes: { label: 'Property Taxes', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                electric: { label: 'Electric Utility', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                gas: { label: 'Gas Utility', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                water: { label: 'Water Utility', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                lawnCare: { label: 'Lawn Care', amount: 0, startAge: 0, increase: 0, endAge: 100 }
+                mortgageRent: { label: 'Mortgage/Rent', amount: 0, startAge: 0, endAge: 100 },
+                homeownersIns: { label: 'Homeowners Insurance', amount: 0, startAge: 0, endAge: 100 },
+                propertyTaxes: { label: 'Property Taxes', amount: 0, startAge: 0, endAge: 100 },
+                electric: { label: 'Electric Utility', amount: 0, startAge: 0, endAge: 100 },
+                gas: { label: 'Gas Utility', amount: 0, startAge: 0, endAge: 100 },
+                water: { label: 'Water Utility', amount: 0, startAge: 0, endAge: 100 },
+                lawnCare: { label: 'Lawn Care', amount: 0, startAge: 0, endAge: 100 }
             }
         },
         living: {
             label: 'Living Expenses',
             simple: 0,
             items: {
-                groceries: { label: 'Groceries', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                clothing: { label: 'Clothing', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                homePhone: { label: 'Home Phone', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                cellPhones: { label: 'Cell Phones', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                cableTvInternet: { label: 'Cable TV / Internet', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                petsHousehold: { label: 'Other - Pets/Household', amount: 0, startAge: 0, increase: 0, endAge: 100 }
+                groceries: { label: 'Groceries', amount: 0, startAge: 0, endAge: 100 },
+                clothing: { label: 'Clothing', amount: 0, startAge: 0, endAge: 100 },
+                homePhone: { label: 'Home Phone', amount: 0, startAge: 0, endAge: 100 },
+                cellPhones: { label: 'Cell Phones', amount: 0, startAge: 0, endAge: 100 },
+                cableTvInternet: { label: 'Cable TV / Internet', amount: 0, startAge: 0, endAge: 100 },
+                petsHousehold: { label: 'Other - Pets/Household', amount: 0, startAge: 0, endAge: 100 }
             }
         },
         auto: {
             label: 'Auto Expenses',
             simple: 0,
             items: {
-                autoPayment1: { label: 'Auto Payment/Lease 1', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                autoPayment2: { label: 'Auto Payment/Lease 2', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                gasoline: { label: 'Gasoline', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                autoInsurance: { label: 'Auto Insurance', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                maintenanceRepair: { label: 'Maintenance/Repair/Tag', amount: 0, startAge: 0, increase: 0, endAge: 100 }
+                autoPayment1: { label: 'Auto Payment/Lease 1', amount: 0, startAge: 0, endAge: 100 },
+                autoPayment2: { label: 'Auto Payment/Lease 2', amount: 0, startAge: 0, endAge: 100 },
+                gasoline: { label: 'Gasoline', amount: 0, startAge: 0, endAge: 100 },
+                autoInsurance: { label: 'Auto Insurance', amount: 0, startAge: 0, endAge: 100 },
+                maintenanceRepair: { label: 'Maintenance/Repair/Tag', amount: 0, startAge: 0, endAge: 100 }
             }
         },
         loansCredit: {
             label: 'Loans/Credit Cards',
             simple: 0,
             items: {
-                homeEquityLoan: { label: 'Home Equity Loan', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                creditCardPayments: { label: 'Credit Card Payments', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                otherLoanPayments: { label: 'Other Loan Payments', amount: 0, startAge: 0, increase: 0, endAge: 100 }
+                homeEquityLoan: { label: 'Home Equity Loan', amount: 0, startAge: 0, endAge: 100 },
+                creditCardPayments: { label: 'Credit Card Payments', amount: 0, startAge: 0, endAge: 100 },
+                otherLoanPayments: { label: 'Other Loan Payments', amount: 0, startAge: 0, endAge: 100 }
             }
         },
         medicalHealth: {
             label: 'Medical/Health',
             simple: 0,
             items: {
-                prescriptionsMedicines: { label: 'Prescriptions/Medicines', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                healthInsurance: { label: 'Health Insurance', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                lifeInsurance: { label: 'Life Insurance', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                disabilityInsurance: { label: 'Disability Insurance', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                longTermCareIns: { label: 'Long Term Care Ins', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                medSuppIns: { label: 'Med Supp Ins', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                otherInsurance: { label: 'Other Insurance', amount: 0, startAge: 0, increase: 0, endAge: 100 }
+                prescriptionsMedicines: { label: 'Prescriptions/Medicines', amount: 0, startAge: 0, endAge: 100 },
+                healthInsurance: { label: 'Health Insurance', amount: 0, startAge: 0, endAge: 100 },
+                lifeInsurance: { label: 'Life Insurance', amount: 0, startAge: 0, endAge: 100 },
+                disabilityInsurance: { label: 'Disability Insurance', amount: 0, startAge: 0, endAge: 100 },
+                longTermCareIns: { label: 'Long Term Care Ins', amount: 0, startAge: 0, endAge: 100 },
+                medSuppIns: { label: 'Med Supp Ins', amount: 0, startAge: 0, endAge: 100 },
+                otherInsurance: { label: 'Other Insurance', amount: 0, startAge: 0, endAge: 100 }
             }
         },
         giftsDonations: {
             label: 'Gifts/Donations',
             simple: 0,
             items: {
-                birthdayGifts: { label: 'Birthday Gifts', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                holidayGifts: { label: 'Holiday Gifts', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                churchDonations: { label: 'Church Donations', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                otherGiftsDonations: { label: 'Other Gifts/Donations', amount: 0, startAge: 0, increase: 0, endAge: 100 }
+                birthdayGifts: { label: 'Birthday Gifts', amount: 0, startAge: 0, endAge: 100 },
+                holidayGifts: { label: 'Holiday Gifts', amount: 0, startAge: 0, endAge: 100 },
+                churchDonations: { label: 'Church Donations', amount: 0, startAge: 0, endAge: 100 },
+                otherGiftsDonations: { label: 'Other Gifts/Donations', amount: 0, startAge: 0, endAge: 100 }
             }
         },
         entertainment: {
             label: 'Entertainment/Travel',
             simple: 0,
             items: {
-                diningMovies: { label: 'Dining out, movies etc.', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                hobbiesMemberships: { label: 'Hobbies/Memberships', amount: 0, startAge: 0, increase: 0, endAge: 100 },
-                vacationTravel: { label: 'Vacation/Travel', amount: 0, startAge: 0, increase: 0, endAge: 100 }
+                diningMovies: { label: 'Dining out, movies etc.', amount: 0, startAge: 0, endAge: 100 },
+                hobbiesMemberships: { label: 'Hobbies/Memberships', amount: 0, startAge: 0, endAge: 100 },
+                vacationTravel: { label: 'Vacation/Travel', amount: 0, startAge: 0, endAge: 100 }
             }
         },
         miscellaneous: {
             label: 'Miscellaneous',
             simple: 0,
             items: {
-                miscellaneousOther: { label: 'Miscellaneous Other', amount: 0, startAge: 0, increase: 0, endAge: 100 }
+                miscellaneousOther: { label: 'Miscellaneous Other', amount: 0, startAge: 0, endAge: 100 }
             }
         }
     });
@@ -113,10 +113,8 @@ const RetirementBudgetWorksheet = () => {
             return 0;
         }
         
-        // Calculate with inflation
-        const yearsOfInflation = Math.max(0, targetAge - item.startAge);
-        const inflationMultiplier = Math.pow(1 + (item.increase / 100), yearsOfInflation);
-        return item.amount * inflationMultiplier;
+        // Return monthly amount (convert to annual by multiplying by 12)
+        return item.amount;
     };
 
     const calculateCategoryTotal = (categoryKey, targetYear) => {
@@ -174,13 +172,6 @@ const RetirementBudgetWorksheet = () => {
         return options;
     };
 
-    const generatePercentOptions = () => {
-        const options = [];
-        for (let i = 0; i <= 10; i++) {
-            options.push(<option key={i} value={i}>{i}%</option>);
-        }
-        return options;
-    };
 
     const generateYearOptions = () => {
         const options = [];
@@ -300,16 +291,15 @@ const RetirementBudgetWorksheet = () => {
                                     </h3>
                                     <div className="space-y-2">
                                         {/* Header Row */}
-                                        <div className="grid grid-cols-5 gap-2 text-xs font-medium text-gray-600 pb-2 border-b">
+                                        <div className="grid grid-cols-4 gap-2 text-xs font-medium text-gray-600 pb-2 border-b">
                                             <div>Expense Item</div>
                                             <div>Start Age</div>
-                                            <div>Annual Amount</div>
-                                            <div>Annual Incr</div>
+                                            <div>Monthly Amount</div>
                                             <div>End Age</div>
                                         </div>
                                         {/* Data Rows */}
                                         {Object.entries(category.items).map(([itemKey, item]) => (
-                                            <div key={itemKey} className="grid grid-cols-5 gap-2 items-center">
+                                            <div key={itemKey} className="grid grid-cols-4 gap-2 items-center">
                                                 <div className="text-sm text-gray-700">{item.label}</div>
                                                 <select
                                                     value={item.startAge}
@@ -328,13 +318,6 @@ const RetirementBudgetWorksheet = () => {
                                                         placeholder="0"
                                                     />
                                                 </div>
-                                                <select
-                                                    value={item.increase}
-                                                    onChange={(e) => updateDetailedValue(categoryKey, itemKey, 'increase', e.target.value)}
-                                                    className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                                >
-                                                    {generatePercentOptions()}
-                                                </select>
                                                 <select
                                                     value={item.endAge}
                                                     onChange={(e) => updateDetailedValue(categoryKey, itemKey, 'endAge', e.target.value)}
@@ -402,16 +385,16 @@ const RetirementBudgetWorksheet = () => {
                                                     <tr key={itemKey}>
                                                         <td className="border border-gray-300 px-4 py-2">{item.label}</td>
                                                         <td className="border border-gray-300 px-4 py-2 text-right">
-                                                            {formatCurrency(year1Value / 12)}
-                                                        </td>
-                                                        <td className="border border-gray-300 px-4 py-2 text-right">
                                                             {formatCurrency(year1Value)}
                                                         </td>
                                                         <td className="border border-gray-300 px-4 py-2 text-right">
-                                                            {formatCurrency(year2Value / 12)}
+                                                            {formatCurrency(year1Value * 12)}
                                                         </td>
                                                         <td className="border border-gray-300 px-4 py-2 text-right">
                                                             {formatCurrency(year2Value)}
+                                                        </td>
+                                                        <td className="border border-gray-300 px-4 py-2 text-right">
+                                                            {formatCurrency(year2Value * 12)}
                                                         </td>
                                                     </tr>
                                                 );
@@ -421,16 +404,16 @@ const RetirementBudgetWorksheet = () => {
                                                     {category.label} Total
                                                 </td>
                                                 <td className="border border-gray-300 px-4 py-2 text-right">
-                                                    {formatCurrency(year1Total / 12)}
-                                                </td>
-                                                <td className="border border-gray-300 px-4 py-2 text-right">
                                                     {formatCurrency(year1Total)}
                                                 </td>
                                                 <td className="border border-gray-300 px-4 py-2 text-right">
-                                                    {formatCurrency(year2Total / 12)}
+                                                    {formatCurrency(year1Total * 12)}
                                                 </td>
                                                 <td className="border border-gray-300 px-4 py-2 text-right">
                                                     {formatCurrency(year2Total)}
+                                                </td>
+                                                <td className="border border-gray-300 px-4 py-2 text-right">
+                                                    {formatCurrency(year2Total * 12)}
                                                 </td>
                                             </tr>
                                         </React.Fragment>
@@ -439,16 +422,16 @@ const RetirementBudgetWorksheet = () => {
                                 <tr className="bg-blue-100 font-bold text-lg">
                                     <td className="border border-gray-300 px-4 py-3">GRAND TOTAL</td>
                                     <td className="border border-gray-300 px-4 py-3 text-right">
-                                        {formatCurrency(calculateGrandTotal(year1) / 12)}
-                                    </td>
-                                    <td className="border border-gray-300 px-4 py-3 text-right">
                                         {formatCurrency(calculateGrandTotal(year1))}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-3 text-right">
-                                        {formatCurrency(calculateGrandTotal(year2) / 12)}
+                                        {formatCurrency(calculateGrandTotal(year1) * 12)}
                                     </td>
                                     <td className="border border-gray-300 px-4 py-3 text-right">
                                         {formatCurrency(calculateGrandTotal(year2))}
+                                    </td>
+                                    <td className="border border-gray-300 px-4 py-3 text-right">
+                                        {formatCurrency(calculateGrandTotal(year2) * 12)}
                                     </td>
                                 </tr>
                             </tbody>
@@ -460,10 +443,10 @@ const RetirementBudgetWorksheet = () => {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <h3 className="font-semibold text-blue-900 mb-2">💡 How to Use This Tool:</h3>
                     <ul className="space-y-1 text-sm text-blue-800">
-                        <li><strong>Simple Mode:</strong> Enter total estimates for each expense category</li>
-                        <li><strong>Detailed Mode:</strong> Break down expenses by individual items with start/end ages and annual increases</li>
-                        <li><strong>Age-Based Projections:</strong> Expenses automatically calculate based on your current age and target years</li>
-                        <li><strong>Inflation Adjustments:</strong> Set annual increase percentages to account for inflation</li>
+                        <li><strong>Simple Mode:</strong> Enter total monthly estimates for each expense category</li>
+                        <li><strong>Detailed Mode:</strong> Break down expenses by individual items with monthly amounts and start/end ages</li>
+                        <li><strong>Age-Based Projections:</strong> Expenses automatically activate/deactivate based on start and end ages</li>
+                        <li><strong>Monthly Input:</strong> Enter all amounts as monthly expenses - annual amounts are calculated automatically</li>
                         <li><strong>Future Planning:</strong> Compare expenses between next year and any future year</li>
                     </ul>
                 </div>
