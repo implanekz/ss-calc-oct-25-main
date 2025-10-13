@@ -429,6 +429,12 @@ const updateStressYearOptions = (select, startYear, endYear) => {
       placeholder.selected = true;
     }
   }
+
+  if (!shouldDisable) {
+    if (select.value) {
+      stressState.targetYear = select.value;
+    }
+  }
 };
 
 const isStressActive = () => stressState.enabled && stressState.scenarioKey && stressState.targetYear;
