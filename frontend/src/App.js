@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import ShowMeTheMoneyCalculator from './components/ShowMeTheMoneyCalculator.jsx';
 import DivorcedCalculator from './components/DivorcedCalculator.jsx';
 import WidowCalculator from './components/WidowCalculator.jsx';
+import PIACalculator from './components/PIACalculator.jsx';
+import ProfileCalculator from './components/ProfileCalculator.jsx';
 import RetirementSpendingApp from './components/helperApps/RetirementSpendingApp.jsx';
 import RetirementIncomeNeedsApp from './components/helperApps/RetirementIncomeNeedsApp.jsx';
 import SequenceOfReturnsApp from './components/helperApps/SequenceOfReturnsApp.jsx';
@@ -18,7 +20,9 @@ function App() {
 
   const navItems = [
     { id: 'ss', label: 'Social Security Planner', icon: '💰' },
-    { id: 'helper-spending', label: 'Longevity Spending', icon: '📊' },
+    { id: 'pia', label: 'PIA Calculator', icon: '🧮' },
+    { id: 'profiles', label: 'Profile Calculator', icon: '📊' },
+    { id: 'helper-spending', label: 'Longevity Spending', icon: '📉' },
     { id: 'helper-income', label: 'Income Target', icon: '🎯' },
     { id: 'sequence', label: 'Sequence of Returns', icon: '📈' },
   ];
@@ -121,6 +125,8 @@ function App() {
             {calculatorType === 'widowed' && <WidowCalculator />}
           </>
         )}
+        {activeApp === 'pia' && <PIACalculator />}
+        {activeApp === 'profiles' && <ProfileCalculator />}
         {activeApp === 'helper-spending' && <RetirementSpendingApp />}
         {activeApp === 'helper-income' && <RetirementIncomeNeedsApp />}
         {activeApp === 'sequence' && <SequenceOfReturnsApp />}

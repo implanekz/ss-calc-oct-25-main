@@ -147,6 +147,7 @@ class DivorcedCalculationResponse(BaseModel):
     optimal_strategy: Optional[Dict[str, Any]]
     all_strategies: List[Dict[str, Any]]
     child_in_care_details: Optional[Dict[str, Any]]
+    deemed_filing_applies: bool
 
 class WidowCalculationRequest(BaseModel):
     """Request for widowed individual calculation"""
@@ -691,7 +692,8 @@ async def calculate_divorced(request: DivorcedCalculationRequest):
             eligibility_reason=result['eligibility_reason'],
             optimal_strategy=result.get('optimal_strategy'),
             all_strategies=result.get('all_strategies', []),
-            child_in_care_details=result.get('child_in_care_details')
+            child_in_care_details=result.get('child_in_care_details'),
+            deemed_filing_applies=result.get('deemed_filing_applies', False)
         )
 
     except Exception as e:

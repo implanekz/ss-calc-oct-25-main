@@ -42,7 +42,7 @@ class DivorcedSSCalculator(BaseSSCalculator):
             child_birth_date: Child's birth date (for child-in-care benefits)
         """
         super().__init__(birth_date, own_pia)
-
+        self.birth_date = birth_date
         self.ex_spouse_pia = ex_spouse_pia
         self.marriage_duration_years = marriage_duration_years
         self.divorce_date = divorce_date
@@ -202,6 +202,7 @@ class DivorcedSSCalculator(BaseSSCalculator):
         eligible, reason = self.is_eligible_for_ex_spouse_benefit()
 
         strategies = []
+        restricted_application_available = self.birth_date < date(1954, 1, 2)
 
         # Strategy 1: Own benefit at various ages
         for claiming_age in [62, self.fra_years, 70]:
@@ -246,45 +247,47 @@ class DivorcedSSCalculator(BaseSSCalculator):
 
             # Strategy 3: Switching strategies (if eligible)
             # Take ex-spouse early, switch to own later
-            for ex_spouse_age in [62]:
-                for switch_age in [self.fra_years, 70]:
-                    if switch_age > ex_spouse_age and switch_age <= longevity_age:
-                        # Calculate ex-spouse benefits from ex_spouse_age to switch_age
-                        ex_spouse_monthly = self.calculate_ex_spouse_benefit(ex_spouse_age, inflation_rate)
+            if restricted_application_available:
+                for ex_spouse_age in [62]:
+                    for switch_age in [self.fra_years, 70]:
+                        if switch_age > ex_spouse_age and switch_age <= longevity_age:
+                            # Calculate ex-spouse benefits from ex_spouse_age to switch_age
+                            ex_spouse_monthly = self.calculate_ex_spouse_benefit(ex_spouse_age, inflation_rate)
 
-                        switch_date = self.get_claiming_date(switch_age)
-                        death_date = self.birth_date + relativedelta(years=longevity_age)
+                            switch_date = self.get_claiming_date(switch_age)
+                            death_date = self.birth_date + relativedelta(years=longevity_age)
 
-                        ex_phase = self._build_benefit_timeline(
-                            self.get_claiming_date(ex_spouse_age),
-                            switch_date,
-                            ex_spouse_monthly,
-                            inflation_rate,
-                            'ex_spouse'
-                        )
+                            ex_phase = self._build_benefit_timeline(
+                                self.get_claiming_date(ex_spouse_age),
+                                switch_date,
+                                ex_spouse_monthly,
+                                inflation_rate,
+                                'ex_spouse'
+                            )
 
-                        own_monthly = self.calculate_monthly_benefit(switch_age, 0, inflation_rate)
-                        own_phase = self._build_benefit_timeline(
-                            switch_date,
-                            death_date,
-                            own_monthly,
-                            inflation_rate,
-                            'own'
-                        )
+                            own_monthly = self.calculate_monthly_benefit(switch_age, 0, inflation_rate)
+                            own_phase = self._build_benefit_timeline(
+                                switch_date,
+                                death_date,
+                                own_monthly,
+                                inflation_rate,
+                                'own'
+                            )
 
-                        total_benefits = ex_phase['total'] + own_phase['total']
-                        timeline = ex_phase['timeline'] + own_phase['timeline']
+                            total_benefits = ex_phase['total'] + own_phase['total']
+                            timeline = ex_phase['timeline'] + own_phase['timeline']
 
-                        strategies.append({
-                            'strategy': f"Ex-spouse at {ex_spouse_age}, switch to own at {switch_age}",
-                            'claiming_age': ex_spouse_age,
-                            'switch_age': switch_age,
-                            'type': 'switching',
-                            'initial_monthly': round(ex_spouse_monthly, 2),
-                            'switched_monthly': round(own_monthly, 2),
-                            'lifetime_total': round(total_benefits, 2),
-                            'benefit_timeline': timeline
-                        })
+                            strategies.append({
+                                'strategy': f"Ex-spouse at {ex_spouse_age}, switch to own at {switch_age}",
+                                'claiming_age': ex_spouse_age,
+                                'switch_age': switch_age,
+                                'type': 'switching',
+                                'initial_monthly': round(ex_spouse_monthly, 2),
+                                'switched_monthly': round(own_monthly, 2),
+                                'lifetime_total': round(total_benefits, 2),
+                                'benefit_timeline': timeline,
+                                'note': 'Restricted application available (born before Jan 2, 1954)'
+                            })
 
         # Strategy 4: Child-in-care benefits
         child_in_care = self.calculate_child_in_care_benefit(inflation_rate)
@@ -321,6 +324,7 @@ class DivorcedSSCalculator(BaseSSCalculator):
                 'eligibility_reason': reason,
                 'all_strategies': sorted(strategies, key=lambda x: x['lifetime_total'], reverse=True),
                 'optimal_strategy': optimal,
+                'deemed_filing_applies': not restricted_application_available,
                 'child_in_care_details': child_in_care if child_in_care['eligible'] else None
             }
         else:
@@ -329,5 +333,6 @@ class DivorcedSSCalculator(BaseSSCalculator):
                 'eligibility_reason': reason,
                 'all_strategies': [],
                 'optimal_strategy': None,
+                'deemed_filing_applies': not restricted_application_available,
                 'error': 'Not eligible for ex-spouse benefits'
             }

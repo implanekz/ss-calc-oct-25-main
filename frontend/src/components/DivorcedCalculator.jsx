@@ -390,6 +390,21 @@ const DivorcedCalculator = () => {
                                     </div>
                                 )}
 
+                                {/* Deemed filing warning */}
+                                {results.deemed_filing_applies && (
+                                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                        <h3 className="text-lg font-semibold text-amber-900 mb-1">
+                                            ⚠️ Deemed Filing Applies
+                                        </h3>
+                                        <p className="text-sm text-amber-800">
+                                            Because you were born on or after January 2, 1954, Social Security will
+                                            automatically deem you to file for both your own and any ex-spouse benefits at the same
+                                            time. Switching from an ex-spouse benefit to your own benefit later is not available
+                                            under current rules (exceptions apply only for survivor or child-in-care cases).
+                                        </p>
+                                    </div>
+                                )}
+
                                 {/* Optimal Strategy */}
                                 {results.optimal_strategy && (
                                     <div
