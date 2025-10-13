@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { StrategyTimelineToaster } from './ui';
 
-const DivorcedCalculator = () => {
+const DivorcedCalculator = ({ onSwitchToMarried }) => {
     // Form inputs
     const [birthDate, setBirthDate] = useState('1963-01-01');
     const [ownPia, setOwnPia] = useState(1800);
@@ -347,6 +347,63 @@ const DivorcedCalculator = () => {
 
                         {results && (
                             <div className="space-y-6">
+                                {/* Own Benefit is Higher - Redirect Message */}
+                                {ownPia > (exSpousePia * 0.5) && (
+                                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-600 rounded-lg shadow-lg p-6">
+                                        <div className="flex items-start gap-4">
+                                            <div className="flex-shrink-0 text-4xl">
+                                                👤
+                                            </div>
+                                            <div className="flex-1">
+                                                <h2 className="text-2xl font-bold text-blue-900 mb-3">
+                                                    Your Own Benefit is Higher
+                                                </h2>
+                                                <p className="text-blue-800 mb-4 leading-relaxed">
+                                                    Your Social Security retirement benefit (${ownPia.toLocaleString()}) is larger than 50% of your ex-spouse's benefit 
+                                                    (${(exSpousePia * 0.5).toLocaleString()}). Due to Social Security's <strong>deemed filing rule</strong>, 
+                                                    you will always receive your own higher benefit, not the ex-spousal amount.
+                                                </p>
+                                                <div className="bg-white bg-opacity-70 rounded-lg p-4 mb-4">
+                                                    <h3 className="font-semibold text-blue-900 mb-2">📋 How Deemed Filing Works:</h3>
+                                                    <ul className="space-y-2 text-sm text-blue-800">
+                                                        <li className="flex items-start gap-2">
+                                                            <span className="text-blue-600 mt-0.5">•</span>
+                                                            <span>When you apply for any retirement benefit, Social Security automatically compares all benefits you're eligible for</span>
+                                                        </li>
+                                                        <li className="flex items-start gap-2">
+                                                            <span className="text-blue-600 mt-0.5">•</span>
+                                                            <span>You'll always be paid the higher of the two amounts—never both combined</span>
+                                                        </li>
+                                                        <li className="flex items-start gap-2">
+                                                            <span className="text-blue-600 mt-0.5">•</span>
+                                                            <span>Since your own benefit exceeds 50% of your ex's benefit, your personal benefit wins</span>
+                                                        </li>
+                                                        <li className="flex items-start gap-2">
+                                                            <span className="text-blue-600 mt-0.5">•</span>
+                                                            <span>The ex-spouse's benefit cannot "top off" your personal benefit</span>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                                <div className="bg-blue-100 rounded-lg p-4 mb-4">
+                                                    <p className="text-sm text-blue-900">
+                                                        <strong>💡 What This Means:</strong> You should focus on optimizing your own Social Security claiming strategy 
+                                                        rather than considering ex-spouse benefits. The Married/Single calculator is better suited for your situation.
+                                                    </p>
+                                                </div>
+                                                {onSwitchToMarried && (
+                                                    <button
+                                                        onClick={onSwitchToMarried}
+                                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                                                    >
+                                                        <span>→</span>
+                                                        <span>Switch to Married/Single Calculator</span>
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Eligibility Status */}
                                 <div className={`rounded-lg shadow-sm p-6 ${results.eligible_for_ex_spouse ? 'bg-green-50 border-2 border-green-500' : 'bg-amber-50 border-2 border-amber-500'}`}>
                                     <h2 className="text-xl font-semibold mb-2">

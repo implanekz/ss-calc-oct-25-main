@@ -119,7 +119,7 @@ function App() {
         {activeApp === 'ss' && (
           <>
             {calculatorType === 'married' && <ShowMeTheMoneyCalculator />}
-            {calculatorType === 'divorced' && <DivorcedCalculator />}
+            {calculatorType === 'divorced' && <DivorcedCalculator onSwitchToMarried={() => setCalculatorType('married')} />}
             {calculatorType === 'widowed' && <WidowCalculator />}
           </>
         )}
