@@ -6,6 +6,7 @@ import PIACalculator from './components/PIACalculator.jsx';
 import RetirementSpendingApp from './components/helperApps/RetirementSpendingApp.jsx';
 import RetirementIncomeNeedsApp from './components/helperApps/RetirementIncomeNeedsApp.jsx';
 import SequenceOfReturnsApp from './components/helperApps/SequenceOfReturnsApp.jsx';
+import RetirementBudgetWorksheet from './components/helperApps/RetirementBudgetWorksheet.jsx';
 
 function App() {
   const [activeApp, setActiveApp] = useState('ss');
@@ -23,6 +24,7 @@ function App() {
     { id: 'helper-spending', label: 'Longevity Spending', icon: '📉' },
     { id: 'helper-income', label: 'Income Target', icon: '🎯' },
     { id: 'sequence', label: 'Sequence of Returns', icon: '📈' },
+    { id: 'budget', label: 'Budget Worksheet', icon: '💵' },
   ];
 
   return (
@@ -127,6 +129,7 @@ function App() {
         {activeApp === 'helper-spending' && <RetirementSpendingApp />}
         {activeApp === 'helper-income' && <RetirementIncomeNeedsApp />}
         {activeApp === 'sequence' && <SequenceOfReturnsApp />}
+        {activeApp === 'budget' && <RetirementBudgetWorksheet />}
       </main>
     </div>
   );
