@@ -43,7 +43,7 @@ function App() {
             </div>
 
             {/* Navigation Items */}
-            <div className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide items-center">
+            <div className="flex gap-2 sm:gap-3 overflow-x-auto sm:overflow-visible sm:flex-wrap scrollbar-hide items-center">
               {/* Calculator Type Dropdown - Only show when SS is active */}
               {activeApp === 'ss' && (
                 <div className="flex flex-col items-start">
