@@ -826,32 +826,65 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
 
         const scenarios = [];
 
-        // File at 62 - Always use direct age62 projection
+        // File at 62 - Total cumulative
         const age62Value = projections.age62.cumulative[calendarYear] || 0;
+        const age62Since70 = age >= 70 ? age62Value - (projections.age62.cumulative[birthYearPrimary + 70] || 0) : 0;
+        
         scenarios.push({
-            name: 'File at 62',
+            name: 'File at 62 - Total',
             value: age62Value,
             color: '#EF4444',
-            since70: age >= 70 ? age62Value - (projections.age62.cumulative[birthYearPrimary + 70] || 0) : 0
+            isSince70: false
         });
+        
+        if (age >= 70) {
+            scenarios.push({
+                name: 'File at 62 - Since 70',
+                value: age62Since70,
+                color: '#F87171',
+                isSince70: true
+            });
+        }
 
-        // File at 67 (FRA) - Always use direct preferred projection
+        // File at 67 (FRA) - Total cumulative
         const age67Value = projections.preferred.cumulative[calendarYear] || 0;
+        const age67Since70 = age >= 70 ? age67Value - (projections.preferred.cumulative[birthYearPrimary + 70] || 0) : 0;
+        
         scenarios.push({
-            name: 'File at 67 (FRA)',
+            name: 'File at 67 - Total',
             value: age67Value,
             color: '#3B82F6',
-            since70: age >= 70 ? age67Value - (projections.preferred.cumulative[birthYearPrimary + 70] || 0) : 0
+            isSince70: false
         });
+        
+        if (age >= 70) {
+            scenarios.push({
+                name: 'File at 67 - Since 70',
+                value: age67Since70,
+                color: '#60A5FA',
+                isSince70: true
+            });
+        }
 
-        // File at 70 - Always use direct age70 projection
+        // File at 70 - Total cumulative
         const age70Value = projections.age70.cumulative[calendarYear] || 0;
+        const age70Since70 = age >= 70 ? age70Value - (projections.age70.cumulative[birthYearPrimary + 70] || 0) : 0;
+        
         scenarios.push({
-            name: 'File at 70',
+            name: 'File at 70 - Total',
             value: age70Value,
             color: '#14B8A6',
-            since70: age >= 70 ? age70Value - (projections.age70.cumulative[birthYearPrimary + 70] || 0) : 0
+            isSince70: false
         });
+        
+        if (age >= 70) {
+            scenarios.push({
+                name: 'File at 70 - Since 70',
+                value: age70Since70,
+                color: '#5EEAD4',
+                isSince70: true
+            });
+        }
 
         // Sort by value descending (highest at top)
         return scenarios.sort((a, b) => b.value - a.value);
@@ -868,14 +901,15 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
     });
     const maxValue = Math.max(...allValues) * 1.1;
 
-    // SVG dimensions
+    // SVG dimensions - expand for 6 bars
     const width = 1200;
-    const height = 450; // Back to previous value
-    const barHeight = 80;
-    const barSpacing = 20;
-    const leftMargin = 200;
+    const barHeight = 60;
+    const barSpacing = 15;
+    const leftMargin = 220;
     const rightMargin = 150;
-    const topMargin = 80; // Back to previous value
+    const topMargin = 80;
+    const numBars = raceData.length;
+    const height = topMargin + (numBars * (barHeight + barSpacing)) + 100;
 
     const getBarWidth = (value) => {
         return ((value / maxValue) * (width - leftMargin - rightMargin));
@@ -980,77 +1014,87 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                     {currencyFormatter.format(Math.round(scenario.value))}
                                 </text>
 
-                                {/* "Since 70" label inside bar (when age >= 70) */}
-                                {currentRaceAge >= 70 && scenario.since70 > 0 && barWidth > 150 && (
-                                    <text
-                                        x={leftMargin + barWidth / 2}
-                                        y={y + barHeight / 2}
-                                        textAnchor="middle"
-                                        alignmentBaseline="middle"
-                                        fontSize="16"
-                                        fontWeight="700"
-                                        fill="white"
-                                    >
-                                        Since 70: {currencyFormatter.format(Math.round(scenario.since70))}
-                                    </text>
-                                )}
-
-                                {/* Revenue line since age 70 (if applicable) */}
-                                {currentRaceAge >= 70 && scenario.since70 > 0 && (
-                                    <g>
-                                        <line
-                                            x1={leftMargin}
-                                            y1={y + barHeight + 5}
-                                            x2={leftMargin + getBarWidth(scenario.since70)}
-                                            y2={y + barHeight + 5}
-                                            stroke={scenario.color}
-                                            className="revenue-line"
-                                        />
-                                        <text
-                                            x={leftMargin + getBarWidth(scenario.since70) + 5}
-                                            y={y + barHeight + 10}
-                                            fontSize="11"
-                                            fill={scenario.color}
-                                            fontWeight="600"
-                                        >
-                                            Since 70: {currencyFormatter.format(Math.round(scenario.since70))}
-                                        </text>
-                                    </g>
-                                )}
                             </g>
                         );
                     })}
 
-                    {/* Dashed lines legend - below bars */}
-                    {currentRaceAge >= 70 && (
-                        <g>
-                            <text x={width / 2} y={topMargin + 3 * (barHeight + barSpacing) + 30} textAnchor="middle" fontSize="12" fontWeight="600" fill="#6B7280">
-                                Dashed lines show cumulative benefits since age 70
-                            </text>
-                        </g>
-                    )}
                 </svg>
             </div>
 
-            {/* Summary stats - moved up with bigger, bolder text */}
+            {/* Summary stats - group by strategy */}
             <div className="mt-2 grid grid-cols-3 gap-4">
-                {raceData.map((scenario, index) => (
-                    <div key={scenario.name} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="w-5 h-5 rounded" style={{ backgroundColor: scenario.color }}></div>
-                            <div className="text-sm font-bold text-gray-700">{scenario.name}</div>
-                            {index === 0 && <span className="ml-auto text-sm font-bold text-green-600">🏆 Leading</span>}
-                        </div>
-                        <div className="text-lg font-bold text-gray-900">
-                            {currencyFormatter.format(Math.round(scenario.value))}
+                {/* File at 62 */}
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="w-5 h-5 rounded bg-red-500"></div>
+                        <div className="text-sm font-bold text-gray-700">File at 62</div>
+                    </div>
+                    <div className="space-y-1">
+                        <div className="text-sm">
+                            <span className="text-gray-600">Total: </span>
+                            <span className="font-bold text-gray-900">
+                                {currencyFormatter.format(Math.round(projections.age62.cumulative[birthYearPrimary + currentRaceAge] || 0))}
+                            </span>
                         </div>
                         {currentRaceAge >= 70 && (
-                            <div className="text-sm font-semibold text-gray-600 mt-1">
-                                Since 70: {currencyFormatter.format(Math.round(scenario.since70))}
+                            <div className="text-sm">
+                                <span className="text-gray-600">Since 70: </span>
+                                <span className="font-semibold text-gray-700">
+                                    {currencyFormatter.format(Math.round((projections.age62.cumulative[birthYearPrimary + currentRaceAge] || 0) - (projections.age62.cumulative[birthYearPrimary + 70] || 0)))}
+                                </span>
                             </div>
                         )}
                     </div>
-                ))}
+                </div>
+
+                {/* File at 67 */}
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="w-5 h-5 rounded bg-blue-500"></div>
+                        <div className="text-sm font-bold text-gray-700">File at 67</div>
+                    </div>
+                    <div className="space-y-1">
+                        <div className="text-sm">
+                            <span className="text-gray-600">Total: </span>
+                            <span className="font-bold text-gray-900">
+                                {currencyFormatter.format(Math.round(projections.preferred.cumulative[birthYearPrimary + currentRaceAge] || 0))}
+                            </span>
+                        </div>
+                        {currentRaceAge >= 70 && (
+                            <div className="text-sm">
+                                <span className="text-gray-600">Since 70: </span>
+                                <span className="font-semibold text-gray-700">
+                                    {currencyFormatter.format(Math.round((projections.preferred.cumulative[birthYearPrimary + currentRaceAge] || 0) - (projections.preferred.cumulative[birthYearPrimary + 70] || 0)))}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* File at 70 */}
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="w-5 h-5 rounded bg-teal-500"></div>
+                        <div className="text-sm font-bold text-gray-700">File at 70</div>
+                        {raceData[0] && raceData[0].name.includes('File at 70') && <span className="ml-auto text-sm font-bold text-green-600">🏆 Leading</span>}
+                    </div>
+                    <div className="space-y-1">
+                        <div className="text-sm">
+                            <span className="text-gray-600">Total: </span>
+                            <span className="font-bold text-gray-900">
+                                {currencyFormatter.format(Math.round(projections.age70.cumulative[birthYearPrimary + currentRaceAge] || 0))}
+                            </span>
+                        </div>
+                        {currentRaceAge >= 70 && (
+                            <div className="text-sm">
+                                <span className="text-gray-600">Since 70: </span>
+                                <span className="font-semibold text-gray-700">
+                                    {currencyFormatter.format(Math.round((projections.age70.cumulative[birthYearPrimary + currentRaceAge] || 0) - (projections.age70.cumulative[birthYearPrimary + 70] || 0)))}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     );
