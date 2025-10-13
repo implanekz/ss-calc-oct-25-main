@@ -330,6 +330,19 @@ const WidowCalculator = () => {
                         </div>
                     </div>
 
+                    <div className="lg:col-span-2">
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                            <h2 className="text-lg font-semibold text-amber-900 mb-2">⚠️ Special attention required</h2>
+                            <p className="text-sm text-amber-800">
+                                This calculator does not handle Social Security Disability Insurance (SSDI) or
+                                Supplemental Security Income (SSI). If you or the deceased spouse were receiving
+                                disability benefits—or if caregiving for a child under 16—there are special survivor
+                                rules outside the scope of this tool. Please review your case with Social Security or
+                                a qualified advisor.
+                            </p>
+                        </div>
+                    </div>
+
                     {/* Results Panel */}
                     <div className="lg:col-span-2">
                         {error && (
