@@ -1299,33 +1299,18 @@ const ShowMeTheMoneyCalculator = () => {
         let bothLateProjection = primaryProjections.age70;
 
         if (isMarried && spouseProjections) {
-            // Determine which spouse files early and which files late based on piaStrategy
-            // 'early' strategy: Lower PIA @62, Higher PIA @70
-            // 'late' strategy: Higher PIA @62, Lower PIA @70
-            const shouldLowerPiaFileEarly = piaStrategy === 'early';
-
+            // ALWAYS use optimal strategy: Lower PIA files at 62, Higher PIA files at 70
+            // This maximizes delayed retirement credits on the higher benefit while providing
+            // immediate income from the lower benefit
+            
             if (primaryIsLowerPia) {
-                // Primary has lower PIA
-                if (shouldLowerPiaFileEarly) {
-                    // Lower PIA files at 62, higher PIA files at 70
-                    earlyLateProjection = combineMonthlyProjection(primaryProjections.age62, spouseProjections.age70);
-                    preferredLateProjection = combineMonthlyProjection(primaryProjections.preferred, spouseProjections.age70);
-                } else {
-                    // Higher PIA files at 62, lower PIA files at 70
-                    earlyLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.age62);
-                    preferredLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.preferred);
-                }
+                // Primary has lower PIA - Primary files at 62, Spouse files at 70
+                earlyLateProjection = combineMonthlyProjection(primaryProjections.age62, spouseProjections.age70);
+                preferredLateProjection = combineMonthlyProjection(primaryProjections.preferred, spouseProjections.age70);
             } else {
-                // Spouse has lower PIA
-                if (shouldLowerPiaFileEarly) {
-                    // Lower PIA files at 62, higher PIA files at 70
-                    earlyLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.age62);
-                    preferredLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.preferred);
-                } else {
-                    // Higher PIA files at 62, lower PIA files at 70
-                    earlyLateProjection = combineMonthlyProjection(primaryProjections.age62, spouseProjections.age70);
-                    preferredLateProjection = combineMonthlyProjection(primaryProjections.preferred, spouseProjections.age70);
-                }
+                // Spouse has lower PIA - Spouse files at 62, Primary files at 70
+                earlyLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.age62);
+                preferredLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.preferred);
             }
             bothLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.age70);
         }
