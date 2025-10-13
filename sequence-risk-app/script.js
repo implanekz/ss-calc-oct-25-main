@@ -478,15 +478,15 @@ const getInputValues = () => {
 const runSimulation = (forceNewRandom = false) => {
   const { initialBalance, withdrawalRate, startYear, endYear } = getInputValues();
   updateStressYearOptions(stressYearSelect, startYear, endYear);
-  let baseReturns = getReturnsSlice(startYear, endYear);
-  baseReturns = applyStressScenario(baseReturns);
+  const baseReturns = getReturnsSlice(startYear, endYear);
   const orderedReturns = getOrderedSequence(baseReturns, { forceRandom: forceNewRandom });
+  const adjustedReturns = applyStressScenario(orderedReturns);
 
   const annualWithdrawal = initialBalance * (withdrawalRate / 100);
 
-  const historicalScenario = simulateSequence(initialBalance, annualWithdrawal, orderedReturns, identity);
-  const strategyOneScenario = simulateSequence(initialBalance, annualWithdrawal, orderedReturns, strategyOneReturn);
-  const strategyTwoScenario = simulateSequence(initialBalance, annualWithdrawal, orderedReturns, strategyTwoReturn);
+  const historicalScenario = simulateSequence(initialBalance, annualWithdrawal, adjustedReturns, identity);
+  const strategyOneScenario = simulateSequence(initialBalance, annualWithdrawal, adjustedReturns, strategyOneReturn);
+  const strategyTwoScenario = simulateSequence(initialBalance, annualWithdrawal, adjustedReturns, strategyTwoReturn);
 
   renderTables(historicalScenario, strategyOneScenario, strategyTwoScenario);
 
