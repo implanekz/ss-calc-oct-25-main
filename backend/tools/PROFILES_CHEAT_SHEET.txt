@@ -1,0 +1,155 @@
+═══════════════════════════════════════════════════════════════
+    SOCIAL SECURITY PIA PROFILES - QUICK REFERENCE
+═══════════════════════════════════════════════════════════════
+
+USE THESE FOR: Testing, demos, client education, staff training
+
+═══════════════════════════════════════════════════════════════
+BASIC PROFILES (sample_profiles.md)
+═══════════════════════════════════════════════════════════════
+
+Profile 1: AVERAGE EARNER
+├─ Birth: 1960  │  PIA: $1,800  │  Pattern: Steady + 3 zeros
+└─ Use for: Typical American worker, baseline comparison
+
+Profile 2: HIGH EARNER
+├─ Birth: 1960  │  PIA: $2,500  │  Pattern: Increasing + 2 zeros
+└─ Use for: Professionals, white-collar careers
+
+Profile 3: LOW EARNER
+├─ Birth: 1960  │  PIA: $1,200  │  Pattern: Part-time + 5 zeros
+└─ Use for: Interrupted careers, part-time workers
+
+Profile 4: MAXIMUM EARNER
+├─ Birth: 1960  │  PIA: $3,200  │  Pattern: Max taxable + 1 zero
+└─ Use for: Executives, high W-2 earners
+
+═══════════════════════════════════════════════════════════════
+REAL-WORLD PROFILES (real_world_profiles.md)
+═══════════════════════════════════════════════════════════════
+
+Profile 1: SELF-EMPLOYED CONSULTANT
+├─ Birth: 1962  │  PIA: $2,200  │  Zeros: Scattered (lean years)
+├─ Pattern: Feast/famine cycles, $12K to $190K range
+└─ Lesson: "Income volatility hurts more than you think"
+   → Despite $150K+ years, lean years drag average down
+
+Profile 2: TEACHER
+├─ Birth: 1963  │  PIA: $1,650  │  Zeros: 3 consecutive (kids)
+├─ Pattern: Steady $22K→$75K, 3-year gap for children
+└─ Lesson: "Modest salary + career gap = low PIA"
+   → Tops out at $75K but benefit much lower
+
+Profile 3: ENTREPRENEUR (Failed → Succeeded)
+├─ Birth: 1965  │  PIA: $2,800  │  Zeros: 5 scattered
+├─ Pattern: Corp→Startup fail→Corp→Startup success→Consult
+└─ Lesson: "Failed attempts have permanent SS impact"
+   → Big exit years can't erase the early struggle zeros
+
+Profile 4: LAWYER (Corporate → Nonprofit)
+├─ Birth: 1964  │  PIA: $2,600  │  Zeros: 0
+├─ Pattern: BigLaw $45K→$460K, then nonprofit $95K→$120K
+└─ Lesson: "Mission work lowers your Social Security"
+   → 26 years maxed out, then nonprofit years replace high ones
+
+Profile 5: STAY-AT-HOME PARENT
+├─ Birth: 1966  │  PIA: $1,400  │  Zeros: 15 consecutive
+├─ Pattern: CPA 8 years, home 15 years, back to work part-time
+└─ Lesson: "Stay-home penalty - 19 zeros in top 35"
+   → Current salary $80K but PIA based on 16 working years total
+   ✓ OPPORTUNITY: Work until 70 replaces 13 zeros!
+
+Profile 6: MILITARY → FEDERAL
+├─ Birth: 1968  │  PIA: $1,900  │  Zeros: 0
+├─ Pattern: Military $12K→$55K (20 yrs), Federal $65K→$113K
+└─ Lesson: "Low early military pay drags down average"
+   → Will have pension + SS, but SS lower than $113K suggests
+
+═══════════════════════════════════════════════════════════════
+QUICK CLIENT MATCHING GUIDE
+═══════════════════════════════════════════════════════════════
+
+CLIENT SAYS...                    → SHOW PROFILE
+
+"I'm self-employed, income        → Consultant (Profile 1)
+ varies a lot"
+
+"I'm a teacher, took time         → Teacher (Profile 2)
+ off for kids"
+
+"I started two companies,         → Entrepreneur (Profile 3)
+ one failed"
+
+"I left my law firm for           → Lawyer→Nonprofit (Profile 4)
+ nonprofit work"
+
+"I stayed home 10+ years          → Stay-at-Home Parent (Profile 5)
+ with children"                     ⚠️ BIGGEST IMPACT - show zeros!
+
+"I did 20 years military          → Military→Federal (Profile 6)
+ then went federal"
+
+═══════════════════════════════════════════════════════════════
+KEY TEACHING MOMENTS (Use These Profiles To Show)
+═══════════════════════════════════════════════════════════════
+
+Zero Years Impact:
+├─ Stay-Home Parent: 15 zeros = $1,400 PIA (devastating)
+├─ Entrepreneur: 5 scattered zeros = $2,800 PIA (significant)
+└─ Teacher: 3 consecutive zeros = $1,650 PIA (noticeable)
+
+High Income ≠ High PIA:
+├─ Consultant: $190K years, but PIA only $2,200 (lumpy kills you)
+└─ Lawyer: $460K peak, PIA "only" $2,600 (capped at taxable max)
+
+Late Career Matters:
+├─ Stay-Home: Working age 50→70 can boost PIA $400/month
+└─ Teacher: Working past 62 replaces low early years
+
+Mission Work Costs:
+└─ Lawyer: Nonprofit years at $95K replace $460K years in top-35
+   (feels good emotionally, costs $$$ in Social Security)
+
+═══════════════════════════════════════════════════════════════
+HOW TO USE IN PIA CALCULATOR APP
+═══════════════════════════════════════════════════════════════
+
+1. Open PIA Calculator tab
+2. Enter birth year from profile
+3. Copy earnings from profile document
+4. Click "Calculate PIA"
+5. Show client the breakdown
+6. Run what-if scenarios:
+   • "What if you work 3 more years?"
+   • "What if you'd kept working instead of stay-home?"
+   • "What if you'd stayed corporate instead of nonprofit?"
+
+═══════════════════════════════════════════════════════════════
+GENERATE CUSTOM PROFILES
+═══════════════════════════════════════════════════════════════
+
+Use the Python tool:
+
+$ python3 tools/generate_pia_profile.py \
+  --birth-year 1963 \
+  --target-pia 2100 \
+  --pattern steady \
+  --zero-years 4 \
+  --export-json custom_profile.json
+
+Patterns available:
+• steady      → Same earnings every year
+• increasing  → Career progression (linear growth)
+• peak_mid    → Peak earnings mid-career
+• lumpy       → Variable (self-employed)
+
+═══════════════════════════════════════════════════════════════
+LOCATION OF FILES
+═══════════════════════════════════════════════════════════════
+
+Basic profiles:     backend/tools/sample_profiles.md
+Real-world cases:   backend/tools/real_world_profiles.md
+This cheat sheet:   backend/tools/PROFILES_CHEAT_SHEET.txt
+Generator tool:     backend/tools/generate_pia_profile.py
+
+═══════════════════════════════════════════════════════════════
