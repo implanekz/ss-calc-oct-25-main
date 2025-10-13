@@ -154,6 +154,7 @@ class WidowCalculationRequest(BaseModel):
     birth_date: date
     own_pia: float = Field(..., gt=0, description="Person's own PIA")
     deceased_spouse_pia: float = Field(..., gt=0, description="Deceased spouse's PIA")
+    deceased_actual_benefit: Optional[float] = Field(None, ge=0, description="Monthly amount deceased spouse was receiving at death")
     deceased_spouse_death_date: date
     is_remarried: bool = False
     remarriage_date: Optional[date] = None
@@ -712,6 +713,7 @@ async def calculate_widow(request: WidowCalculationRequest):
             birth_date=request.birth_date,
             own_pia=request.own_pia,
             deceased_spouse_pia=request.deceased_spouse_pia,
+            deceased_actual_benefit=request.deceased_actual_benefit,
             deceased_spouse_death_date=request.deceased_spouse_death_date,
             is_remarried=request.is_remarried,
             remarriage_date=request.remarriage_date

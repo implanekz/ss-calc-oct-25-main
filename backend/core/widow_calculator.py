@@ -22,6 +22,7 @@ class WidowSSCalculator(BaseSSCalculator):
         own_pia: float,
         deceased_spouse_pia: float,
         deceased_spouse_death_date: date,
+        deceased_actual_benefit: Optional[float] = None,
         is_remarried: bool = False,
         remarriage_date: Optional[date] = None
     ):
@@ -39,6 +40,7 @@ class WidowSSCalculator(BaseSSCalculator):
         super().__init__(birth_date, own_pia)
 
         self.deceased_spouse_pia = deceased_spouse_pia
+        self.deceased_actual_benefit = deceased_actual_benefit
         self.deceased_spouse_death_date = deceased_spouse_death_date
         self.is_remarried = is_remarried
         self.remarriage_date = remarriage_date
@@ -87,18 +89,21 @@ class WidowSSCalculator(BaseSSCalculator):
         Returns:
             Monthly survivor benefit amount
         """
-        # Survivor benefit is based on what the deceased spouse was receiving
-        # or would have received at their FRA
-
-        # Calculate deceased spouse's benefit with COLA inflation
-        years_since_death = max(0, claiming_age_years - (self.deceased_spouse_death_date.year - self.birth_date.year))
-        deceased_inflated_pia = self.deceased_spouse_pia * ((1 + inflation_rate) ** years_since_death)
-
-        # Survivor can get up to 100% of deceased spouse's benefit
-        survivor_base = deceased_inflated_pia
-
         # Apply early reduction if claiming before own FRA
         claiming_date = self.get_claiming_date(claiming_age_years)
+
+        # Survivor benefit is based on what the deceased spouse was actually receiving (if known)
+        # otherwise fall back to their PIA. Benefits receive COLA adjustments between death and claim date.
+        if self.deceased_spouse_death_date:
+            delta = relativedelta(claiming_date, self.deceased_spouse_death_date)
+            years_since_death = max(0.0, delta.years + delta.months / 12 + delta.days / 365.25)
+        else:
+            years_since_death = 0.0
+
+        if self.deceased_actual_benefit is not None:
+            survivor_base = self.deceased_actual_benefit * ((1 + inflation_rate) ** years_since_death)
+        else:
+            survivor_base = self.deceased_spouse_pia * ((1 + inflation_rate) ** years_since_death)
 
         if claiming_date < self.fra_date:
             # Survivor benefits have different reduction rates

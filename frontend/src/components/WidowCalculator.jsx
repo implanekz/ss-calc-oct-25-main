@@ -7,6 +7,7 @@ const WidowCalculator = () => {
     const [birthDate, setBirthDate] = useState('1964-01-01');
     const [ownPia, setOwnPia] = useState(1800);
     const [deceasedSpousePia, setDeceasedSpousePia] = useState(2800);
+    const [deceasedActualBenefit, setDeceasedActualBenefit] = useState('');
     const [deceasedSpouseDeathDate, setDeceasedSpouseDeathDate] = useState('2023-01-01');
     const [isRemarried, setIsRemarried] = useState(false);
     const [remarriageDate, setRemarriageDate] = useState('');
@@ -78,6 +79,7 @@ const WidowCalculator = () => {
                 birth_date: birthDate,
                 own_pia: ownPia,
                 deceased_spouse_pia: deceasedSpousePia,
+                deceased_actual_benefit: deceasedActualBenefit ? Number(deceasedActualBenefit) : null,
                 deceased_spouse_death_date: deceasedSpouseDeathDate,
                 is_remarried: isRemarried,
                 remarriage_date: isRemarried && remarriageDate ? remarriageDate : null,
@@ -226,6 +228,26 @@ const WidowCalculator = () => {
                                 </div>
                             </div>
 
+                            {/* Deceased Spouse Actual Benefit */}
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Monthly amount they were receiving at death (optional)
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-2 text-gray-500">$</span>
+                                    <input
+                                        type="number"
+                                        value={deceasedActualBenefit}
+                                        onChange={(e) => setDeceasedActualBenefit(e.target.value)}
+                                        placeholder="Enter if spouse was already collecting"
+                                        className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Helps capture early/late filing adjustments already built into their benefit.
+                                </p>
+                            </div>
+
                             {/* Death Date */}
                             <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -330,8 +352,8 @@ const WidowCalculator = () => {
                         </div>
                     </div>
 
-                    <div className="lg:col-span-2">
-                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                    <div className="lg:col-span-2 space-y-4">
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                             <h2 className="text-lg font-semibold text-amber-900 mb-2">⚠️ Special attention required</h2>
                             <p className="text-sm text-amber-800">
                                 This calculator does not handle Social Security Disability Insurance (SSDI) or
@@ -340,6 +362,20 @@ const WidowCalculator = () => {
                                 rules outside the scope of this tool. Please review your case with Social Security or
                                 a qualified advisor.
                             </p>
+                        </div>
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <h2 className="text-lg font-semibold text-yellow-900 mb-2">🛠 Earnings test reminder</h2>
+                            <p className="text-sm text-yellow-800">
+                                Working before your survivor full retirement age can temporarily reduce the benefits shown here because of the Social Security earnings test. Benefits withheld for the earnings test are usually repaid later, but cash flow may be affected in the short run.
+                            </p>
+                        </div>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <h2 className="text-lg font-semibold text-blue-900 mb-2">🔍 Survivor strategy highlights</h2>
+                            <ul className="list-disc list-inside text-sm text-blue-800 space-y-1">
+                                <li>You may take survivor benefits as early as age 60, then switch to your own retirement benefit as late as age 70 to build delayed retirement credits.</li>
+                                <li>Alternatively, you can begin with your own retirement benefit and switch to the survivor benefit later if it becomes larger.</li>
+                                <li>Only one benefit is paid at a time, but you have the flexibility to decide the order and timing that maximizes lifetime value.</li>
+                            </ul>
                         </div>
                     </div>
 

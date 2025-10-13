@@ -266,6 +266,28 @@ def test_edge_case_equal_benefits():
         print(f"   - Inflation rate")
 
 
+def test_actual_benefit_respected():
+    """Ensure survivor benefit honors deceased's actual benefit and early reductions"""
+    birth_date = date(1962, 1, 1)
+    death_date = date(2024, 1, 1)
+
+    calc = WidowSSCalculator(
+        birth_date=birth_date,
+        own_pia=1800.0,
+        deceased_spouse_pia=2500.0,
+        deceased_actual_benefit=2400.0,  # Actual monthly at death after reductions/delays
+        deceased_spouse_death_date=death_date,
+        is_remarried=False
+    )
+
+    # Claim survivor benefits at age 60 with no additional COLA
+    survivor_60 = calc.calculate_survivor_benefit(60, inflation_rate=0.0)
+
+    # A 60-year-old survivor receives roughly 71.5% of the available benefit
+    expected = 2400.0 * (1 - 0.285)
+    assert round(survivor_60, 2) == round(expected, 2)
+
+
 if __name__ == "__main__":
     print("\n")
     print("🧪 WIDOW CALCULATOR TEST SUITE")
