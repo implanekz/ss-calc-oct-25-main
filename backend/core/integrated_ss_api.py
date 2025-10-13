@@ -166,6 +166,43 @@ class WidowCalculationResponse(BaseModel):
     optimal_strategy: Optional[Dict[str, Any]]
     all_strategies: List[Dict[str, Any]]
 
+class EarningsYearInput(BaseModel):
+    """Single year of earnings input"""
+    year: int = Field(..., ge=1937, le=2100)
+    earnings: float = Field(..., ge=0)
+    is_projected: bool = False
+
+class ManualPIACalculationRequest(BaseModel):
+    """Request for manual PIA calculation from earnings history"""
+    birth_year: int = Field(..., ge=1937, le=2010)
+    earnings_history: List[EarningsYearInput]
+    pia_calculation_year: Optional[int] = None  # Year to use for bend points (default: birth_year + 62)
+
+class PIACalculationResult(BaseModel):
+    """Result of PIA calculation"""
+    aime: float
+    pia: float
+    pia_year: int
+    bend_points_used: List[int]
+    indexing_year: int
+    top_35_years: List[Dict[str, Any]]
+    years_of_zero_in_top_35: int
+    lowest_year_in_top_35: float
+    highest_year_in_top_35: float
+    calculation_details: Dict[str, float]
+
+class WhatIfComparisonRequest(BaseModel):
+    """Request to compare original vs modified earnings"""
+    birth_year: int = Field(..., ge=1937, le=2010)
+    original_earnings: List[EarningsYearInput]
+    modified_earnings: List[EarningsYearInput]
+
+class WhatIfComparisonResult(BaseModel):
+    """Comparison of original vs modified PIA"""
+    original: PIACalculationResult
+    modified: PIACalculationResult
+    impact: Dict[str, float]  # monthly_change, annual_change, lifetime_25_years
+
 # Initialize FastAPI app
 app = FastAPI(
     title="Social Security K.I.N.D. Platform API",
@@ -249,22 +286,29 @@ async def upload_ssa_xml(
         if not birth_date:
             birth_date_str = processor.person_info.get('birth_date', '1960-01-01')
             birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d').date()
-        
-        # Create calculator and calculate original PIA
-        calculator = processor.create_calculator_from_earnings(birth_date)
-        original_pia = calculator.pia
-        
+
+        # Set birth year for wage indexing
+        processor.birth_year = birth_date.year
+
+        # Calculate PIA
+        pia_calculation = processor.calculate_aime_and_pia()
+        original_pia = pia_calculation.get('pia', 0)
+
         # Create editable spreadsheet
         spreadsheet = processor.create_editable_spreadsheet()
-        
-        # Generate optimization recommendations
-        recommendations = _generate_pia_recommendations(processor.earnings_history, calculator)
+
+        # Generate simple recommendations
+        recommendations = []
+        zero_years = sum(1 for e in processor.earnings_history if e.earnings == 0)
+        if zero_years > 0:
+            recommendations.append(f"You have {zero_years} years with $0 earnings. Working additional years could replace these zeros and increase your PIA.")
+        if len(processor.earnings_history) < 35:
+            recommendations.append(f"You have {len(processor.earnings_history)} years of earnings. Working to 35 years maximizes your benefit calculation.")
         
         # Store in session
         session_id = f"user_{datetime.now().timestamp()}"
         user_sessions[session_id] = {
             'processor': processor,
-            'calculator': calculator,
             'birth_date': birth_date
         }
         
@@ -687,6 +731,120 @@ async def calculate_widow(request: WidowCalculationRequest):
     except Exception as e:
         logger.error(f"Widow calculation error: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Widow calculation failed: {str(e)}")
+
+@app.post("/calculate-pia-from-earnings", response_model=PIACalculationResult)
+async def calculate_pia_from_earnings(request: ManualPIACalculationRequest):
+    """
+    Calculate PIA from manually entered earnings history.
+    This is Phase 1 of the PIA calculator - no XML upload required.
+    Users can enter their earnings history year by year and see the impact on their PIA.
+    """
+    try:
+        # Create processor with birth year
+        processor = SSAXMLProcessor(birth_year=request.birth_year)
+
+        # Convert earnings input to EarningsRecord objects
+        earnings_records = []
+        for entry in request.earnings_history:
+            record = EarningsRecord(
+                year=entry.year,
+                earnings=entry.earnings,
+                is_zero=(entry.earnings == 0),
+                is_projected=entry.is_projected
+            )
+            earnings_records.append(record)
+
+        processor.earnings_history = earnings_records
+
+        # Calculate AIME and PIA
+        calculation = processor.calculate_aime_and_pia(pia_year=request.pia_calculation_year)
+
+        return PIACalculationResult(
+            aime=calculation['aime'],
+            pia=calculation['pia'],
+            pia_year=calculation['pia_year'],
+            bend_points_used=calculation['bend_points_used'],
+            indexing_year=processor.indexing_year,
+            top_35_years=calculation['top_35_years'],
+            years_of_zero_in_top_35=calculation['years_of_zero_in_top_35'],
+            lowest_year_in_top_35=calculation['lowest_year_in_top_35'],
+            highest_year_in_top_35=calculation['highest_year_in_top_35'],
+            calculation_details=calculation['calculation_details']
+        )
+
+    except Exception as e:
+        logger.error(f"PIA calculation error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"PIA calculation failed: {str(e)}")
+
+@app.post("/compare-earnings-scenarios", response_model=WhatIfComparisonResult)
+async def compare_earnings_scenarios(request: WhatIfComparisonRequest):
+    """
+    Compare two earnings scenarios to see the impact on PIA.
+    This is Phase 3 - the "what-if" analysis.
+
+    Example: Compare retiring at 62 with zeros vs continuing to work until 67.
+    Shows the exact dollar impact of those decisions on lifetime benefits.
+    """
+    try:
+        # Calculate original PIA
+        processor_original = SSAXMLProcessor(birth_year=request.birth_year)
+        original_records = [
+            EarningsRecord(year=e.year, earnings=e.earnings, is_zero=(e.earnings == 0), is_projected=e.is_projected)
+            for e in request.original_earnings
+        ]
+        processor_original.earnings_history = original_records
+        original_calc = processor_original.calculate_aime_and_pia()
+
+        # Calculate modified PIA
+        processor_modified = SSAXMLProcessor(birth_year=request.birth_year)
+        modified_records = [
+            EarningsRecord(year=e.year, earnings=e.earnings, is_zero=(e.earnings == 0), is_projected=e.is_projected)
+            for e in request.modified_earnings
+        ]
+        processor_modified.earnings_history = modified_records
+        modified_calc = processor_modified.calculate_aime_and_pia()
+
+        # Calculate impact
+        pia_change = modified_calc['pia'] - original_calc['pia']
+        annual_change = pia_change * 12
+        lifetime_25_years = annual_change * 25
+
+        return WhatIfComparisonResult(
+            original=PIACalculationResult(
+                aime=original_calc['aime'],
+                pia=original_calc['pia'],
+                pia_year=original_calc['pia_year'],
+                bend_points_used=original_calc['bend_points_used'],
+                indexing_year=processor_original.indexing_year,
+                top_35_years=original_calc['top_35_years'],
+                years_of_zero_in_top_35=original_calc['years_of_zero_in_top_35'],
+                lowest_year_in_top_35=original_calc['lowest_year_in_top_35'],
+                highest_year_in_top_35=original_calc['highest_year_in_top_35'],
+                calculation_details=original_calc['calculation_details']
+            ),
+            modified=PIACalculationResult(
+                aime=modified_calc['aime'],
+                pia=modified_calc['pia'],
+                pia_year=modified_calc['pia_year'],
+                bend_points_used=modified_calc['bend_points_used'],
+                indexing_year=processor_modified.indexing_year,
+                top_35_years=modified_calc['top_35_years'],
+                years_of_zero_in_top_35=modified_calc['years_of_zero_in_top_35'],
+                lowest_year_in_top_35=modified_calc['lowest_year_in_top_35'],
+                highest_year_in_top_35=modified_calc['highest_year_in_top_35'],
+                calculation_details=modified_calc['calculation_details']
+            ),
+            impact={
+                'monthly_change': round(pia_change, 2),
+                'annual_change': round(annual_change, 2),
+                'lifetime_25_years': round(lifetime_25_years, 2),
+                'percent_increase': round((pia_change / original_calc['pia'] * 100) if original_calc['pia'] > 0 else 0, 2)
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"Earnings comparison error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Earnings comparison failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
