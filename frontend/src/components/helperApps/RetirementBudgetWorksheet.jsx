@@ -6,6 +6,7 @@ const RetirementBudgetWorksheet = () => {
     const currentYear = new Date().getFullYear();
     const [year1] = useState(currentYear + 1); // Next year
     const [year2, setYear2] = useState(currentYear + 10);
+    const [inflationRate, setInflationRate] = useState(0.025); // 2.5% default
 
     // Expense categories with all line items
     const [expenses, setExpenses] = useState({
@@ -113,13 +114,20 @@ const RetirementBudgetWorksheet = () => {
             return 0;
         }
         
-        // Return monthly amount (convert to annual by multiplying by 12)
-        return item.amount;
+        // Apply inflation from Year 1 to target year
+        const yearsFromYear1 = targetYear - year1;
+        const inflationMultiplier = Math.pow(1 + inflationRate, yearsFromYear1);
+        
+        // Return monthly amount with inflation applied
+        return item.amount * inflationMultiplier;
     };
 
     const calculateCategoryTotal = (categoryKey, targetYear) => {
         if (viewMode === 'simple') {
-            return expenses[categoryKey].simple;
+            // Apply inflation to simple mode totals as well
+            const yearsFromYear1 = targetYear - year1;
+            const inflationMultiplier = Math.pow(1 + inflationRate, yearsFromYear1);
+            return expenses[categoryKey].simple * inflationMultiplier;
         }
         
         const category = expenses[categoryKey];
@@ -251,6 +259,36 @@ const RetirementBudgetWorksheet = () => {
                                 {generateYearOptions()}
                             </select>
                         </div>
+                    </div>
+
+                    {/* Inflation Rate Control */}
+                    <div className="border-t border-gray-200 pt-4 mt-4">
+                        <div className="flex justify-between items-center mb-2">
+                            <div className="flex items-center gap-2">
+                                <label className="text-sm font-medium text-gray-700">Inflation Rate (COLA)</label>
+                                <div className="group relative">
+                                    <svg className="w-4 h-4 text-gray-400 cursor-help" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                    </svg>
+                                    <div className="hidden group-hover:block absolute left-0 bottom-full mb-2 w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-50">
+                                        <div className="font-semibold mb-1">Inflation Adjustment:</div>
+                                        <p>This rate is used to project how your expenses will grow from Year 1 to Year 2. Applied to both monthly and annual amounts.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <span className="text-sm font-semibold text-blue-600">
+                                {(inflationRate * 100).toFixed(1)}%
+                            </span>
+                        </div>
+                        <input
+                            type="range"
+                            value={inflationRate}
+                            onChange={(e) => setInflationRate(parseFloat(e.target.value))}
+                            min="0"
+                            max="0.1"
+                            step="0.001"
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                        />
                     </div>
                 </div>
 
@@ -447,7 +485,8 @@ const RetirementBudgetWorksheet = () => {
                         <li><strong>Detailed Mode:</strong> Break down expenses by individual items with monthly amounts and start/end ages</li>
                         <li><strong>Age-Based Projections:</strong> Expenses automatically activate/deactivate based on start and end ages</li>
                         <li><strong>Monthly Input:</strong> Enter all amounts as monthly expenses - annual amounts are calculated automatically</li>
-                        <li><strong>Future Planning:</strong> Compare expenses between next year and any future year</li>
+                        <li><strong>Inflation:</strong> Expenses automatically adjust for inflation between Year 1 and Year 2 using your selected rate</li>
+                        <li><strong>Future Planning:</strong> Compare expenses between next year and any future year with inflation factored in</li>
                     </ul>
                 </div>
             </div>
