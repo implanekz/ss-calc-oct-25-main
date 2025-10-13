@@ -106,7 +106,14 @@ let latestScenarios = null;
 const generateSpanKey = (returns) => {
   if (!returns.length) return 'empty';
   const base = `${returns[0].year}-${returns[returns.length - 1].year}-${returns.length}`;
-  const stressSuffix = stressState.enabled ? `-stress-${stressState.scenarioKey || 'none'}-${stressState.targetYear || 'none'}` : '-stress-off';
+  let stressSuffix = '-stress-off';
+  if (stressState.enabled) {
+    stressSuffix = `-stress-${stressState.scenarioKey || 'none'}-${stressState.targetYear || 'none'}`;
+    // Include custom loss percentage in the key for custom scenarios
+    if (stressState.scenarioKey === 'custom') {
+      stressSuffix += `-${stressState.customLossPercent}`;
+    }
+  }
   return `${base}${stressSuffix}`;
 };
 
