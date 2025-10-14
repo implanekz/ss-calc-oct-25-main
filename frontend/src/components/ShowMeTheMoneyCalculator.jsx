@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Bar, Line, Bubble } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, BubbleController } from 'chart.js';
 import annotationPlugin from 'chartjs-plugin-annotation';
@@ -105,6 +105,27 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
 
 // Flow Visualization Component - Three Scenarios Side-by-Side
 const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, isMarried, inflationRate, currentAge, selectedStrategy, setSelectedStrategy, piaStrategy, setPiaStrategy }) => {
+    // Responsive container refs/state must be declared before any early returns (React hooks rule)
+    const containerRef = useRef(null);
+    const [svgHeight, setSvgHeight] = useState(700);
+    const [svgWidth, setSvgWidth] = useState(1200);
+    useEffect(() => {
+        if (!containerRef.current) return;
+        const el = containerRef.current;
+        const update = () => {
+            const h = el.clientHeight || 700;
+            const computed = Math.max(500, Math.min(800, h - 140));
+            setSvgHeight(computed);
+            const w = el.clientWidth || 1200;
+            const computedW = Math.max(1000, Math.min(1400, w - 48));
+            setSvgWidth(computedW);
+        };
+        update();
+        const ro = new ResizeObserver(update);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, []);
+
     if (!scenarioData) {
         return <div className="h-full flex items-center justify-center text-gray-500">Loading...</div>;
     }
@@ -207,17 +228,17 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
 
     const gapColor = '#9CA3AF'; // Gray for gaps
 
-    // SVG dimensions - use more vertical space for drama
-    const width = 1200;
-    const height = 700; // Height to accommodate visualization with heading moved to side
+    const width = svgWidth;
+    const height = svgHeight; // was 700 fixed
     const barWidth = 100;
     const barSpacing = 80;
     const startX = 100;
-    const rightX = 950;
+    const rightMargin = Math.max(220, Math.round(width * 0.18));
+    const rightX = width - rightMargin;
     const maxValue = Math.max(inflatedMonthlyNeeds, age70Monthly) * 1.1; // Add 10% padding
 
-    // Calculate heights proportional to values - use more vertical space
-    const availableHeight = 420; // Adjusted for better proportions
+    // Calculate heights proportional to values - scale with container height
+    const availableHeight = Math.max(260, height - 280);
     const getHeight = (value) => Math.max(30, (value / maxValue) * availableHeight);
 
     // Target bar is 50% taller to give room for swoopy curves
@@ -246,7 +267,19 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
     // Calculate control points for swoopy Sankey flow
     // Flow from bottom of strategy bar to bottom of target bar,
     // and from top of strategy bar to the coverage point on target bar
-    const targetHeight = getTargetHeight(inflatedMonthlyNeeds);
+    // Compute target column height, but clamp so it never extends past the SVG top
+    // This avoids the right-hand target bar being cut off at the top on some screens
+    let targetHeight = getTargetHeight(inflatedMonthlyNeeds);
+    const maxTargetHeight = Math.max(120, baseY - 80); // keep ~80px for labels/title
+    if (targetHeight > maxTargetHeight) {
+        targetHeight = maxTargetHeight;
+    }
+    // Scale label offsets and sizes based on available headroom
+    const headroom = Math.max(60, baseY - targetHeight);
+    const labelScale = Math.max(0.75, Math.min(1, headroom / 120));
+    const labelY1 = baseY - targetHeight - Math.round(60 * labelScale);
+    const labelY2 = baseY - targetHeight - Math.round(42 * labelScale);
+    const labelY3 = baseY - targetHeight - Math.round(20 * labelScale);
     const targetBottom = baseY;
     const targetCoveragePoint = selectedScenario ? baseY - (selectedScenario.covered / inflatedMonthlyNeeds) * targetHeight : baseY;
 
@@ -353,7 +386,7 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
                 </div>
             </div>
 
-            <div className="flex-1 flex items-center justify-center overflow-x-auto">
+            <div ref={containerRef} className="flex-1 flex items-center justify-center overflow-auto">
                 <svg width={width} height={height} className="mx-auto" viewBox={`0 0 ${width} ${height}`}>
                     <style>
                         {`
@@ -727,13 +760,13 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
                             )}
 
                             {/* Labels above the column - stacked with clear hierarchy */}
-                            <text x={rightX + barWidth / 2} y={baseY - targetHeight - 60} textAnchor="middle" fontSize="16" fontWeight="700" fill="#374151">
+                            <text x={rightX + barWidth / 2} y={labelY1} textAnchor="middle" fontSize={Math.round(16 * labelScale)} fontWeight="700" fill="#374151">
                                 Target
                             </text>
-                            <text x={rightX + barWidth / 2} y={baseY - targetHeight - 42} textAnchor="middle" fontSize="13" fontWeight="600" fill="#6B7280">
+                            <text x={rightX + barWidth / 2} y={labelY2} textAnchor="middle" fontSize={Math.round(13 * labelScale)} fontWeight="600" fill="#6B7280">
                                 Monthly Expense Needs
                             </text>
-                            <text x={rightX + barWidth / 2} y={baseY - targetHeight - 20} textAnchor="middle" fontSize="18" fontWeight="700" fill="#374151">
+                            <text x={rightX + barWidth / 2} y={labelY3} textAnchor="middle" fontSize={Math.round(18 * labelScale)} fontWeight="700" fill="#374151">
                                 {currencyFormatter.format(Math.round(inflatedMonthlyNeeds))}
                             </text>
                         </g>
@@ -771,6 +804,25 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
 
 // Race Track Visualization Component - Animated Bar Chart Race
 const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inflationRate, currentAge }) => {
+    // Hooks must come before any early returns
+    const raceContainerRef = useRef(null);
+    const [raceWidth, setRaceWidth] = useState(1200);
+    const [raceContainerHeight, setRaceContainerHeight] = useState(600);
+    useEffect(() => {
+        if (!raceContainerRef.current) return;
+        const el = raceContainerRef.current;
+        const update = () => {
+            const w = el.clientWidth || 1200;
+            const computedW = Math.max(900, Math.min(1400, w - 48));
+            setRaceWidth(computedW);
+            const h = el.clientHeight || 600;
+            setRaceContainerHeight(h);
+        };
+        update();
+        const ro = new ResizeObserver(update);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, []);
     const [currentRaceAge, setCurrentRaceAge] = useState(62);
     const [isPlaying, setIsPlaying] = useState(false);
 
@@ -904,14 +956,17 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
     });
     const maxValue = Math.max(...allValues) * 1.1;
 
-    // SVG dimensions - expand for 6 bars
-    const width = 1200;
-    const barHeight = 60;
-    const barSpacing = 15;
-    const leftMargin = 220;
-    const rightMargin = 150;
-    const topMargin = 80;
+    const width = raceWidth;
+    // Compute bar height/spacing based on available vertical space so all 6 bars fit
     const numBars = raceData.length;
+    const paddingTopForHeader = 110; // room for Play/Age header above SVG
+    const paddingBottom = 80;
+    const barsArea = Math.max(320, raceContainerHeight - paddingTopForHeader - paddingBottom);
+    const barSpacing = Math.max(10, Math.min(18, Math.floor(barsArea / (numBars * 8))));
+    const barHeight = Math.max(32, Math.min(60, Math.floor((barsArea - ((numBars - 1) * barSpacing)) / numBars)));
+    const leftMargin = Math.max(180, Math.round(width * 0.18));
+    const rightMargin = Math.max(120, Math.round(width * 0.12));
+    const topMargin = 80;
     const height = topMargin + (numBars * (barHeight + barSpacing)) + 100;
 
     const getBarWidth = (value) => {
@@ -935,7 +990,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
             </div>
 
             {/* Race Track Visualization */}
-            <div className="flex-1 flex items-center justify-center overflow-hidden -mt-4">
+            <div ref={raceContainerRef} className="flex-1 flex items-center justify-center overflow-auto">
                 <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
                     <style>
                         {`
