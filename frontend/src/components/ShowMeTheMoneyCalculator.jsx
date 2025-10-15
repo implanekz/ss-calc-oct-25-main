@@ -1087,8 +1087,8 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                         // Position for the difference box - adapt to container width
                         const boxWidth = Math.min(340, Math.max(240, width * 0.22));
                         const boxX = width - boxWidth - 30;
-                        const boxY = height / 2 - 160;
-                        const boxHeight = 320;
+                        const boxY = height / 2 - 200;
+                        const boxHeight = 400;
                         
                         return (
                             <g>
@@ -1183,6 +1183,40 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                     fontWeight="700"
                                 >
                                     {currencyFormatter.format(Math.round(bottomValue))}
+                                </text>
+                                
+                                {/* Separator line */}
+                                <line
+                                    x1={boxX + 20}
+                                    y1={boxY + 310}
+                                    x2={boxX + boxWidth - 20}
+                                    y2={boxY + 310}
+                                    stroke="#9CA3AF"
+                                    strokeWidth="2"
+                                    strokeDasharray="5,5"
+                                />
+                                
+                                {/* Difference calculation at bottom */}
+                                <text
+                                    x={boxX + boxWidth / 2}
+                                    y={boxY + 340}
+                                    textAnchor="middle"
+                                    fontSize="16"
+                                    fill="#6B7280"
+                                    fontWeight="600"
+                                >
+                                    Difference
+                                </text>
+                                
+                                <text
+                                    x={boxX + boxWidth / 2}
+                                    y={boxY + 375}
+                                    textAnchor="middle"
+                                    fontSize="32"
+                                    fontWeight="700"
+                                    fill={difference >= 0 ? '#10B981' : '#EF4444'}
+                                >
+                                    {difference >= 0 ? '+' : ''}{currencyFormatter.format(Math.round(difference))}
                                 </text>
                             </g>
                         );
