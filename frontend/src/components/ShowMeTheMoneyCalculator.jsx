@@ -827,6 +827,46 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
     const [isPlaying, setIsPlaying] = useState(false);
     const [raceViewMode, setRaceViewMode] = useState('cumulative'); // 'monthly' or 'cumulative'
 
+    // Calculate fixed max value - MUST be at top level before any conditional logic
+    const maxValue = useMemo(() => {
+        if (!scenarioData) return 1000000;
+        
+        const allAges = Array.from({ length: 95 - 62 + 1 }, (_, i) => 62 + i);
+        
+        const allValues = allAges.flatMap(age => {
+            const calendarYear = scenarioData.birthYearPrimary + age;
+            const projections = activeRecordView === 'primary'
+                ? scenarioData.primaryProjections
+                : activeRecordView === 'spouse' && scenarioData.spouseProjections
+                    ? scenarioData.spouseProjections
+                    : scenarioData.combinedProjections;
+
+            if (raceViewMode === 'monthly') {
+                return [
+                    projections.age62.monthly[calendarYear] || 0,
+                    projections.preferred.monthly[calendarYear] || 0,
+                    projections.age70.monthly[calendarYear] || 0
+                ];
+            } else {
+                const values = [
+                    projections.age62.cumulative[calendarYear] || 0,
+                    projections.preferred.cumulative[calendarYear] || 0,
+                    projections.age70.cumulative[calendarYear] || 0
+                ];
+                if (age >= 70) {
+                    values.push(
+                        (projections.age62.cumulative[calendarYear] || 0) - (projections.age62.cumulative[scenarioData.birthYearPrimary + 69] || 0),
+                        (projections.preferred.cumulative[calendarYear] || 0) - (projections.preferred.cumulative[scenarioData.birthYearPrimary + 69] || 0),
+                        (projections.age70.cumulative[calendarYear] || 0) - (projections.age70.cumulative[scenarioData.birthYearPrimary + 69] || 0)
+                    );
+                }
+                return values;
+            }
+        });
+        
+        return Math.max(...allValues) * 1.1;
+    }, [raceViewMode, scenarioData, activeRecordView]);
+
     // Animation effect - must be called before any conditional returns
     useEffect(() => {
         if (!isPlaying || !scenarioData) return;
@@ -970,49 +1010,6 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
         // Sort by value descending (highest at top)
         return scenarios.sort((a, b) => b.value - a.value);
     };
-
-    // Calculate fixed max value ONCE for each mode across ALL ages to prevent scaling jumps
-    // This ensures bars grow from small to large rather than constantly rescaling
-    // MUST be called before calculateRaceData to satisfy React hooks rules
-    const maxValue = useMemo(() => {
-        if (!scenarioData) return 1000000;
-        
-        const allAges = Array.from({ length: 95 - 62 + 1 }, (_, i) => 62 + i);
-        
-        // Calculate max value for ALL ages in current mode
-        const allValues = allAges.flatMap(age => {
-            const calendarYear = scenarioData.birthYearPrimary + age;
-            const projections = activeRecordView === 'primary'
-                ? scenarioData.primaryProjections
-                : activeRecordView === 'spouse' && scenarioData.spouseProjections
-                    ? scenarioData.spouseProjections
-                    : scenarioData.combinedProjections;
-
-            if (raceViewMode === 'monthly') {
-                return [
-                    projections.age62.monthly[calendarYear] || 0,
-                    projections.preferred.monthly[calendarYear] || 0,
-                    projections.age70.monthly[calendarYear] || 0
-                ];
-            } else {
-                const values = [
-                    projections.age62.cumulative[calendarYear] || 0,
-                    projections.preferred.cumulative[calendarYear] || 0,
-                    projections.age70.cumulative[calendarYear] || 0
-                ];
-                if (age >= 70) {
-                    values.push(
-                        (projections.age62.cumulative[calendarYear] || 0) - (projections.age62.cumulative[scenarioData.birthYearPrimary + 69] || 0),
-                        (projections.preferred.cumulative[calendarYear] || 0) - (projections.preferred.cumulative[scenarioData.birthYearPrimary + 69] || 0),
-                        (projections.age70.cumulative[calendarYear] || 0) - (projections.age70.cumulative[scenarioData.birthYearPrimary + 69] || 0)
-                    );
-                }
-                return values;
-            }
-        });
-        
-        return Math.max(...allValues) * 1.1;
-    }, [raceViewMode, scenarioData, activeRecordView]); // Recalculate only when mode or data changes
 
     const raceData = calculateRaceData(currentRaceAge);
 
