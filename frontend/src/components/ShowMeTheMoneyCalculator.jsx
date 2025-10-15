@@ -3379,23 +3379,7 @@ const ShowMeTheMoneyCalculator = () => {
                         </div>
                     )}
 
-                    {/* Retirement Stages Slider - Only shown for Monthly view */}
-                    {chartView === 'monthly' && (
-                        <div className="mb-4 relative">
-                            <RetirementStagesSlider
-                                goGoEndAge={goGoEndAge}
-                                setGoGoEndAge={setGoGoEndAge}
-                                slowGoEndAge={slowGoEndAge}
-                                setSlowGoEndAge={setSlowGoEndAge}
-                                isDraggingGoGo={isDraggingGoGo}
-                                setIsDraggingGoGo={setIsDraggingGoGo}
-                                isDraggingSlowGo={isDraggingSlowGo}
-                                setIsDraggingSlowGo={setIsDraggingSlowGo}
-                            />
-                        </div>
-                    )}
-
-                    <div className="h-full bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4" style={{ height: chartView === 'monthly' ? 'calc(100% - 80px)' : '100%' }}>
                         {
                             chartView === 'flow' ? (
                                 <FlowVisualization
@@ -3664,6 +3648,22 @@ const ShowMeTheMoneyCalculator = () => {
                                   <Line data={chartData} options={{...chartOptions, maintainAspectRatio: false}} />
                         }
                     </div>
+
+                    {/* Retirement Stages Slider - Below Monthly chart */}
+                    {chartView === 'monthly' && (
+                        <div className="mt-4">
+                            <RetirementStagesSlider
+                                goGoEndAge={goGoEndAge}
+                                setGoGoEndAge={setGoGoEndAge}
+                                slowGoEndAge={slowGoEndAge}
+                                setSlowGoEndAge={setSlowGoEndAge}
+                                isDraggingGoGo={isDraggingGoGo}
+                                setIsDraggingGoGo={setIsDraggingGoGo}
+                                isDraggingSlowGo={isDraggingSlowGo}
+                                setIsDraggingSlowGo={setIsDraggingSlowGo}
+                            />
+                        </div>
+                    )}
 
                     {/* SS Cuts Summary */}
                     {chartView === 'sscuts' && ssCutsSummary.length > 0 && (
