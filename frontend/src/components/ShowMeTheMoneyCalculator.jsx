@@ -1087,13 +1087,17 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                         `}
                     </style>
 
-                    {/* Title */}
-                    <text x={width / 2} y={40} textAnchor="middle" fontSize="24" fontWeight="700" fill="#374151">
-                        Filing Strategy Race: {raceViewMode === 'monthly' ? 'Monthly Benefits' : 'Cumulative Benefits'}
-                    </text>
-                    <text x={width / 2} y={65} textAnchor="middle" fontSize="14" fill="#6B7280">
-                        {raceViewMode === 'monthly' ? 'Comparing monthly income at each age' : 'Watching benefits accumulate over time'}
-                    </text>
+                    {/* Title - Only for Cumulative mode, Monthly mode shows it at bottom */}
+                    {raceViewMode === 'cumulative' && (
+                        <>
+                            <text x={width / 2} y={40} textAnchor="middle" fontSize="24" fontWeight="700" fill="#374151">
+                                Filing Strategy Race: Cumulative Benefits
+                            </text>
+                            <text x={width / 2} y={65} textAnchor="middle" fontSize="14" fill="#6B7280">
+                                Watching benefits accumulate over time
+                            </text>
+                        </>
+                    )}
 
                     {/* Bars - Conditional rendering based on view mode */}
                     {raceViewMode === 'monthly' ? (
@@ -1102,10 +1106,10 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                             const availableWidth = width - leftMargin - rightMargin;
                             const barWidth = Math.min(120, availableWidth / 5); // Width for each vertical bar
                             const barSpacing = (availableWidth - (3 * barWidth)) / 4; // Equal spacing
-                            const baseY = height - 80; // Bottom baseline for bars (reduced from 120 to give more room)
-                            const maxBarHeight = (height - topMargin - 100) * 2; // Double the max height for dramatic effect
+                            const baseY = height - 140; // More space at bottom for title
+                            const maxBarHeight = height - topMargin - 160; // Constrain to fit within SVG bounds
                             
-                            return raceData.map((scenario, index) => {
+                            const result = raceData.map((scenario, index) => {
                                 const barX = leftMargin + barSpacing + (index * (barWidth + barSpacing));
                                 const barHeightValue = (scenario.value / maxValue) * maxBarHeight;
                                 
@@ -1150,6 +1154,19 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                     </g>
                                 );
                             });
+                            
+                            // Add title at bottom
+                            return (
+                                <>
+                                    {result}
+                                    <text x={width / 2} y={baseY + 65} textAnchor="middle" fontSize="24" fontWeight="700" fill="#374151">
+                                        Filing Strategy Race: Monthly Benefits
+                                    </text>
+                                    <text x={width / 2} y={baseY + 90} textAnchor="middle" fontSize="14" fill="#6B7280">
+                                        Comparing monthly income at each age
+                                    </text>
+                                </>
+                            );
                         })()
                     ) : (
                         /* Cumulative View: Horizontal bars (existing) */
