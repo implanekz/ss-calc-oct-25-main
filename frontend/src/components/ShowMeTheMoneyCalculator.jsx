@@ -964,8 +964,8 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
     const barsArea = Math.max(320, raceContainerHeight - paddingTopForHeader - paddingBottom);
     const barSpacing = Math.max(10, Math.min(18, Math.floor(barsArea / (numBars * 8))));
     const barHeight = Math.max(32, Math.min(60, Math.floor((barsArea - ((numBars - 1) * barSpacing)) / numBars)));
-    const leftMargin = Math.max(180, Math.round(width * 0.18));
-    const rightMargin = Math.max(120, Math.round(width * 0.12));
+    const leftMargin = Math.max(80, Math.round(width * 0.08)); // Shift bars further left
+    const rightMargin = Math.max(450, Math.round(width * 0.32)); // More space for Gap Tracker
     const topMargin = 80;
     const height = topMargin + (numBars * (barHeight + barSpacing)) + 100;
 
