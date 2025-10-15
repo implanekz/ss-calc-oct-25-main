@@ -142,18 +142,10 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
     const calendarYear = birthYearPrimary + age;
 
     // Get monthly values for each filing scenario
-    // When married and viewing combined, use early/late strategy projections
-    const useEarlyLateStrategy = isMarried && activeRecordView === 'combined';
-
-    const age62Monthly = useEarlyLateStrategy
-        ? (earlyLateProjection?.monthly[calendarYear] || 0)
-        : (projections.age62.monthly[calendarYear] || 0);
-    const age67Monthly = useEarlyLateStrategy
-        ? (preferredLateProjection?.monthly[calendarYear] || 0)
-        : (projections.preferred.monthly[calendarYear] || 0);
-    const age70Monthly = useEarlyLateStrategy
-        ? (bothLateProjection?.monthly[calendarYear] || 0)
-        : (projections.age70.monthly[calendarYear] || 0);
+    // Always use the pure filing age projections (same as Monthly tab)
+    const age62Monthly = projections.age62.monthly[calendarYear] || 0;
+    const age67Monthly = projections.preferred.monthly[calendarYear] || 0;
+    const age70Monthly = projections.age70.monthly[calendarYear] || 0;
 
     // Apply inflation to monthly needs from current age to selected age
     const yearsFromNow = age - currentAge;
