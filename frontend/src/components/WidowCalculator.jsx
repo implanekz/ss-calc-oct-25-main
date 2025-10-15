@@ -95,7 +95,11 @@ const WidowCalculator = () => {
         } catch (err) {
             // Handle validation errors from FastAPI (array format)
             let errorMessage = 'Calculation failed. Please check your inputs.';
-            if (err.response?.data?.detail) {
+            
+            // Check if this is a network/connection error
+            if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED' || err.message?.includes('Network Error')) {
+                errorMessage = '⚠️ Cannot connect to the calculation server. Please make sure the backend server is running on port 8000. Run: cd backend && python3 -m uvicorn core.integrated_ss_api:app --reload --port 8000';
+            } else if (err.response?.data?.detail) {
                 if (Array.isArray(err.response.data.detail)) {
                     // Pydantic validation errors
                     errorMessage = err.response.data.detail
