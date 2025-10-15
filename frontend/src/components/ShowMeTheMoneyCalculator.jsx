@@ -825,6 +825,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
     }, []);
     const [currentRaceAge, setCurrentRaceAge] = useState(62);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [raceViewMode, setRaceViewMode] = useState('cumulative'); // 'monthly' or 'cumulative'
 
     // Animation effect - must be called before any conditional returns
     useEffect(() => {
@@ -876,6 +877,31 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
     const calculateRaceData = (age) => {
         const calendarYear = birthYearPrimary + age;
 
+        if (raceViewMode === 'monthly') {
+            // Monthly view: Just show 3 bars with monthly income
+            const scenarios = [
+                {
+                    name: 'File at 62',
+                    value: projections.age62.monthly[calendarYear] || 0,
+                    color: '#EF4444'
+                },
+                {
+                    name: 'File at 67',
+                    value: projections.preferred.monthly[calendarYear] || 0,
+                    color: '#3B82F6'
+                },
+                {
+                    name: 'File at 70',
+                    value: projections.age70.monthly[calendarYear] || 0,
+                    color: '#14B8A6'
+                }
+            ];
+            
+            // Sort by value descending (highest at top)
+            return scenarios.sort((a, b) => b.value - a.value);
+        }
+
+        // Cumulative view: Show 6 bars (Total + Since 70 for each strategy)
         const scenarios = [];
 
         // File at 62 - Total cumulative
@@ -947,14 +973,19 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
 
     const raceData = calculateRaceData(currentRaceAge);
     
-    // Calculate fixed max value across ALL ages (62-95) for ALL scenarios
+    // Calculate fixed max value separately for each mode to prevent scaling jumps
     // This ensures bars grow from small to large rather than constantly rescaling
     const allAges = Array.from({ length: 95 - 62 + 1 }, (_, i) => 62 + i);
-    const allValues = allAges.flatMap(age => {
-        const ageData = calculateRaceData(age);
-        return ageData.map(d => d.value);
-    });
-    const maxValue = Math.max(...allValues) * 1.1;
+    
+    // Save current mode, temporarily switch to calculate max for that mode
+    const savedMode = raceViewMode;
+    const maxValue = (() => {
+        const allValues = allAges.flatMap(age => {
+            const ageData = calculateRaceData(age);
+            return ageData.map(d => d.value);
+        });
+        return Math.max(...allValues) * 1.1;
+    })();
 
     const width = raceWidth;
     // Compute bar height/spacing based on available vertical space so all 6 bars fit
@@ -975,8 +1006,8 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
 
     return (
         <div className="h-full flex flex-col p-4">
-            {/* Age Display and Play Button at Top */}
-            <div className="flex items-center justify-center gap-3">
+            {/* Age Display, Play Button, and View Toggle at Top */}
+            <div className="flex items-center justify-center gap-4">
                 <button
                     onClick={handlePlayClick}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-semibold"
@@ -987,6 +1018,28 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                     <div className="text-5xl font-bold text-gray-900">{currentRaceAge}</div>
                     <div className="text-xs font-semibold text-gray-600">Current Age</div>
                 </div>
+                <div className="flex items-center gap-2 bg-white rounded-lg shadow-md border border-gray-300 p-1">
+                    <button
+                        onClick={() => setRaceViewMode('cumulative')}
+                        className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-all ${
+                            raceViewMode === 'cumulative'
+                                ? 'bg-primary-600 text-white shadow-sm'
+                                : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                    >
+                        Cumulative
+                    </button>
+                    <button
+                        onClick={() => setRaceViewMode('monthly')}
+                        className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-all ${
+                            raceViewMode === 'monthly'
+                                ? 'bg-primary-600 text-white shadow-sm'
+                                : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                    >
+                        Monthly
+                    </button>
+                </div>
             </div>
 
             {/* Race Track Visualization */}
@@ -995,7 +1048,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                     <style>
                         {`
                             .race-bar {
-                                transition: all 0.3s ease-in-out;
+                                transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
                             }
                             .race-bar:hover {
                                 opacity: 0.8;
@@ -1010,71 +1063,129 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
 
                     {/* Title */}
                     <text x={width / 2} y={40} textAnchor="middle" fontSize="24" fontWeight="700" fill="#374151">
-                        Filing Strategy Race: Cumulative Benefits
+                        Filing Strategy Race: {raceViewMode === 'monthly' ? 'Monthly Benefits' : 'Cumulative Benefits'}
                     </text>
                     <text x={width / 2} y={65} textAnchor="middle" fontSize="14" fill="#6B7280">
-                        Watching benefits accumulate over time
+                        {raceViewMode === 'monthly' ? 'Comparing monthly income at each age' : 'Watching benefits accumulate over time'}
                     </text>
 
-                    {/* Bars */}
-                    {raceData.map((scenario, index) => {
-                        const y = topMargin + index * (barHeight + barSpacing);
-                        const barWidth = getBarWidth(scenario.value);
+                    {/* Bars - Conditional rendering based on view mode */}
+                    {raceViewMode === 'monthly' ? (
+                        /* Monthly View: Vertical bars growing from bottom */
+                        (() => {
+                            const availableWidth = width - leftMargin - rightMargin;
+                            const barWidth = Math.min(120, availableWidth / 5); // Width for each vertical bar
+                            const barSpacing = (availableWidth - (3 * barWidth)) / 4; // Equal spacing
+                            const baseY = height - 120; // Bottom baseline for bars
+                            const maxBarHeight = height - topMargin - 140; // Max height for bars
+                            
+                            return raceData.map((scenario, index) => {
+                                const barX = leftMargin + barSpacing + (index * (barWidth + barSpacing));
+                                const barHeightValue = (scenario.value / maxValue) * maxBarHeight;
+                                
+                                return (
+                                    <g key={scenario.name}>
+                                        {/* Vertical bar growing from bottom */}
+                                        <rect
+                                            x={barX}
+                                            y={baseY - barHeightValue}
+                                            width={barWidth}
+                                            height={barHeightValue}
+                                            fill={scenario.color}
+                                            rx="8"
+                                            className="race-bar"
+                                        >
+                                            <title>{`${scenario.name}: ${currencyFormatter.format(Math.round(scenario.value))}`}</title>
+                                        </rect>
+                                        
+                                        {/* Strategy label (bottom) */}
+                                        <text
+                                            x={barX + barWidth / 2}
+                                            y={baseY + 25}
+                                            textAnchor="middle"
+                                            fontSize="16"
+                                            fontWeight="600"
+                                            fill="#374151"
+                                        >
+                                            {scenario.name}
+                                        </text>
+                                        
+                                        {/* Value label (top of bar) */}
+                                        <text
+                                            x={barX + barWidth / 2}
+                                            y={baseY - barHeightValue - 10}
+                                            textAnchor="middle"
+                                            fontSize="14"
+                                            fontWeight="700"
+                                            fill="#374151"
+                                        >
+                                            {currencyFormatter.format(Math.round(scenario.value))}
+                                        </text>
+                                    </g>
+                                );
+                            });
+                        })()
+                    ) : (
+                        /* Cumulative View: Horizontal bars (existing) */
+                        raceData.map((scenario, index) => {
+                            const y = topMargin + index * (barHeight + barSpacing);
+                            const barWidth = getBarWidth(scenario.value);
 
-                        return (
-                            <g key={scenario.name}>
-                                {/* Bar background */}
-                                <rect
-                                    x={leftMargin}
-                                    y={y}
-                                    width={width - leftMargin - rightMargin}
-                                    height={barHeight}
-                                    fill="#F3F4F6"
-                                    rx="8"
-                                />
+                            return (
+                                <g key={scenario.name}>
+                                    {/* Bar background */}
+                                    <rect
+                                        x={leftMargin}
+                                        y={y}
+                                        width={width - leftMargin - rightMargin}
+                                        height={barHeight}
+                                        fill="#F3F4F6"
+                                        rx="8"
+                                    />
 
-                                {/* Animated bar */}
-                                <rect
-                                    x={leftMargin}
-                                    y={y}
-                                    width={barWidth}
-                                    height={barHeight}
-                                    fill={scenario.color}
-                                    rx="8"
-                                    className="race-bar"
-                                >
-                                    <title>{`${scenario.name}: ${currencyFormatter.format(Math.round(scenario.value))}`}</title>
-                                </rect>
+                                    {/* Animated bar */}
+                                    <rect
+                                        x={leftMargin}
+                                        y={y}
+                                        width={barWidth}
+                                        height={barHeight}
+                                        fill={scenario.color}
+                                        rx="8"
+                                        className="race-bar"
+                                    >
+                                        <title>{`${scenario.name}: ${currencyFormatter.format(Math.round(scenario.value))}`}</title>
+                                    </rect>
 
-                                {/* Strategy label (left) */}
-                                <text
-                                    x={leftMargin - 10}
-                                    y={y + barHeight / 2}
-                                    textAnchor="end"
-                                    alignmentBaseline="middle"
-                                    fontSize="16"
-                                    fontWeight="600"
-                                    fill="#374151"
-                                >
-                                    {scenario.name}
-                                </text>
+                                    {/* Strategy label (left) */}
+                                    <text
+                                        x={leftMargin - 10}
+                                        y={y + barHeight / 2}
+                                        textAnchor="end"
+                                        alignmentBaseline="middle"
+                                        fontSize="16"
+                                        fontWeight="600"
+                                        fill="#374151"
+                                    >
+                                        {scenario.name}
+                                    </text>
 
-                                {/* Value label (inside bar or at end) */}
-                                <text
-                                    x={leftMargin + barWidth + 10}
-                                    y={y + barHeight / 2}
-                                    textAnchor="start"
-                                    alignmentBaseline="middle"
-                                    fontSize="14"
-                                    fontWeight="700"
-                                    fill="#374151"
-                                >
-                                    {currencyFormatter.format(Math.round(scenario.value))}
-                                </text>
+                                    {/* Value label (inside bar or at end) */}
+                                    <text
+                                        x={leftMargin + barWidth + 10}
+                                        y={y + barHeight / 2}
+                                        textAnchor="start"
+                                        alignmentBaseline="middle"
+                                        fontSize="14"
+                                        fontWeight="700"
+                                        fill="#374151"
+                                    >
+                                        {currencyFormatter.format(Math.round(scenario.value))}
+                                    </text>
 
-                            </g>
-                        );
-                    })}
+                                </g>
+                            );
+                        })
+                    )}
 
                     {/* Dynamic Difference Tracker - Right Side */}
                     {(() => {
