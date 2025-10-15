@@ -103,6 +103,152 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 0
 });
 
+// Retirement Stages Slider Component
+const RetirementStagesSlider = ({
+    goGoEndAge,
+    setGoGoEndAge,
+    slowGoEndAge,
+    setSlowGoEndAge,
+    isDraggingGoGo,
+    setIsDraggingGoGo,
+    isDraggingSlowGo,
+    setIsDraggingSlowGo
+}) => {
+    const sliderRef = useRef(null);
+    const MIN_AGE = 62;
+    const MAX_AGE = 95;
+
+    // Convert age to percentage position (0-100%)
+    const ageToPercent = (age) => {
+        return ((age - MIN_AGE) / (MAX_AGE - MIN_AGE)) * 100;
+    };
+
+    // Convert mouse X position to age
+    const xToAge = (clientX) => {
+        if (!sliderRef.current) return MIN_AGE;
+        const rect = sliderRef.current.getBoundingClientRect();
+        const x = clientX - rect.left;
+        const percent = Math.max(0, Math.min(100, (x / rect.width) * 100));
+        return Math.round(MIN_AGE + (percent / 100) * (MAX_AGE - MIN_AGE));
+    };
+
+    // Handle mouse/touch events for Go-Go handle
+    const handleGoGoMouseDown = (e) => {
+        e.preventDefault();
+        setIsDraggingGoGo(true);
+    };
+
+    const handleSlowGoMouseDown = (e) => {
+        e.preventDefault();
+        setIsDraggingSlowGo(true);
+    };
+
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            if (isDraggingGoGo) {
+                const newAge = xToAge(e.clientX);
+                // Ensure Go-Go ends before Slow-Go
+                if (newAge < slowGoEndAge) {
+                    setGoGoEndAge(newAge);
+                }
+            } else if (isDraggingSlowGo) {
+                const newAge = xToAge(e.clientX);
+                // Ensure Slow-Go ends after Go-Go and before max
+                if (newAge > goGoEndAge && newAge <= MAX_AGE) {
+                    setSlowGoEndAge(newAge);
+                }
+            }
+        };
+
+        const handleMouseUp = () => {
+            setIsDraggingGoGo(false);
+            setIsDraggingSlowGo(false);
+        };
+
+        if (isDraggingGoGo || isDraggingSlowGo) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            return () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+            };
+        }
+    }, [isDraggingGoGo, isDraggingSlowGo, goGoEndAge, slowGoEndAge, setGoGoEndAge, setSlowGoEndAge, setIsDraggingGoGo, setIsDraggingSlowGo]);
+
+    const goGoWidth = ageToPercent(goGoEndAge);
+    const slowGoWidth = ageToPercent(slowGoEndAge) - ageToPercent(goGoEndAge);
+    const noGoWidth = 100 - ageToPercent(slowGoEndAge);
+
+    return (
+        <div className="w-full" style={{ paddingLeft: '60px', paddingRight: '30px' }}>
+            <div ref={sliderRef} className="relative h-12 flex rounded-lg overflow-hidden shadow-md border-2 border-gray-300">
+                {/* Go-Go Years Section */}
+                <div
+                    className="relative flex items-center justify-center text-white font-bold text-lg transition-all duration-200"
+                    style={{
+                        width: `${goGoWidth}%`,
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    }}
+                >
+                    <span className="drop-shadow-md">Go-Go Years</span>
+                </div>
+
+                {/* Handle 1: Between Go-Go and Slow-Go */}
+                <div
+                    className="absolute top-0 bottom-0 w-8 flex items-center justify-center cursor-ew-resize z-10 group"
+                    style={{ left: `calc(${goGoWidth}% - 16px)` }}
+                    onMouseDown={handleGoGoMouseDown}
+                >
+                    <div className={`w-1 h-full transition-all ${isDraggingGoGo ? 'bg-gray-800 w-2' : 'bg-gray-600 group-hover:bg-gray-700 group-hover:w-1.5'}`} />
+                    {/* Subtle age tooltip */}
+                    {isDraggingGoGo && (
+                        <div className="absolute -top-8 bg-gray-800 text-white px-2 py-1 rounded text-xs font-semibold shadow-lg">
+                            {goGoEndAge}
+                        </div>
+                    )}
+                </div>
+
+                {/* Slow-Go Years Section */}
+                <div
+                    className="relative flex items-center justify-center text-white font-bold text-lg transition-all duration-200"
+                    style={{
+                        width: `${slowGoWidth}%`,
+                        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                    }}
+                >
+                    <span className="drop-shadow-md">Slow-Go Years</span>
+                </div>
+
+                {/* Handle 2: Between Slow-Go and No-Go */}
+                <div
+                    className="absolute top-0 bottom-0 w-8 flex items-center justify-center cursor-ew-resize z-10 group"
+                    style={{ left: `calc(${goGoWidth + slowGoWidth}% - 16px)` }}
+                    onMouseDown={handleSlowGoMouseDown}
+                >
+                    <div className={`w-1 h-full transition-all ${isDraggingSlowGo ? 'bg-gray-800 w-2' : 'bg-gray-600 group-hover:bg-gray-700 group-hover:w-1.5'}`} />
+                    {/* Subtle age tooltip */}
+                    {isDraggingSlowGo && (
+                        <div className="absolute -top-8 bg-gray-800 text-white px-2 py-1 rounded text-xs font-semibold shadow-lg">
+                            {slowGoEndAge}
+                        </div>
+                    )}
+                </div>
+
+                {/* No-Go Years Section */}
+                <div
+                    className="relative flex items-center justify-center text-white font-bold text-lg transition-all duration-200"
+                    style={{
+                        width: `${noGoWidth}%`,
+                        background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                    }}
+                >
+                    <span className="drop-shadow-md">No-Go Years</span>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // Flow Visualization Component - Three Scenarios Side-by-Side
 const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, isMarried, inflationRate, currentAge, selectedStrategy, setSelectedStrategy, piaStrategy, setPiaStrategy }) => {
     // Responsive container refs/state must be declared before any early returns (React hooks rule)
@@ -1494,6 +1640,12 @@ const ShowMeTheMoneyCalculator = () => {
     const [selectedStrategy, setSelectedStrategy] = useState(2); // 0=62, 1=67, 2=70
     const [piaStrategy, setPiaStrategy] = useState('late'); // 'early' or 'late'
     const [showPiaFraModal, setShowPiaFraModal] = useState(false);
+    
+    // Retirement stages slider state (purely visual)
+    const [goGoEndAge, setGoGoEndAge] = useState(75); // Default: Go-Go ends at 75
+    const [slowGoEndAge, setSlowGoEndAge] = useState(85); // Default: Slow-Go ends at 85
+    const [isDraggingGoGo, setIsDraggingGoGo] = useState(false);
+    const [isDraggingSlowGo, setIsDraggingSlowGo] = useState(false);
 
     // Already Filed state variables
     const [spouse1AlreadyFiled, setSpouse1AlreadyFiled] = useState(false);
@@ -3224,6 +3376,22 @@ const ShowMeTheMoneyCalculator = () => {
                                     />
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {/* Retirement Stages Slider - Only shown for Monthly view */}
+                    {chartView === 'monthly' && (
+                        <div className="mb-4 relative">
+                            <RetirementStagesSlider
+                                goGoEndAge={goGoEndAge}
+                                setGoGoEndAge={setGoGoEndAge}
+                                slowGoEndAge={slowGoEndAge}
+                                setSlowGoEndAge={setSlowGoEndAge}
+                                isDraggingGoGo={isDraggingGoGo}
+                                setIsDraggingGoGo={setIsDraggingGoGo}
+                                isDraggingSlowGo={isDraggingSlowGo}
+                                setIsDraggingSlowGo={setIsDraggingSlowGo}
+                            />
                         </div>
                     )}
 
