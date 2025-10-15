@@ -21,6 +21,7 @@ const WidowCalculator = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [activeStrategyDetails, setActiveStrategyDetails] = useState(null);
+    const [showDeceasedSpousePiaModal, setShowDeceasedSpousePiaModal] = useState(false);
 
     useEffect(() => {
         setActiveStrategyDetails(null);
@@ -222,9 +223,21 @@ const WidowCalculator = () => {
 
                             {/* Deceased Spouse PIA */}
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Deceased Spouse's PIA at FRA
-                                </label>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <label className="text-sm font-medium text-gray-700">
+                                        Deceased Spouse's PIA at FRA
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowDeceasedSpousePiaModal(true)}
+                                        className="text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full p-0.5"
+                                        aria-label="How to get deceased spouse's PIA information"
+                                    >
+                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
                                 <div className="relative">
                                     <span className="absolute left-3 top-2 text-gray-500">$</span>
                                     <input
@@ -766,6 +779,125 @@ const WidowCalculator = () => {
                 onClose={dismissStrategyDetails}
                 clientType="widow"
             />
+
+            {/* Deceased Spouse PIA Info Modal */}
+            {showDeceasedSpousePiaModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6">
+                            <div className="flex justify-between items-start mb-4">
+                                <h2 className="text-2xl font-bold text-gray-900">
+                                    📋 How to Get Your Deceased Spouse's Benefit Information
+                                </h2>
+                                <button
+                                    onClick={() => setShowDeceasedSpousePiaModal(false)}
+                                    className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1"
+                                    aria-label="Close modal"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                    <h3 className="text-lg font-semibold text-green-900 mb-2">
+                                        ✅ Good News: Social Security Will Provide This Information
+                                    </h3>
+                                    <p className="text-green-800">
+                                        Unlike divorced spouse situations, Social Security <strong>will</strong> provide information about your deceased spouse's benefits to you as a surviving spouse.
+                                    </p>
+                                </div>
+
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                    <h3 className="text-lg font-semibold text-blue-900 mb-3">
+                                        📄 Required Documentation
+                                    </h3>
+                                    <p className="text-blue-800 mb-3">
+                                        When contacting Social Security, you'll need to provide:
+                                    </p>
+                                    <ul className="space-y-2 text-blue-800">
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-blue-600 mt-0.5">•</span>
+                                            <span><strong>Certified copy of marriage certificate</strong></span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-blue-600 mt-0.5">•</span>
+                                            <span><strong>Certified copy of death certificate</strong></span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                                    <h3 className="text-lg font-semibold text-purple-900 mb-3">
+                                        💡 What to Ask For
+                                    </h3>
+                                    <p className="text-purple-800 mb-3">
+                                        You can request the following information from Social Security:
+                                    </p>
+                                    <ul className="space-y-2 text-purple-800">
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-purple-600 mt-0.5">•</span>
+                                            <span>Your deceased spouse's Primary Insurance Amount (PIA) at their Full Retirement Age</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-purple-600 mt-0.5">•</span>
+                                            <span>The actual monthly benefit they were receiving at the time of death (if they had already filed)</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-purple-600 mt-0.5">•</span>
+                                            <span>Information about survivor benefits you may be eligible for</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                    <h3 className="text-lg font-semibold text-amber-900 mb-2">
+                                        📞 How to Contact Social Security
+                                    </h3>
+                                    <p className="text-amber-800 mb-2">
+                                        You can request this information by:
+                                    </p>
+                                    <ul className="space-y-2 text-amber-800 text-sm">
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-amber-600 mt-0.5">•</span>
+                                            <span><strong>Calling:</strong> 1-800-772-1213 (TTY 1-800-325-0778)</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-amber-600 mt-0.5">•</span>
+                                            <span><strong>Visiting:</strong> Your local Social Security office (appointment recommended)</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-amber-600 mt-0.5">•</span>
+                                            <span><strong>Online:</strong> Through your my Social Security account at ssa.gov</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                                    <h3 className="text-lg font-semibold text-orange-900 mb-2">
+                                        ⏰ Start Early
+                                    </h3>
+                                    <p className="text-orange-800">
+                                        With current resource constraints at Social Security, obtaining this information may take time. 
+                                        It's best to <strong>start the process early</strong> to ensure you have accurate numbers for your planning.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="mt-6 flex justify-end">
+                                <button
+                                    onClick={() => setShowDeceasedSpousePiaModal(false)}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+                                >
+                                    Got It
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

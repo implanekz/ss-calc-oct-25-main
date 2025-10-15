@@ -832,6 +832,16 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                         <p className="pl-4 text-gray-600 italic">Enter $2,800 in the "Ex-Spouse's PIA at FRA" field above</p>
                                     </div>
                                 </div>
+
+                                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                                    <h3 className="text-lg font-semibold text-orange-900 mb-2">
+                                        ⏰ Start Early
+                                    </h3>
+                                    <p className="text-orange-800">
+                                        With current resource constraints at Social Security, obtaining this information may take time. 
+                                        It's best to <strong>start the process early</strong> to ensure you have accurate numbers for your planning.
+                                    </p>
+                                </div>
                             </div>
 
                             <div className="mt-6 flex justify-end">
