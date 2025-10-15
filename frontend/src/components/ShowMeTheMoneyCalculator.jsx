@@ -180,17 +180,17 @@ const RetirementStagesSlider = ({
     const noGoWidth = 100 - ageToPercent(slowGoEndAge);
 
     return (
-        <div className="w-full" style={{ paddingLeft: '60px', paddingRight: '30px' }}>
-            <div ref={sliderRef} className="relative h-12 flex rounded-lg overflow-hidden shadow-md border-2 border-gray-300">
+        <div className="w-full opacity-80" style={{ paddingLeft: '60px', paddingRight: '30px' }}>
+            <div ref={sliderRef} className="relative h-9 flex rounded-lg overflow-hidden shadow-md border-2 border-gray-300">
                 {/* Go-Go Years Section */}
                 <div
-                    className="relative flex items-center justify-center text-white font-bold text-lg transition-all duration-200"
+                    className="relative flex items-center justify-center text-white font-bold text-sm transition-all duration-200"
                     style={{
                         width: `${goGoWidth}%`,
                         background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                     }}
                 >
-                    <span className="drop-shadow-md">Go-Go Years</span>
+                    <span className="drop-shadow-sm">Go-Go Years</span>
                 </div>
 
                 {/* Handle 1: Between Go-Go and Slow-Go */}
@@ -210,13 +210,13 @@ const RetirementStagesSlider = ({
 
                 {/* Slow-Go Years Section */}
                 <div
-                    className="relative flex items-center justify-center text-white font-bold text-lg transition-all duration-200"
+                    className="relative flex items-center justify-center text-white font-bold text-sm transition-all duration-200"
                     style={{
                         width: `${slowGoWidth}%`,
                         background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                     }}
                 >
-                    <span className="drop-shadow-md">Slow-Go Years</span>
+                    <span className="drop-shadow-sm">Slow-Go Years</span>
                 </div>
 
                 {/* Handle 2: Between Slow-Go and No-Go */}
@@ -236,13 +236,13 @@ const RetirementStagesSlider = ({
 
                 {/* No-Go Years Section */}
                 <div
-                    className="relative flex items-center justify-center text-white font-bold text-lg transition-all duration-200"
+                    className="relative flex items-center justify-center text-white font-bold text-sm transition-all duration-200"
                     style={{
                         width: `${noGoWidth}%`,
                         background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
                     }}
                 >
-                    <span className="drop-shadow-md">No-Go Years</span>
+                    <span className="drop-shadow-sm">No-Go Years</span>
                 </div>
             </div>
         </div>
@@ -3379,7 +3379,7 @@ const ShowMeTheMoneyCalculator = () => {
                         </div>
                     )}
 
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4" style={{ height: chartView === 'monthly' ? 'calc(100% - 80px)' : '100%' }}>
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4" style={{ height: ['monthly', 'cumulative', 'combined', 'earlyLate', 'post70'].includes(chartView) ? 'calc(100% - 80px)' : '100%' }}>
                         {
                             chartView === 'flow' ? (
                                 <FlowVisualization
@@ -3649,9 +3649,9 @@ const ShowMeTheMoneyCalculator = () => {
                         }
                     </div>
 
-                    {/* Retirement Stages Slider - Below Monthly chart */}
-                    {chartView === 'monthly' && (
-                        <div className="mt-4">
+                    {/* Retirement Stages Slider - Below chart */}
+                    {['monthly', 'cumulative', 'combined', 'earlyLate', 'post70'].includes(chartView) && (
+                        <div>
                             <RetirementStagesSlider
                                 goGoEndAge={goGoEndAge}
                                 setGoGoEndAge={setGoGoEndAge}
