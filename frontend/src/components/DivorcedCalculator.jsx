@@ -20,6 +20,7 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [activeStrategyDetails, setActiveStrategyDetails] = useState(null);
+    const [showExSpousePiaModal, setShowExSpousePiaModal] = useState(false);
 
     useEffect(() => {
         setActiveStrategyDetails(null);
@@ -197,9 +198,21 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
 
                             {/* Ex-Spouse PIA */}
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Ex-Spouse's PIA at FRA
-                                </label>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <label className="text-sm font-medium text-gray-700">
+                                        Ex-Spouse's PIA at FRA
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowExSpousePiaModal(true)}
+                                        className="text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full p-0.5"
+                                        aria-label="How to get ex-spouse's PIA information"
+                                    >
+                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
                                 <div className="relative">
                                     <span className="absolute left-3 top-2 text-gray-500">$</span>
                                     <input
@@ -732,6 +745,107 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                 onClose={dismissStrategyDetails}
                 clientType="divorced"
             />
+
+            {/* Ex-Spouse PIA Info Modal */}
+            {showExSpousePiaModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6">
+                            <div className="flex justify-between items-start mb-4">
+                                <h2 className="text-2xl font-bold text-gray-900">
+                                    📋 How to Get Your Ex-Spouse's PIA Information
+                                </h2>
+                                <button
+                                    onClick={() => setShowExSpousePiaModal(false)}
+                                    className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1"
+                                    aria-label="Close modal"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                    <h3 className="text-lg font-semibold text-amber-900 mb-2">
+                                        ⚠️ Important: Social Security Won't Tell You Directly
+                                    </h3>
+                                    <p className="text-amber-800">
+                                        Social Security will <strong>NOT</strong> disclose your ex-spouse's actual PIA amount to you due to privacy regulations.
+                                    </p>
+                                </div>
+
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                    <h3 className="text-lg font-semibold text-blue-900 mb-3">
+                                        ✅ What You CAN Ask For
+                                    </h3>
+                                    <p className="text-blue-800 mb-3">
+                                        Instead, ask Social Security this specific question:
+                                    </p>
+                                    <div className="bg-white rounded-lg p-4 border-l-4 border-blue-500">
+                                        <p className="text-blue-900 font-semibold italic">
+                                            "If I were to file for divorced spouse benefits at my full retirement age, what would that monthly benefit amount be?"
+                                        </p>
+                                    </div>
+                                    <p className="text-blue-800 mt-3 text-sm">
+                                        Social Security will tell you this amount, which is 50% of your ex-spouse's PIA. You can then multiply by 2 to calculate the ex-spouse's actual PIA.
+                                    </p>
+                                </div>
+
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                    <h3 className="text-lg font-semibold text-green-900 mb-3">
+                                        📄 Required Documentation
+                                    </h3>
+                                    <p className="text-green-800 mb-3">
+                                        When contacting Social Security, you'll need to provide:
+                                    </p>
+                                    <ul className="space-y-2 text-green-800">
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-green-600 mt-0.5">•</span>
+                                            <span><strong>Certified copy of marriage certificate</strong></span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-green-600 mt-0.5">•</span>
+                                            <span><strong>Certified copy of divorce decree</strong></span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                                    <h3 className="text-lg font-semibold text-purple-900 mb-2">
+                                        ⏱️ The 10-Year Rule
+                                    </h3>
+                                    <p className="text-purple-800">
+                                        The dates on your marriage certificate and divorce decree must be <strong>10 years or more apart</strong> to qualify for divorced spouse benefits. 
+                                        Social Security will verify this when you provide the documents.
+                                    </p>
+                                </div>
+
+                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                                        💡 Quick Calculation Example
+                                    </h3>
+                                    <div className="space-y-2 text-sm text-gray-700">
+                                        <p>If Social Security tells you that your divorced spouse benefit at FRA would be <strong>$1,400/month</strong>:</p>
+                                        <p className="pl-4">→ Your ex-spouse's PIA = $1,400 × 2 = <strong className="text-blue-600">$2,800</strong></p>
+                                        <p className="pl-4 text-gray-600 italic">Enter $2,800 in the "Ex-Spouse's PIA at FRA" field above</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-6 flex justify-end">
+                                <button
+                                    onClick={() => setShowExSpousePiaModal(false)}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+                                >
+                                    Got It
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
