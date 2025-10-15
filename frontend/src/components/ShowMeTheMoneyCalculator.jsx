@@ -1076,6 +1076,118 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                         );
                     })}
 
+                    {/* Dynamic Difference Tracker - Right Side */}
+                    {(() => {
+                        const topValue = raceData[0]?.value || 0;
+                        const bottomValue = raceData[raceData.length - 1]?.value || 0;
+                        const difference = topValue - bottomValue;
+                        const topName = raceData[0]?.name || '';
+                        const bottomName = raceData[raceData.length - 1]?.name || '';
+                        
+                        // Position for the difference box - adapt to container width
+                        const boxWidth = Math.min(340, Math.max(240, width * 0.22));
+                        const boxX = width - boxWidth - 30;
+                        const boxY = height / 2 - 160;
+                        const boxHeight = 320;
+                        
+                        return (
+                            <g>
+                                {/* Background box */}
+                                <rect
+                                    x={boxX}
+                                    y={boxY}
+                                    width={boxWidth}
+                                    height={boxHeight}
+                                    fill={difference >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'}
+                                    stroke={difference >= 0 ? '#10B981' : '#EF4444'}
+                                    strokeWidth="3"
+                                    rx="12"
+                                />
+                                
+                                {/* Title */}
+                                <text
+                                    x={boxX + boxWidth / 2}
+                                    y={boxY + 40}
+                                    textAnchor="middle"
+                                    fontSize="24"
+                                    fontWeight="700"
+                                    fill="#374151"
+                                >
+                                    Gap Tracker
+                                </text>
+                                
+                                {/* Top vs Bottom label */}
+                                <text
+                                    x={boxX + boxWidth / 2}
+                                    y={boxY + 70}
+                                    textAnchor="middle"
+                                    fontSize="18"
+                                    fill="#6B7280"
+                                >
+                                    1st - Last
+                                </text>
+                                
+                                {/* Difference amount */}
+                                <text
+                                    x={boxX + boxWidth / 2}
+                                    y={boxY + 130}
+                                    textAnchor="middle"
+                                    fontSize="36"
+                                    fontWeight="700"
+                                    fill={difference >= 0 ? '#10B981' : '#EF4444'}
+                                >
+                                    {difference >= 0 ? '+' : ''}{currencyFormatter.format(Math.round(difference))}
+                                </text>
+                                
+                                {/* Leader info */}
+                                <text
+                                    x={boxX + boxWidth / 2}
+                                    y={boxY + 185}
+                                    textAnchor="middle"
+                                    fontSize="18"
+                                    fill="#059669"
+                                    fontWeight="600"
+                                >
+                                    🏆 {topName.replace(' - Total', '')}
+                                </text>
+                                
+                                <text
+                                    x={boxX + boxWidth / 2}
+                                    y={boxY + 215}
+                                    textAnchor="middle"
+                                    fontSize="20"
+                                    fill="#059669"
+                                    fontWeight="700"
+                                >
+                                    {currencyFormatter.format(Math.round(topValue))}
+                                </text>
+                                
+                                {/* Last place info */}
+                                <text
+                                    x={boxX + boxWidth / 2}
+                                    y={boxY + 255}
+                                    textAnchor="middle"
+                                    fontSize="18"
+                                    fill="#DC2626"
+                                    fontWeight="600"
+                                >
+                                    {bottomName.replace(' - Total', '')}
+                                </text>
+                                
+                                <text
+                                    x={boxX + boxWidth / 2}
+                                    y={boxY + 285}
+                                    textAnchor="middle"
+                                    fontSize="20"
+                                    fill="#DC2626"
+                                    fontWeight="700"
+                                >
+                                    {currencyFormatter.format(Math.round(bottomValue))}
+                                </text>
+                            </g>
+                        );
+                    })()}
+
                 </svg>
             </div>
 
