@@ -1203,9 +1203,9 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                     textAnchor="middle"
                                     fontSize="16"
                                     fill="#6B7280"
-                                    fontWeight="600"
+                                    fontWeight="700"
                                 >
-                                    Difference
+                                    Difference: 1st to Last
                                 </text>
                                 
                                 <text
