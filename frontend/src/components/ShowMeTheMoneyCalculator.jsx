@@ -973,19 +973,19 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
 
     const raceData = calculateRaceData(currentRaceAge);
     
-    // Calculate fixed max value separately for each mode to prevent scaling jumps
+    // Calculate fixed max value ONCE for each mode across ALL ages to prevent scaling jumps
     // This ensures bars grow from small to large rather than constantly rescaling
-    const allAges = Array.from({ length: 95 - 62 + 1 }, (_, i) => 62 + i);
-    
-    // Save current mode, temporarily switch to calculate max for that mode
-    const savedMode = raceViewMode;
-    const maxValue = (() => {
+    const maxValue = useMemo(() => {
+        const allAges = Array.from({ length: 95 - 62 + 1 }, (_, i) => 62 + i);
+        
+        // Calculate max value for ALL ages in current mode
         const allValues = allAges.flatMap(age => {
             const ageData = calculateRaceData(age);
             return ageData.map(d => d.value);
         });
+        
         return Math.max(...allValues) * 1.1;
-    })();
+    }, [raceViewMode, scenarioData]); // Recalculate only when mode or data changes
 
     const width = raceWidth;
     // Compute bar height/spacing based on available vertical space so all 6 bars fit
@@ -1076,8 +1076,8 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                             const availableWidth = width - leftMargin - rightMargin;
                             const barWidth = Math.min(120, availableWidth / 5); // Width for each vertical bar
                             const barSpacing = (availableWidth - (3 * barWidth)) / 4; // Equal spacing
-                            const baseY = height - 120; // Bottom baseline for bars
-                            const maxBarHeight = height - topMargin - 140; // Max height for bars
+                            const baseY = height - 80; // Bottom baseline for bars (reduced from 120 to give more room)
+                            const maxBarHeight = (height - topMargin - 100) * 2; // Double the max height for dramatic effect
                             
                             return raceData.map((scenario, index) => {
                                 const barX = leftMargin + barSpacing + (index * (barWidth + barSpacing));
