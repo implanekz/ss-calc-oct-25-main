@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getTaxableMaximum } from '../utils/taxableMaximum';
+import { tooltips } from '../utils/piaTooltips';
 
 const PIACalculator = () => {
     // State management
@@ -21,6 +22,10 @@ const PIACalculator = () => {
     const [whatIfResult, setWhatIfResult] = useState(null);
     const [showWhatIfModal, setShowWhatIfModal] = useState(false);
     const [whatIfEarnings, setWhatIfEarnings] = useState([]);
+
+    // Track upload source
+    const [uploadedFileName, setUploadedFileName] = useState(null);
+    const [uploadedFileHash, setUploadedFileHash] = useState(null);
 
     // Initialize earnings history with current year and future projections (only on first mount)
     useEffect(() => {
@@ -101,95 +106,6 @@ const PIACalculator = () => {
         }
     };
 
-    // Load sample consultant profile
-    const loadConsultantProfile = () => {
-        // Self-employed consultant profile (born 1962, currently age 63)
-        const birthYear = 1962;
-        const currentYear = new Date().getFullYear(); // 2025
-        const targetAge = 67; // FRA
-        
-        const capEarnings = (year, amount) => Math.min(amount, getTaxableMaximum(year));
-
-        // Historical earnings through 2024 (capped at taxable maximum)
-        const historicalEarnings = [
-            { year: 1984, amount: capEarnings(1984, 28000) },
-            { year: 1985, amount: capEarnings(1985, 32000) },
-            { year: 1986, amount: capEarnings(1986, 36000) },
-            { year: 1987, amount: capEarnings(1987, 40000) },
-            { year: 1988, amount: capEarnings(1988, 45000) },
-            { year: 1989, amount: capEarnings(1989, 50000) },
-            { year: 1990, amount: capEarnings(1990, 55000) },
-            { year: 1991, amount: capEarnings(1991, 60000) },
-            { year: 1992, amount: capEarnings(1992, 65000) },
-            { year: 1993, amount: capEarnings(1993, 70000) },
-            { year: 1994, amount: capEarnings(1994, 75000) },
-            { year: 1995, amount: capEarnings(1995, 80000) },
-            { year: 1996, amount: capEarnings(1996, 85000) },
-            { year: 1997, amount: capEarnings(1997, 12000) },  // Went independent
-            { year: 1998, amount: capEarnings(1998, 95000) },
-            { year: 1999, amount: capEarnings(1999, 45000) },
-            { year: 2000, amount: capEarnings(2000, 110000) },
-            { year: 2001, amount: capEarnings(2001, 35000) },
-            { year: 2002, amount: capEarnings(2002, 125000) },
-            { year: 2003, amount: capEarnings(2003, 140000) },
-            { year: 2004, amount: capEarnings(2004, 85000) },
-            { year: 2005, amount: capEarnings(2005, 150000) },
-            { year: 2006, amount: capEarnings(2006, 160000) },
-            { year: 2007, amount: capEarnings(2007, 155000) },
-            { year: 2008, amount: capEarnings(2008, 25000) },  // Financial crisis
-            { year: 2009, amount: capEarnings(2009, 40000) },
-            { year: 2010, amount: capEarnings(2010, 130000) },
-            { year: 2011, amount: capEarnings(2011, 145000) },
-            { year: 2012, amount: capEarnings(2012, 155000) },
-            { year: 2013, amount: capEarnings(2013, 160000) },
-            { year: 2014, amount: capEarnings(2014, 165000) },
-            { year: 2015, amount: capEarnings(2015, 170000) },
-            { year: 2016, amount: capEarnings(2016, 175000) },
-            { year: 2017, amount: capEarnings(2017, 180000) },
-            { year: 2018, amount: capEarnings(2018, 185000) },
-            { year: 2019, amount: capEarnings(2019, 190000) },
-            { year: 2020, amount: capEarnings(2020, 100000) }, // COVID dip
-            { year: 2021, amount: capEarnings(2021, 175000) },
-            { year: 2022, amount: capEarnings(2022, 185000) },
-            { year: 2023, amount: capEarnings(2023, 190000) },
-            { year: 2024, amount: capEarnings(2024, 190000) }  // Last actual year (capped to 168600)
-        ];
-
-        // Project future years through age 67 using last year's earnings (SSA convention)
-        const projectionYear = birthYear + targetAge; // 2029
-        const lastCappedEarnings = historicalEarnings[historicalEarnings.length - 1].amount;
-        const futureYears = [];
-        for (let year = currentYear; year <= projectionYear; year++) {
-            futureYears.push({
-                year: year,
-                amount: lastCappedEarnings // Use capped earnings for projections
-            });
-        }
-
-        // Combine historical and projected
-        const allEarnings = [...historicalEarnings, ...futureYears];
-
-        // Map to earnings history format
-        const mappedEarnings = allEarnings.map(e => ({
-            year: e.year,
-            earnings: e.amount,
-            is_projected: e.year >= currentYear, // Current year and beyond are projected
-            editable: true,
-            visible: true
-        }));
-
-        setBirthYear(birthYear);
-        setSsaPIA(2200); // Target PIA from profile
-        setEarningsHistory(mappedEarnings);
-        setCalculatedResult(null);
-        setError(null);
-        setXmlUploadSuccess(`✅ Loaded Self-Employed Consultant profile (${historicalEarnings.length} historical years, projected through age ${targetAge})`);
-
-        // Auto-calculate after a short delay
-        setTimeout(() => {
-            calculatePIA();
-        }, 500);
-    };
 
     // Create What-If Scenario
     const createWhatIfScenario = () => {
@@ -269,7 +185,38 @@ const PIACalculator = () => {
         setWhatIfEarnings([]);
     };
 
-    // Handle XML file upload
+    // Reset all earnings data
+    const resetAllEarnings = () => {
+        if (!window.confirm('Are you sure you want to clear all earnings data? This cannot be undone.')) {
+            return;
+        }
+
+        // Clear all state
+        setEarningsHistory([]);
+        setCalculatedResult(null);
+        setWhatIfScenario(null);
+        setWhatIfResult(null);
+        setWhatIfEarnings([]);
+        setXmlUploadSuccess(null);
+        setStatementDate(null);
+        setPersonInfo(null);
+        setUploadedFileName(null);
+        setUploadedFileHash(null);
+        setBirthYear(1960);
+        setSsaPIA(1800);
+        setUseCalculatedPIA(false);
+        setError(null);
+
+        // Clear any browser storage
+        try {
+            localStorage.removeItem('pia_calculator_state');
+            sessionStorage.removeItem('pia_calculator_state');
+        } catch (e) {
+            console.warn('Could not clear storage:', e);
+        }
+    };
+
+    // Handle XML file upload - REPLACE instead of MERGE
     const handleXMLUpload = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -294,6 +241,18 @@ const PIACalculator = () => {
 
             const result = await response.json();
 
+            // CLEAR ALL PREVIOUS STATE - Replace, don't merge
+            setWhatIfScenario(null);
+            setWhatIfResult(null);
+            setWhatIfEarnings([]);
+            setCalculatedResult(null);
+            setUseCalculatedPIA(false);
+
+            // Generate file hash for tracking
+            const fileHash = `${file.name}_${file.size}_${Date.now()}`;
+            setUploadedFileName(file.name);
+            setUploadedFileHash(fileHash);
+
             // Extract person info
             setPersonInfo(result.person_info);
 
@@ -313,7 +272,7 @@ const PIACalculator = () => {
                 setSsaPIA(result.original_pia);
             }
 
-            // Map spreadsheet data to earnings history
+            // REPLACE earnings history completely
             if (result.spreadsheet_data && result.spreadsheet_data.length > 0) {
                 const currentYear = new Date().getFullYear();
 
@@ -328,7 +287,15 @@ const PIACalculator = () => {
                 setEarningsHistory(mappedEarnings);
             }
 
-            setXmlUploadSuccess(`Successfully loaded ${result.earnings_summary?.total_years || 0} years of earnings data`);
+            // Count zeros in top 35
+            const sortedEarnings = [...result.spreadsheet_data]
+                .sort((a, b) => (b.earnings || 0) - (a.earnings || 0))
+                .slice(0, 35);
+            const zeroCount = sortedEarnings.filter(e => (e.earnings || 0) === 0).length;
+
+            setXmlUploadSuccess(
+                `✅ Loaded ${file.name} • ${result.earnings_summary?.total_years || 0} years • ${zeroCount} zeros in top-35`
+            );
 
             // Auto-calculate PIA after upload
             setTimeout(() => {
@@ -468,11 +435,11 @@ const PIACalculator = () => {
                         />
                     </label>
                     <button
-                        onClick={loadConsultantProfile}
-                        className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-md transition-colors whitespace-nowrap"
-                        title="Load sample self-employed consultant profile"
+                        onClick={resetAllEarnings}
+                        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-md transition-colors whitespace-nowrap"
+                        title="Clear all earnings data and start fresh"
                     >
-                        📊 Load Sample
+                        🗑️ Reset
                     </button>
                 </div>
 
@@ -972,6 +939,28 @@ const PIACalculator = () => {
                     </div>
                 </div>
             )}
+
+            {/* Double Hit Educational Block */}
+            <div className="mt-6 p-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-lg">
+                <h4 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                    ⚠️ {tooltips.pia.doubleHit.medium.title}
+                </h4>
+                <div className="space-y-3 text-sm text-gray-800">
+                    <p className="leading-relaxed">
+                        {tooltips.pia.doubleHit.compact.text}
+                    </p>
+                    <div className="p-4 bg-white rounded-lg border border-yellow-200">
+                        <p className="font-semibold text-gray-900 mb-2">Why Your PIA Changes When You Stop Working:</p>
+                        <ol className="list-decimal list-inside space-y-2 text-gray-700">
+                            <li><strong>Early Filing Penalty (~30%)</strong> – Claiming at 62 reduces your check for life.</li>
+                            <li><strong>Earnings Gap Penalty</strong> – SSA assumes you keep earning to 67; if you don't, ages 62-67 become zeros in your 35-year average.</li>
+                        </ol>
+                        <p className="mt-3 text-green-700 font-semibold">
+                            💡 Keep earning (even part-time) and you replace low/zero years, raising your PIA for life.
+                        </p>
+                    </div>
+                </div>
+            </div>
 
             {/* Educational Info */}
             <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900">
