@@ -1497,7 +1497,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                     fill="#6B7280"
                                     fontWeight="700"
                                 >
-                                    Difference: 1st to Last
+                                    {raceViewMode === 'monthly' ? 'Annual Difference: 1st to Last' : 'Difference: 1st to Last'}
                                 </text>
                                 
                                 <text
@@ -1508,7 +1508,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                     fontWeight="700"
                                     fill={difference >= 0 ? '#10B981' : '#EF4444'}
                                 >
-                                    {difference >= 0 ? '+' : ''}{currencyFormatter.format(Math.round(difference))}
+                                    {difference >= 0 ? '+' : ''}{currencyFormatter.format(Math.round(raceViewMode === 'monthly' ? difference * 12 : difference))}
                                 </text>
                             </g>
                         );
