@@ -16,7 +16,8 @@ const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
-        maximumFractionDigits: value >= 100000 ? 0 : 2
+        maximumFractionDigits: 0,
+        minimumFractionDigits: 0
     }).format(value);
 };
 
