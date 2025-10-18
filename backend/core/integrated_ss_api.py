@@ -28,6 +28,11 @@ from .widow_calculator import WidowSSCalculator
 from .ssa_xml_processor import SSAXMLProcessor, EarningsRecord
 # from .bcr_generator import generate_bcr_data, bar_chart_race
 
+# Import API routers
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from api.auth import router as auth_router
+
 # Enhanced API Models
 class PersonInput(BaseModel):
     birth_date: date
@@ -219,6 +224,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Register API routers
+app.include_router(auth_router)
 
 # Logging setup
 logging.basicConfig(level=logging.INFO)
