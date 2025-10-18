@@ -3,6 +3,8 @@ import { Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
 import annotationPlugin from 'chartjs-plugin-annotation';
 import { Chart } from 'chart.js';
+import { DesignCard, ResultCard, InfoBox } from './ui';
+
 Chart.register(annotationPlugin);
 
 // --- Utility Functions (Based on Core Calculator Logic) ---
@@ -171,22 +173,27 @@ const SSOptimizationPlatform = () => {
     }, [isPlaying]);
 
     return (
-        <div className="p-6 bg-gray-100 min-h-screen font-sans">
-            <header className="text-center mb-6">
-                <h1 className="text-4xl font-extrabold text-gray-800">Social Security Lifetime Benefit Race</h1>
-                <p className="text-md text-gray-600 mt-2">An Interactive Visualization of Your Claiming Strategy</p>
-            </header>
+        <div className="min-h-screen bg-gray-50 p-6">
+            {/* Header */}
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    📊 Social Security Lifetime Benefit Race
+                </h1>
+                <p className="text-gray-600">
+                    An interactive visualization showing how different claiming strategies affect your lifetime benefits
+                </p>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <div className="lg:col-span-1 bg-white p-5 border rounded-lg shadow-md">
-                    <h3 className="font-semibold text-xl mb-4 text-gray-700">Simulation Controls</h3>
-                    <label className="block mb-4 text-sm font-medium text-gray-600">
+                <div className="lg:col-span-1">
+                    <DesignCard title="Simulation Controls">
+                        <label className="block mb-4 text-sm font-medium text-gray-700">
                         <span>Primary Insurance Amount (PIA)</span>
                         <input type="number" name="pia" value={inputs.pia} onChange={handleInputChange} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2" />
                     </label>
                     <div className="flex items-center justify-between mb-4">
-                        <label htmlFor="isZeroPIAImpacted" className="text-sm font-medium text-gray-600">Simulate Early Retirement Cut</label>
-                        <input type="checkbox" id="isZeroPIAImpacted" name="isZeroPIAImpacted" checked={inputs.isZeroPIAImpacted} onChange={handleInputChange} className="h-4 w-4 text-indigo-600 border-gray-300 rounded" />
+                        <label htmlFor="isZeroPIAImpacted" className="text-sm font-medium text-gray-700">Simulate Early Retirement Cut</label>
+                        <input type="checkbox" id="isZeroPIAImpacted" name="isZeroPIAImpacted" checked={inputs.isZeroPIAImpacted} onChange={handleInputChange} className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
                     </div>
                     
                     <div className="flex items-center space-x-2 mb-4">
@@ -198,25 +205,32 @@ const SSOptimizationPlatform = () => {
                         </button>
                     </div>
 
-                    <label className="block text-sm font-medium text-gray-600">
+                    <label className="block text-sm font-medium text-gray-700">
                         <span>Current Age: {currentAge}</span>
                         <input type="range" min={START_AGE} max={MAX_AGE} value={currentAge} onChange={(e) => setCurrentAge(Number(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2" />
                     </label>
+                    </DesignCard>
                 </div>
 
-                <div className="lg:col-span-3 bg-white p-4 border rounded-lg shadow-xl" style={{ height: '600px' }}>
-                     <BarChartRace data={raceData} currentAge={currentAge} />
+                <div className="lg:col-span-3">
+                    <DesignCard title="Benefit Comparison Race" className="h-full">
+                        <div style={{ height: '550px' }}>
+                            <BarChartRace data={raceData} currentAge={currentAge} />
+                        </div>
+                    </DesignCard>
                 </div>
             </div>
 
-            <div className="mt-8 p-5 bg-white border-t-4 border-indigo-500 rounded-b-lg shadow-md">
-                <h3 className="text-xl font-bold text-gray-800">How to Interpret This Chart</h3>
-                <p className="mt-2 text-gray-600">
-                    This chart races different Social Security claiming strategies against each other over a lifetime. The total length of each bar shows the cumulative, inflation-adjusted income you would have received by that age.
-                </p>
-                <p className="mt-2 text-gray-600">
-                    The bar is split into two parts: income earned <span class="font-bold text-gray-500">before age 70</span> (lighter shade) and income earned <span class="font-bold text-indigo-700">after age 70</span> (darker shade). This highlights how delaying your claim leads to a much larger, more secure income stream in your later years, which is critical for long-term financial well-being.
-                </p>
+            {/* Educational Information */}
+            <div className="mt-6 space-y-4">
+                <InfoBox type="info" title="How to Interpret This Chart">
+                    <p className="mb-2">
+                        This chart races different Social Security claiming strategies against each other over a lifetime. The total length of each bar shows the cumulative, inflation-adjusted income you would have received by that age.
+                    </p>
+                    <p>
+                        The bar is split into two parts: income earned <span className="font-semibold">before age 70</span> (lighter shade) and income earned <span className="font-semibold">after age 70</span> (darker shade). This highlights how delaying your claim leads to a much larger, more secure income stream in your later years, which is critical for long-term financial well-being.
+                    </p>
+                </InfoBox>
             </div>
         </div>
     );
