@@ -7,6 +7,8 @@ import { Checkbox, Button } from './ui';
 import { PillTabs, PillTab } from './ui';
 import { useUser } from '../contexts/UserContext.jsx';
 import { useDevMode } from '../contexts/DevModeContext.jsx';
+import { useCalculatorPersistence } from '../hooks/useCalculatorPersistence';
+import { useNavigate } from 'react-router-dom';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, annotationPlugin, SankeyController, Flow, BubbleController);
 
@@ -1609,6 +1611,8 @@ const formatCurrencyTick = (value) => `$${Number(value).toLocaleString('en-US', 
 const CHART_PADDING = { left: 60, right: 30, top: 10, bottom: 10 };
 
 const ShowMeTheMoneyCalculator = () => {
+    const navigate = useNavigate();
+    
     // Get user context data
     const { profile: realProfile, partners: realPartners } = useUser();
     const { isDevMode, devProfile, devPartners } = useDevMode();
@@ -1635,17 +1639,52 @@ const ShowMeTheMoneyCalculator = () => {
         return '1965-06-18';
     };
 
+    // Persistence hook for calculator settings
+    const { state: persistedState, setState: setPersistedState, isLoaded } = useCalculatorPersistence('showMeTheMoney', {
+        spouse1Pia: '',
+        spouse1PreferredYear: 67,
+        spouse1PreferredMonth: 0,
+        spouse2Pia: '',
+        spouse2PreferredYear: 65,
+        spouse2PreferredMonth: 0,
+        inflation: 0.025,
+        goGoEndAge: 75,
+        slowGoEndAge: 85
+    });
+
     const [isMarried, setIsMarried] = useState(getInitialMarriedState());
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [spouse1Dob, setSpouse1Dob] = useState(getInitialSpouse1Dob());
-    const [spouse1Pia, setSpouse1Pia] = useState('');
-    const [spouse1PreferredYear, setSpouse1PreferredYear] = useState(67);
-    const [spouse1PreferredMonth, setSpouse1PreferredMonth] = useState(0);
+    const [spouse1Pia, setSpouse1Pia] = useState(persistedState.spouse1Pia || '');
+    const [spouse1PreferredYear, setSpouse1PreferredYear] = useState(persistedState.spouse1PreferredYear || 67);
+    const [spouse1PreferredMonth, setSpouse1PreferredMonth] = useState(persistedState.spouse1PreferredMonth || 0);
     const [spouse2Dob, setSpouse2Dob] = useState(getInitialSpouse2Dob());
-    const [spouse2Pia, setSpouse2Pia] = useState('');
-    const [spouse2PreferredYear, setSpouse2PreferredYear] = useState(65);
-    const [spouse2PreferredMonth, setSpouse2PreferredMonth] = useState(0);
-    const [inflation, setInflation] = useState(0.025);
+    const [spouse2Pia, setSpouse2Pia] = useState(persistedState.spouse2Pia || '');
+    const [spouse2PreferredYear, setSpouse2PreferredYear] = useState(persistedState.spouse2PreferredYear || 65);
+    const [spouse2PreferredMonth, setSpouse2PreferredMonth] = useState(persistedState.spouse2PreferredMonth || 0);
+    const [inflation, setInflation] = useState(persistedState.inflation || 0.025);
+    
+    // Retirement stages slider state (purely visual)
+    const [goGoEndAge, setGoGoEndAge] = useState(persistedState.goGoEndAge || 75);
+    const [slowGoEndAge, setSlowGoEndAge] = useState(persistedState.slowGoEndAge || 85);
+    
+    // Persist state changes
+    useEffect(() => {
+        if (isLoaded) {
+            setPersistedState({
+                spouse1Pia,
+                spouse1PreferredYear,
+                spouse1PreferredMonth,
+                spouse2Pia,
+                spouse2PreferredYear,
+                spouse2PreferredMonth,
+                inflation,
+                goGoEndAge,
+                slowGoEndAge
+            });
+        }
+    }, [spouse1Pia, spouse1PreferredYear, spouse1PreferredMonth, spouse2Pia, spouse2PreferredYear, spouse2PreferredMonth, inflation, goGoEndAge, slowGoEndAge, isLoaded, setPersistedState]);
+    
     const [chartView, setChartView] = useState('monthly'); // monthly, cumulative, combined, earlyLate, post70, sscuts
     const [chartData, setChartData] = useState({ labels: [], datasets: [] });
     const [chartOptions, setChartOptions] = useState({});
@@ -1668,10 +1707,6 @@ const ShowMeTheMoneyCalculator = () => {
     const [selectedStrategy, setSelectedStrategy] = useState(2); // 0=62, 1=67, 2=70
     const [piaStrategy, setPiaStrategy] = useState('late'); // 'early' or 'late'
     const [showPiaFraModal, setShowPiaFraModal] = useState(false);
-    
-    // Retirement stages slider state (purely visual)
-    const [goGoEndAge, setGoGoEndAge] = useState(75); // Default: Go-Go ends at 75
-    const [slowGoEndAge, setSlowGoEndAge] = useState(85); // Default: Slow-Go ends at 85
     const [isDraggingGoGo, setIsDraggingGoGo] = useState(false);
     const [isDraggingSlowGo, setIsDraggingSlowGo] = useState(false);
 
@@ -1684,6 +1719,11 @@ const ShowMeTheMoneyCalculator = () => {
     const [spouse2FiledAge, setSpouse2FiledAge] = useState(65);
     const [showAlreadyFiledModal, setShowAlreadyFiledModal] = useState(false);
     const [bubbleAge, setBubbleAge] = useState(70); // Age slider for bubble chart
+    
+    // "Show me just this year" feature
+    const [showYearView, setShowYearView] = useState(false);
+    const [selectedYearAge, setSelectedYearAge] = useState(70);
+    const [showYearModal, setShowYearModal] = useState(false);
 
     // Update state when profile data changes
     useEffect(() => {
@@ -2891,20 +2931,37 @@ const ShowMeTheMoneyCalculator = () => {
                                 <h2 className="text-lg font-bold text-gray-900">Controls</h2>
                                 <p className="text-xs text-gray-600">Adjust your inputs</p>
                             </div>
-                            <button
-                                onClick={() => setSidebarCollapsed(true)}
-                                className="hidden lg:flex p-1.5 bg-primary-600 text-white rounded-lg shadow-md hover:bg-primary-700 transition-all hover:scale-110"
-                                title="Collapse controls"
-                            >
-                                <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => navigate('/settings')}
+                                    className="p-1.5 bg-gray-600 text-white rounded-lg shadow-md hover:bg-gray-700 transition-all hover:scale-110"
+                                    title="Settings"
                                 >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </button>
+                                    <svg
+                                        className="w-4 h-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </button>
+                                <button
+                                    onClick={() => setSidebarCollapsed(true)}
+                                    className="hidden lg:flex p-1.5 bg-primary-600 text-white rounded-lg shadow-md hover:bg-primary-700 transition-all hover:scale-110"
+                                    title="Collapse controls"
+                                >
+                                    <svg
+                                        className="w-4 h-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
 
                         <div className="p-4 space-y-4">
@@ -3041,6 +3098,60 @@ const ShowMeTheMoneyCalculator = () => {
                             </div>
                         </div>
                     )}
+
+                    {/* Show Me Just This Single Year - Between Spouse and Options */}
+                    <div className="border border-gray-200 rounded-lg p-3 bg-white">
+                        <h3 className="text-sm font-semibold text-gray-900 mb-2">Show Me Just This Single Year</h3>
+                        <div className="space-y-2">
+                            <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-700">
+                                <input
+                                    type="checkbox"
+                                    checked={showYearView}
+                                    onChange={(e) => setShowYearView(e.target.checked)}
+                                    className="w-3.5 h-3.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                />
+                                <span>Enable year view</span>
+                            </label>
+                            
+                            {showYearView && (
+                                <div>
+                                    <label className="block text-xs text-gray-600 mb-1">Select age:</label>
+                                    <select
+                                        value={selectedYearAge}
+                                        onChange={(e) => {
+                                            setSelectedYearAge(Number(e.target.value));
+                                            setShowYearModal(true);
+                                        }}
+                                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
+                                    >
+                                        {Array.from({ length: 95 - 62 + 1 }, (_, i) => 62 + i).map(age => {
+                                            // Calculate ages for both spouses if married
+                                            const primaryAge = age;
+                                            const spouseBirthYear = isMarried ? new Date(spouse2Dob).getFullYear() : null;
+                                            const primaryBirthYear = new Date(spouse1Dob).getFullYear();
+                                            
+                                            let label;
+                                            if (isMarried && spouseBirthYear) {
+                                                const spouseAge = age - (primaryBirthYear - spouseBirthYear);
+                                                if (primaryAge === spouseAge) {
+                                                    label = `${primaryAge}`;
+                                                } else {
+                                                    // Match chart legend format: primary/spouse (same as "Ages age1/age2")
+                                                    label = `${primaryAge}/${spouseAge}`;
+                                                }
+                                            } else {
+                                                label = `${primaryAge}`;
+                                            }
+                                            
+                                            return (
+                                                <option key={age} value={age}>{label}</option>
+                                            );
+                                        })}
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+                    </div>
 
                     {/* Options - Compact */}
                     <div className="border border-gray-200 rounded-lg p-3 bg-white">
@@ -3741,6 +3852,237 @@ const ShowMeTheMoneyCalculator = () => {
                             <div className="flex justify-end mt-6">
                                 <Button onClick={() => setShowPiaFraModal(false)} variant="primary">
                                     Got It
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Year Detail Modal */}
+            {showYearModal && scenarioData && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6">
+                            <div className="flex justify-between items-start mb-6">
+                                <div>
+                                    <h2 className="text-3xl font-bold text-gray-900">
+                                        Benefits at Age {(() => {
+                                            const primaryAge = selectedYearAge;
+                                            const spouseBirthYear = isMarried ? new Date(spouse2Dob).getFullYear() : null;
+                                            const primaryBirthYear = new Date(spouse1Dob).getFullYear();
+                                            
+                                            if (isMarried && spouseBirthYear) {
+                                                const spouseAge = selectedYearAge - (primaryBirthYear - spouseBirthYear);
+                                                if (primaryAge === spouseAge) {
+                                                    return `${primaryAge}`;
+                                                } else {
+                                                    return `${primaryAge}/${spouseAge}`;
+                                                }
+                                            }
+                                            return `${primaryAge}`;
+                                        })()}
+                                    </h2>
+                                    <p className="text-sm text-gray-600 mt-1">Comparing three filing strategies</p>
+                                </div>
+                                <button
+                                    onClick={() => setShowYearModal(false)}
+                                    className="text-gray-400 hover:text-gray-600 text-3xl leading-none"
+                                >
+                                    ×
+                                </button>
+                            </div>
+
+                            {/* Three columns for three strategies */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {(() => {
+                                    const primaryBirthYear = new Date(spouse1Dob).getFullYear();
+                                    const calendarYear = primaryBirthYear + selectedYearAge;
+                                    
+                                    const projections = activeRecordView === 'primary'
+                                        ? scenarioData.primaryProjections
+                                        : activeRecordView === 'spouse' && scenarioData.spouseProjections
+                                            ? scenarioData.spouseProjections
+                                            : scenarioData.combinedProjections;
+
+                                    // Calculate cumulative since age 70 for each strategy
+                                    const age70CalendarYear = primaryBirthYear + 70;
+                                    const cumulativeSince70 = (projection) => {
+                                        if (selectedYearAge < 70) return 0;
+                                        const currentCumulative = projection.cumulative[calendarYear] || 0;
+                                        const age70Cumulative = projection.cumulative[age70CalendarYear] || 0;
+                                        return Math.max(0, currentCumulative - age70Cumulative);
+                                    };
+
+                                    const strategies = [
+                                        {
+                                            name: 'File at 70',
+                                            color: 'green',
+                                            gradient: 'from-green-500 to-green-600',
+                                            monthly: projections.age70.monthly[calendarYear] || 0,
+                                            cumulative: cumulativeSince70(projections.age70),
+                                            filingAge: 70,
+                                            started: selectedYearAge >= 70
+                                        },
+                                        {
+                                            name: 'File at 67',
+                                            color: 'blue',
+                                            gradient: 'from-blue-500 to-blue-600',
+                                            monthly: projections.preferred.monthly[calendarYear] || 0,
+                                            cumulative: cumulativeSince70(projections.preferred),
+                                            filingAge: 67,
+                                            started: selectedYearAge >= 67
+                                        },
+                                        {
+                                            name: 'File at 62',
+                                            color: 'red',
+                                            gradient: 'from-red-500 to-red-600',
+                                            monthly: projections.age62.monthly[calendarYear] || 0,
+                                            cumulative: cumulativeSince70(projections.age62),
+                                            filingAge: 62,
+                                            started: selectedYearAge >= 62
+                                        }
+                                    ];
+
+                                    // Find the best strategy
+                                    const bestStrategy = strategies.reduce((best, current) => 
+                                        current.monthly > best.monthly ? current : best
+                                    , strategies[0]);
+
+                                    return strategies.map((strategy, idx) => {
+                                        const annual = strategy.monthly * 12;
+                                        const isBest = strategy === bestStrategy && strategy.monthly > 0;
+
+                                        return (
+                                            <div
+                                                key={idx}
+                                                className={`relative border-2 rounded-xl p-6 transition-all ${
+                                                    isBest
+                                                        ? 'border-green-500 bg-green-50 shadow-lg ring-2 ring-green-200'
+                                                        : strategy.started
+                                                            ? 'border-gray-200 bg-white hover:shadow-md'
+                                                            : 'border-gray-200 bg-gray-50 opacity-75'
+                                                }`}
+                                            >
+                                                {/* Best badge */}
+                                                {isBest && (
+                                                    <div className="absolute -top-3 -right-3 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                                                        🏆 Best
+                                                    </div>
+                                                )}
+
+                                                {/* Header */}
+                                                <div className="text-center mb-4">
+                                                    <div className={`text-lg font-bold bg-gradient-to-r ${strategy.gradient} text-transparent bg-clip-text`}>
+                                                        {strategy.name}
+                                                    </div>
+                                                </div>
+
+                                                {/* Status indicator */}
+                                                {!strategy.started ? (
+                                                    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                                        <p className="text-sm font-semibold text-yellow-800 text-center">
+                                                            ⏳ Not yet eligible
+                                                        </p>
+                                                        <p className="text-xs text-yellow-700 text-center mt-1">
+                                                            Benefits start at age {strategy.filingAge}
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                                        <p className="text-sm font-semibold text-green-800 text-center">
+                                                            ✓ Receiving benefits
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {/* Monthly benefit */}
+                                                <div className="space-y-3">
+                                                    <div className="bg-gray-50 rounded-lg p-4">
+                                                        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                                                            Monthly
+                                                        </p>
+                                                        <p className={`text-2xl font-bold ${strategy.started ? `text-${strategy.color}-600` : 'text-gray-400'}`}>
+                                                            {strategy.started ? currencyFormatter.format(Math.round(strategy.monthly)) : '$0'}
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Annual benefit */}
+                                                    <div className="bg-gray-50 rounded-lg p-4">
+                                                        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                                                            Annual
+                                                        </p>
+                                                        <p className={`text-xl font-bold ${strategy.started ? `text-${strategy.color}-600` : 'text-gray-400'}`}>
+                                                            {strategy.started ? currencyFormatter.format(Math.round(annual)) : '$0'}
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Cumulative Since Age 70 */}
+                                                    {selectedYearAge >= 70 && (
+                                                        <div className="bg-gray-50 rounded-lg p-4">
+                                                            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                                                                Cumulative Since Age 70
+                                                            </p>
+                                                            <p className={`text-lg font-bold ${strategy.started ? `text-${strategy.color}-600` : 'text-gray-400'}`}>
+                                                                {currencyFormatter.format(Math.round(strategy.cumulative))}
+                                                            </p>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Years receiving (if applicable) */}
+                                                    {strategy.started && (
+                                                        <div className="pt-3 border-t border-gray-200">
+                                                            <p className="text-xs text-gray-600">
+                                                                <span className="font-semibold">Receiving for:</span> {selectedYearAge - strategy.filingAge} years
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    });
+                                })()}
+                            </div>
+
+                            {/* Summary comparison */}
+                            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p className="text-sm font-semibold text-blue-900 mb-2">
+                                    💡 Key Insight
+                                </p>
+                                <p className="text-sm text-blue-800">
+                                    {(() => {
+                                        const primaryBirthYear = new Date(spouse1Dob).getFullYear();
+                                        const calendarYear = primaryBirthYear + selectedYearAge;
+                                        
+                                        const projections = activeRecordView === 'primary'
+                                            ? scenarioData.primaryProjections
+                                            : activeRecordView === 'spouse' && scenarioData.spouseProjections
+                                                ? scenarioData.spouseProjections
+                                                : scenarioData.combinedProjections;
+
+                                        const monthly62 = projections.age62.monthly[calendarYear] || 0;
+                                        const monthly70 = projections.age70.monthly[calendarYear] || 0;
+
+                                        if (selectedYearAge < 62) {
+                                            return "No benefits are available before age 62.";
+                                        } else if (selectedYearAge < 67) {
+                                            return "Only early filing (age 62) provides income at this age. Later filing strategies require waiting longer.";
+                                        } else if (selectedYearAge < 70) {
+                                            return "File at 70 strategy hasn't started yet. Early and preferred age filing provide income now.";
+                                        } else if (monthly70 > monthly62) {
+                                            const difference = monthly70 - monthly62;
+                                            const percentIncrease = ((difference / monthly62) * 100).toFixed(0);
+                                            return `Filing at 70 provides ${currencyFormatter.format(Math.round(difference))} more per month (${percentIncrease}% increase) compared to filing at 62.`;
+                                        } else {
+                                            return "All filing strategies are now providing benefits.";
+                                        }
+                                    })()}
+                                </p>
+                            </div>
+
+                            <div className="flex justify-end mt-6">
+                                <Button onClick={() => setShowYearModal(false)} variant="primary">
+                                    Close
                                 </Button>
                             </div>
                         </div>

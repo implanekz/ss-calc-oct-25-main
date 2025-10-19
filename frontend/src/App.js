@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import ShowMeTheMoneyCalculator from './components/ShowMeTheMoneyCalculator.jsx';
 import DivorcedCalculator from './components/DivorcedCalculator.jsx';
 import WidowCalculator from './components/WidowCalculator.jsx';
 import PIACalculator from './components/PIACalculator.jsx';
+import Settings from './components/Settings.jsx';
 import RetirementSpendingApp from './components/helperApps/RetirementSpendingApp.jsx';
 import RetirementIncomeNeedsApp from './components/helperApps/RetirementIncomeNeedsApp.jsx';
 import SequenceOfReturnsApp from './components/helperApps/SequenceOfReturnsApp.jsx';
@@ -614,9 +616,13 @@ function CalculatorApp() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Navigation Bar */}
-      <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
+    <Router>
+      <Routes>
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/*" element={
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+            {/* Navigation Bar */}
+            <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo/Brand */}
@@ -717,7 +723,10 @@ function CalculatorApp() {
         {activeApp === 'sequence' && <SequenceOfReturnsApp />}
         {activeApp === 'budget' && <RetirementBudgetWorksheet />}
       </main>
-    </div>
+          </div>
+        } />
+      </Routes>
+    </Router>
   );
 }
 
