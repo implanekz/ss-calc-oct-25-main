@@ -5,6 +5,8 @@ import annotationPlugin from 'chartjs-plugin-annotation';
 import { SankeyController, Flow } from 'chartjs-chart-sankey';
 import { Checkbox, Button } from './ui';
 import { PillTabs, PillTab } from './ui';
+import { useUser } from '../contexts/UserContext.jsx';
+import { useDevMode } from '../contexts/DevModeContext.jsx';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, annotationPlugin, SankeyController, Flow, BubbleController);
 
@@ -1607,14 +1609,40 @@ const formatCurrencyTick = (value) => `$${Number(value).toLocaleString('en-US', 
 const CHART_PADDING = { left: 60, right: 30, top: 10, bottom: 10 };
 
 const ShowMeTheMoneyCalculator = () => {
-    const [isMarried, setIsMarried] = useState(false);
+    // Get user context data
+    const { profile: realProfile, partners: realPartners } = useUser();
+    const { isDevMode, devProfile, devPartners } = useDevMode();
+    
+    // Use dev or real data based on mode
+    const profile = isDevMode ? devProfile : realProfile;
+    const partners = isDevMode ? devPartners : realPartners;
+    
+    // Initialize state from profile data
+    const getInitialMarriedState = () => {
+        if (!profile) return false;
+        return ['married', 'divorced', 'widowed'].includes(profile.relationship_status);
+    };
+    
+    const getInitialSpouse1Dob = () => {
+        if (profile?.date_of_birth) return profile.date_of_birth;
+        return '1965-02-03';
+    };
+    
+    const getInitialSpouse2Dob = () => {
+        if (partners && partners.length > 0 && partners[0].date_of_birth) {
+            return partners[0].date_of_birth;
+        }
+        return '1965-06-18';
+    };
+
+    const [isMarried, setIsMarried] = useState(getInitialMarriedState());
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-    const [spouse1Dob, setSpouse1Dob] = useState('1965-02-03');
-    const [spouse1Pia, setSpouse1Pia] = useState(4000);
+    const [spouse1Dob, setSpouse1Dob] = useState(getInitialSpouse1Dob());
+    const [spouse1Pia, setSpouse1Pia] = useState('');
     const [spouse1PreferredYear, setSpouse1PreferredYear] = useState(67);
     const [spouse1PreferredMonth, setSpouse1PreferredMonth] = useState(0);
-    const [spouse2Dob, setSpouse2Dob] = useState('1965-06-18');
-    const [spouse2Pia, setSpouse2Pia] = useState(1500);
+    const [spouse2Dob, setSpouse2Dob] = useState(getInitialSpouse2Dob());
+    const [spouse2Pia, setSpouse2Pia] = useState('');
     const [spouse2PreferredYear, setSpouse2PreferredYear] = useState(65);
     const [spouse2PreferredMonth, setSpouse2PreferredMonth] = useState(0);
     const [inflation, setInflation] = useState(0.025);
@@ -1656,6 +1684,25 @@ const ShowMeTheMoneyCalculator = () => {
     const [spouse2FiledAge, setSpouse2FiledAge] = useState(65);
     const [showAlreadyFiledModal, setShowAlreadyFiledModal] = useState(false);
     const [bubbleAge, setBubbleAge] = useState(70); // Age slider for bubble chart
+
+    // Update state when profile data changes
+    useEffect(() => {
+        if (profile) {
+            const shouldBeMarried = ['married', 'divorced', 'widowed'].includes(profile.relationship_status);
+            setIsMarried(shouldBeMarried);
+            
+            if (profile.date_of_birth) {
+                setSpouse1Dob(profile.date_of_birth);
+            }
+        }
+    }, [profile]);
+
+    // Update spouse DOB when partners data changes
+    useEffect(() => {
+        if (partners && partners.length > 0 && partners[0].date_of_birth) {
+            setSpouse2Dob(partners[0].date_of_birth);
+        }
+    }, [partners]);
 
     useEffect(() => {
         if (!isMarried && activeRecordView === 'spouse') {
@@ -2863,49 +2910,11 @@ const ShowMeTheMoneyCalculator = () => {
                         <div className="p-4 space-y-4">
                     {/* Primary Filer - Compact */}
                     <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                        <div className="flex justify-between items-center mb-2">
+                        <div className="mb-2">
                             <h3 className="text-sm font-semibold text-gray-900">Primary Filer</h3>
-                            <Checkbox
-                                label=""
-                                checked={activeRecordView === 'primary'}
-                                onChange={handlePrimaryOnlyToggle}
-                            />
+                            <p className="text-xs text-gray-600">DOB: {spouse1Dob} • Age: {formatAge(spouse1Dob)}</p>
                         </div>
                         <div className="space-y-2">
-                            <div className="grid grid-cols-2 gap-2 text-xs">
-                                <div>
-                                    <label className="block text-gray-600 mb-1">DOB</label>
-                                    <input
-                                        type="date"
-                                        value={spouse1Dob}
-                                        onChange={e => setSpouse1Dob(e.target.value)}
-                                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-gray-600 mb-1">Age</label>
-                                    <div className="px-2 py-1 bg-white border border-gray-200 rounded text-gray-700">
-                                        {formatAge(spouse1Dob)}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Already Filed Checkbox */}
-                            <div className="flex items-center gap-2 py-2">
-                                <input
-                                    type="checkbox"
-                                    id="spouse1AlreadyFiled"
-                                    checked={spouse1AlreadyFiled}
-                                    onChange={e => setSpouse1AlreadyFiled(e.target.checked)}
-                                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                                />
-                                <label htmlFor="spouse1AlreadyFiled" className="text-sm text-gray-700 cursor-pointer">
-                                    Already receiving SS benefits?
-                                </label>
-                            </div>
-
-                            {/* Conditional: Show PIA fields if NOT already filed */}
-                            {!spouse1AlreadyFiled && (
                             <div>
                                 <label className="block text-xs text-gray-600 mb-1 flex items-center gap-1">
                                     PIA at FRA ($)
@@ -2920,51 +2929,12 @@ const ShowMeTheMoneyCalculator = () => {
                                 <input
                                     type="number"
                                     value={spouse1Pia}
-                                    onChange={e => setSpouse1Pia(Number(e.target.value))}
+                                    onChange={e => setSpouse1Pia(e.target.value ? Number(e.target.value) : '')}
                                     className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                                    placeholder="Enter PIA here"
                                 />
                             </div>
-                            )}
 
-                            {/* Conditional: Show current benefit fields if ALREADY filed */}
-                            {spouse1AlreadyFiled && (
-                            <>
-                            <div>
-                                <label className="block text-xs text-gray-600 mb-1 flex items-center gap-1">
-                                    Current Monthly Benefit ($)
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowAlreadyFiledModal(true)}
-                                        className="text-primary-600 hover:text-primary-700 underline text-xs"
-                                    >
-                                        Why this matters?
-                                    </button>
-                                </label>
-                                <input
-                                    type="number"
-                                    value={spouse1CurrentBenefit || ''}
-                                    onChange={e => setSpouse1CurrentBenefit(Number(e.target.value))}
-                                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                                    placeholder="e.g., 3200"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs text-gray-600 mb-1">Age When Filed</label>
-                                <select
-                                    value={spouse1FiledAge}
-                                    onChange={e => setSpouse1FiledAge(Number(e.target.value))}
-                                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                                >
-                                    {[62, 63, 64, 65, 66, 67, 68, 69, 70].map(age => (
-                                        <option key={age} value={age}>{age}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            </>
-                            )}
-
-                            {/* Filing Age - only show if NOT already filed */}
-                            {!spouse1AlreadyFiled && (
                             <div className="bg-primary-100 rounded p-2">
                                 <label className="block text-xs font-medium text-gray-700 mb-1">Filing Age</label>
                                 <div className="grid grid-cols-2 gap-2">
@@ -2988,56 +2958,30 @@ const ShowMeTheMoneyCalculator = () => {
                                     </div>
                                 </div>
                             </div>
-                            )}
+
+                            {/* View Only Checkbox - At Bottom */}
+                            <div className="pt-3 mt-3 border-t border-gray-200">
+                                <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-600 hover:text-gray-800">
+                                    <input
+                                        type="checkbox"
+                                        checked={activeRecordView === 'primary'}
+                                        onChange={handlePrimaryOnlyToggle}
+                                        className="w-3.5 h-3.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                    />
+                                    <span>Show only this person</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Spouse - Compact */}
+                    {/* Spouse - Compact - Always visible when married */}
                     {isMarried && (
                         <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                            <div className="flex justify-between items-center mb-2">
-                                <h3 className="text-sm font-semibold text-gray-900">Spouse</h3>
-                                <Checkbox
-                                    label=""
-                                    checked={activeRecordView === 'spouse'}
-                                    onChange={handleSpouseOnlyToggle}
-                                />
+                            <div className="mb-2">
+                                <h3 className="text-sm font-semibold text-gray-900">Spouse Filer</h3>
+                                <p className="text-xs text-gray-600">DOB: {spouse2Dob} • Age: {formatAge(spouse2Dob)}</p>
                             </div>
                             <div className="space-y-2">
-                                <div className="grid grid-cols-2 gap-2 text-xs">
-                                    <div>
-                                        <label className="block text-gray-600 mb-1">DOB</label>
-                                        <input
-                                            type="date"
-                                            value={spouse2Dob}
-                                            onChange={e => setSpouse2Dob(e.target.value)}
-                                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-gray-600 mb-1">Age</label>
-                                        <div className="px-2 py-1 bg-white border border-gray-200 rounded text-gray-700">
-                                            {formatAge(spouse2Dob)}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Already Filed Checkbox */}
-                                <div className="flex items-center gap-2 py-2">
-                                    <input
-                                        type="checkbox"
-                                        id="spouse2AlreadyFiled"
-                                        checked={spouse2AlreadyFiled}
-                                        onChange={e => setSpouse2AlreadyFiled(e.target.checked)}
-                                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                                    />
-                                    <label htmlFor="spouse2AlreadyFiled" className="text-sm text-gray-700 cursor-pointer">
-                                        Already receiving SS benefits?
-                                    </label>
-                                </div>
-
-                                {/* Conditional: Show PIA fields if NOT already filed */}
-                                {!spouse2AlreadyFiled && (
                                 <div>
                                     <label className="block text-xs text-gray-600 mb-1 flex items-center gap-1">
                                         PIA at FRA ($)
@@ -3052,51 +2996,12 @@ const ShowMeTheMoneyCalculator = () => {
                                     <input
                                         type="number"
                                         value={spouse2Pia}
-                                        onChange={e => setSpouse2Pia(Number(e.target.value))}
+                                        onChange={e => setSpouse2Pia(e.target.value ? Number(e.target.value) : '')}
                                         className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                                        placeholder="Enter PIA here"
                                     />
                                 </div>
-                                )}
 
-                                {/* Conditional: Show current benefit fields if ALREADY filed */}
-                                {spouse2AlreadyFiled && (
-                                <>
-                                <div>
-                                    <label className="block text-xs text-gray-600 mb-1 flex items-center gap-1">
-                                        Current Monthly Benefit ($)
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowAlreadyFiledModal(true)}
-                                            className="text-primary-600 hover:text-primary-700 underline text-xs"
-                                        >
-                                            Why this matters?
-                                        </button>
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={spouse2CurrentBenefit || ''}
-                                        onChange={e => setSpouse2CurrentBenefit(Number(e.target.value))}
-                                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                                        placeholder="e.g., 1800"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs text-gray-600 mb-1">Age When Filed</label>
-                                    <select
-                                        value={spouse2FiledAge}
-                                        onChange={e => setSpouse2FiledAge(Number(e.target.value))}
-                                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                                    >
-                                        {[62, 63, 64, 65, 66, 67, 68, 69, 70].map(age => (
-                                            <option key={age} value={age}>{age}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                </>
-                                )}
-
-                                {/* Filing Age - only show if NOT already filed */}
-                                {!spouse2AlreadyFiled && (
                                 <div className="bg-primary-100 rounded p-2">
                                     <label className="block text-xs font-medium text-gray-700 mb-1">Filing Age</label>
                                     <div className="grid grid-cols-2 gap-2">
@@ -3120,7 +3025,19 @@ const ShowMeTheMoneyCalculator = () => {
                                         </div>
                                     </div>
                                 </div>
-                                )}
+                            </div>
+
+                            {/* View Only Checkbox - At Bottom */}
+                            <div className="pt-3 mt-3 border-t border-gray-200">
+                                <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-600 hover:text-gray-800">
+                                    <input
+                                        type="checkbox"
+                                        checked={activeRecordView === 'spouse'}
+                                        onChange={handleSpouseOnlyToggle}
+                                        className="w-3.5 h-3.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                    />
+                                    <span>Show only this person</span>
+                                </label>
                             </div>
                         </div>
                     )}
@@ -3129,16 +3046,10 @@ const ShowMeTheMoneyCalculator = () => {
                     <div className="border border-gray-200 rounded-lg p-3 bg-white">
                         <h3 className="text-sm font-semibold text-gray-900 mb-2">Options</h3>
                         <div className="space-y-2">
-                            <Checkbox
-                                label={<span className="text-xs">Married/Partner</span>}
-                                checked={isMarried}
-                                onChange={(e) => setIsMarried(e.target.checked)}
-                            />
-
                             {isMarried && (
-                                <div className="ml-6 space-y-2">
+                                <div className="space-y-2">
                                     <Checkbox
-                                        label={<span className="text-xs">Premature Death?</span>}
+                                        label={<span className="text-xs">Potential Premature Death</span>}
                                         checked={prematureDeath}
                                         onChange={e => setPrematureDeath(e.target.checked)}
                                     />
