@@ -1183,7 +1183,20 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                     {isPlaying ? '⏸ Pause' : '▶ Play'}
                 </button>
                 <div className="text-center">
-                    <div className="text-5xl font-bold text-gray-900">{currentRaceAge}</div>
+                    <div className="text-5xl font-bold text-gray-900">
+                        {(() => {
+                            if (!scenarioData) return currentRaceAge;
+                            const primaryAge = currentRaceAge;
+                            const spouseBirthYear = isMarried && scenarioData.birthYearSpouse ? scenarioData.birthYearSpouse : null;
+                            const primaryBirthYear = scenarioData.birthYearPrimary;
+                            
+                            if (isMarried && spouseBirthYear) {
+                                const spouseAge = currentRaceAge - (primaryBirthYear - spouseBirthYear);
+                                return formatCoupleAges(primaryAge, spouseAge);
+                            }
+                            return `${primaryAge}`;
+                        })()}
+                    </div>
                     <div className="text-xs font-semibold text-gray-600">Current Age</div>
                 </div>
                 <div className="flex items-center gap-2 bg-white rounded-lg shadow-md border border-gray-300 p-1">
@@ -1610,6 +1623,17 @@ const formatCurrencyTick = (value) => `$${Number(value).toLocaleString('en-US', 
 
 const CHART_PADDING = { left: 60, right: 30, top: 10, bottom: 10 };
 
+// Helper function to format ages with oldest first - defined outside component
+const formatCoupleAges = (primaryAge, spouseAge) => {
+    if (primaryAge === spouseAge) {
+        return `${primaryAge}`;
+    }
+    // Show oldest first, youngest second
+    const older = Math.max(primaryAge, spouseAge);
+    const younger = Math.min(primaryAge, spouseAge);
+    return `${older}/${younger}`;
+};
+
 const ShowMeTheMoneyCalculator = () => {
     const navigate = useNavigate();
     
@@ -1689,8 +1713,7 @@ const ShowMeTheMoneyCalculator = () => {
     const [chartData, setChartData] = useState({ labels: [], datasets: [] });
     const [chartOptions, setChartOptions] = useState({});
     const [prematureDeath, setPrematureDeath] = useState(false);
-    const currentCalendarYear = new Date().getFullYear();
-    const [deathYear, setDeathYear] = useState(currentCalendarYear + 1);
+    const [deathAge, setDeathAge] = useState(75);
     const [activeRecordView, setActiveRecordView] = useState('combined');
     const [showMonthlyCashflow, setShowMonthlyCashflow] = useState(false);
     const [post70View, setPost70View] = useState('cumulative');
@@ -1826,7 +1849,9 @@ const ShowMeTheMoneyCalculator = () => {
             age70: primaryAge70
         };
 
-        const deathYearNumber = Number(deathYear) || deathYear;
+        // Convert death age to calendar year based on primary person's birth year
+        const primaryBirthYear = new Date(spouse1Dob).getFullYear();
+        const deathYearNumber = primaryBirthYear + deathAge;
 
         const combineMonthlyProjection = (primaryScenario, spouseScenario) => {
             if (!isMarried || !spouseScenario) {
@@ -1919,7 +1944,7 @@ const ShowMeTheMoneyCalculator = () => {
             primaryYears,
             spouseYears
         };
-    }, [isMarried, spouse1Dob, spouse1Pia, spouse1PreferredYear, spouse1PreferredMonth, spouse2Dob, spouse2Pia, spouse2PreferredYear, spouse2PreferredMonth, inflation, prematureDeath, deathYear, piaStrategy]);
+    }, [isMarried, spouse1Dob, spouse1Pia, spouse1PreferredYear, spouse1PreferredMonth, spouse2Dob, spouse2Pia, spouse2PreferredYear, spouse2PreferredMonth, inflation, prematureDeath, deathAge, piaStrategy]);
 
     // Bubble Chart Data - Calculate 4% Rule Equivalents at selected age
     const bubbleChartData = useMemo(() => {
@@ -2003,7 +2028,7 @@ const ShowMeTheMoneyCalculator = () => {
             labels = primaryYears.map(year => {
                 const age1 = year - birthYearPrimary;
                 const age2 = year - birthYearSpouse;
-                return `Ages ${age1}/${age2}`;
+                return `Ages ${formatCoupleAges(age1, age2)}`;
             });
         }
 
@@ -3133,12 +3158,7 @@ const ShowMeTheMoneyCalculator = () => {
                                             let label;
                                             if (isMarried && spouseBirthYear) {
                                                 const spouseAge = age - (primaryBirthYear - spouseBirthYear);
-                                                if (primaryAge === spouseAge) {
-                                                    label = `${primaryAge}`;
-                                                } else {
-                                                    // Match chart legend format: primary/spouse (same as "Ages age1/age2")
-                                                    label = `${primaryAge}/${spouseAge}`;
-                                                }
+                                                label = formatCoupleAges(primaryAge, spouseAge);
                                             } else {
                                                 label = `${primaryAge}`;
                                             }
@@ -3165,15 +3185,34 @@ const ShowMeTheMoneyCalculator = () => {
                                         onChange={e => setPrematureDeath(e.target.checked)}
                                     />
                                     {prematureDeath && (
-                                        <select
-                                            value={deathYear}
-                                            onChange={e => setDeathYear(Number(e.target.value))}
-                                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
-                                        >
-                                            {Array.from({ length: 2075 - currentCalendarYear }, (_, idx) => currentCalendarYear + 1 + idx).map(year => (
-                                                <option key={year} value={year}>{year}</option>
-                                            ))}
-                                        </select>
+                                        <div>
+                                            <label className="block text-xs text-gray-600 mb-1">
+                                                {isMarried ? 'Death at ages:' : 'Death at age:'}
+                                            </label>
+                                            <select
+                                                value={deathAge}
+                                                onChange={e => setDeathAge(Number(e.target.value))}
+                                                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
+                                            >
+                                                {Array.from({ length: 100 - 62 + 1 }, (_, idx) => 62 + idx).map(age => {
+                                                    const primaryAge = age;
+                                                    const spouseBirthYear = isMarried ? new Date(spouse2Dob).getFullYear() : null;
+                                                    const primaryBirthYear = new Date(spouse1Dob).getFullYear();
+                                                    
+                                                    let label;
+                                                    if (isMarried && spouseBirthYear) {
+                                                        const spouseAge = age - (primaryBirthYear - spouseBirthYear);
+                                                        label = formatCoupleAges(primaryAge, spouseAge);
+                                                    } else {
+                                                        label = `${primaryAge}`;
+                                                    }
+                                                    
+                                                    return (
+                                                        <option key={age} value={age}>{label}</option>
+                                                    );
+                                                })}
+                                            </select>
+                                        </div>
                                     )}
                                 </div>
                             )}
