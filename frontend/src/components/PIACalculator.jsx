@@ -6,7 +6,7 @@ const PIACalculator = () => {
     // State management
     const [birthYear, setBirthYear] = useState(1960);
     const [useCalculatedPIA, setUseCalculatedPIA] = useState(false); // Toggle: SSA PIA vs Calculated PIA
-    const [ssaPIA, setSsaPIA] = useState(1800); // User's PIA from SSA.gov
+    const [ssaPIA, setSsaPIA] = useState(''); // User's PIA from SSA.gov
     const [earningsHistory, setEarningsHistory] = useState([]);
     const [calculatedResult, setCalculatedResult] = useState(null);
     const [isCalculating, setIsCalculating] = useState(false);
