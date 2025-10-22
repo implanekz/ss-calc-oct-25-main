@@ -2052,34 +2052,15 @@ const ShowMeTheMoneyCalculator = () => {
                 bounds: 'data'
             };
 
-            let yCumulativeScale = {
-                type: 'linear',
-                display: true,
-                position: 'right',
-                title: { text: 'Cumulative Benefits ($)', display: true },
-                grid: { drawOnChartArea: false },
-                ticks: {
-                    callback: formatCurrencyTick,
-                    precision: 0
-                },
-                bounds: 'data'
-            };
-
             // Apply fixed ranges if they exist - FORCE the axis limits
             if (ssCutsAxisRanges) {
                 console.log('Applying fixed Y-axis ranges:', ssCutsAxisRanges);
                 const monthlyMin = ssCutsAxisRanges.monthly.min;
                 const monthlyMax = ssCutsAxisRanges.monthly.max;
-                const cumulativeMin = ssCutsAxisRanges.cumulative.min;
-                const cumulativeMax = ssCutsAxisRanges.cumulative.max;
 
                 yMonthlyScale.min = monthlyMin;
                 yMonthlyScale.max = monthlyMax;
                 yMonthlyScale.beginAtZero = false;
-
-                yCumulativeScale.min = cumulativeMin;
-                yCumulativeScale.max = cumulativeMax;
-                yCumulativeScale.beginAtZero = false;
             } else {
                 console.log('No ssCutsAxisRanges found');
             }
@@ -2097,8 +2078,7 @@ const ShowMeTheMoneyCalculator = () => {
                 layout: { padding: CHART_PADDING },
                 scales: {
                     x: { title: { text: 'Age' }, ticks: { autoSkip: false } },
-                    y_monthly: yMonthlyScale,
-                    y_cumulative: yCumulativeScale
+                    y: yMonthlyScale
                 },
                 maintainAspectRatio: false,
                 responsive: true
@@ -2393,7 +2373,7 @@ const ShowMeTheMoneyCalculator = () => {
                     layout: { padding: CHART_PADDING },
                     scales: {
                         x: { title: { text: 'Age' }, ticks: { autoSkip: false } },
-                        y: { title: { text: 'Cumulative Income Since 70 ($)' }, ticks: { callback: formatCurrencyTick } }
+                        y: { title: { text: 'Cumulative Income Since Age 70 ($)' }, ticks: { callback: formatCurrencyTick } }
                     }
                 };
             } else {
@@ -2479,7 +2459,7 @@ const ShowMeTheMoneyCalculator = () => {
                         y_cumulative: {
                             type: 'linear',
                             position: 'right',
-                            title: { text: 'Cumulative Income Since 70 ($)', display: true },
+                            title: { text: 'Cumulative Income Since Age 70 ($)', display: true },
                             grid: { drawOnChartArea: false },
                             ticks: { callback: formatCurrencyTick }
                         }
@@ -2718,11 +2698,10 @@ const ShowMeTheMoneyCalculator = () => {
                 return;
             }
             const monthlyValues = projected ? scenario.cutMonthly : scenario.baselineMonthly;
-            const cumulativeValues = projected ? scenario.cutCumulative : scenario.baselineCumulative;
 
             datasets.push({
                 type: 'bar',
-                label: `${scenario.label} Monthly`,
+                label: scenario.label,
                 data: monthlyValues.map(value => Math.round(value)),
                 backgroundColor: scenario.barColor,
                 borderColor: scenario.lineColor,
@@ -2732,19 +2711,6 @@ const ShowMeTheMoneyCalculator = () => {
                 barPercentage: 0.55,
                 categoryPercentage: 0.72,
                 order: 1
-            });
-
-            datasets.push({
-                type: 'line',
-                label: `${scenario.label} Cumulative`,
-                data: cumulativeValues.map(value => Math.round(value)),
-                borderColor: scenario.lineColor,
-                backgroundColor: scenario.lineColor,
-                fill: false,
-                tension: 0.28,
-                pointRadius: 3,
-                yAxisID: 'y_cumulative',
-                order: 2
             });
         });
 
@@ -3442,31 +3408,6 @@ const ShowMeTheMoneyCalculator = () => {
 
                 {/* Chart Container */}
                 <div className="flex-1 p-4 overflow-auto">
-                    {/* Post-70 View Selector */}
-                    {chartView === 'post70' && (
-                        <div className="mb-4 bg-white rounded-lg shadow-sm border border-gray-200 p-3">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">View Type:</label>
-                            <div className="flex gap-3">
-                                {[
-                                    { key: 'monthly', label: 'Monthly Income' },
-                                    { key: 'cumulative', label: 'Cumulative Income Since 70' },
-                                    { key: 'combined', label: 'Both (Monthly + Cumulative)' }
-                                ].map(option => (
-                                    <button
-                                        key={option.key}
-                                        onClick={() => setPost70View(option.key)}
-                                        className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-                                            post70View === option.key
-                                                ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-md'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                        }`}
-                                    >
-                                        {option.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
 
                     {/* Early/Late Toggle Switch */}
                     {chartView === 'earlyLate' && (
