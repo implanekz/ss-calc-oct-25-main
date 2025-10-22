@@ -204,12 +204,15 @@ const RetirementStagesSlider = ({
                     onMouseDown={handleGoGoMouseDown}
                 >
                     <div className={`w-1 h-full transition-all ${isDraggingGoGo ? 'bg-gray-800 w-2' : 'bg-gray-600 group-hover:bg-gray-700 group-hover:w-1.5'}`} />
-                    {/* Subtle age tooltip */}
-                    {isDraggingGoGo && (
-                        <div className="absolute -top-8 bg-gray-800 text-white px-2 py-1 rounded text-xs font-semibold shadow-lg">
-                            {goGoEndAge}
+                    {/* Draggable handle indicator */}
+                    <div className={`absolute top-1/2 -translate-y-1/2 bg-gray-800 rounded transition-all ${isDraggingGoGo ? 'w-4 h-8 shadow-lg' : 'w-3 h-6 group-hover:w-4 group-hover:h-8 group-hover:shadow-md'}`}>
+                        {/* Grip dots */}
+                        <div className="flex flex-col items-center justify-center h-full gap-0.5">
+                            <div className="w-0.5 h-0.5 bg-white rounded-full opacity-70"></div>
+                            <div className="w-0.5 h-0.5 bg-white rounded-full opacity-70"></div>
+                            <div className="w-0.5 h-0.5 bg-white rounded-full opacity-70"></div>
                         </div>
-                    )}
+                    </div>
                 </div>
 
                 {/* Slow-Go Years Section */}
@@ -230,12 +233,15 @@ const RetirementStagesSlider = ({
                     onMouseDown={handleSlowGoMouseDown}
                 >
                     <div className={`w-1 h-full transition-all ${isDraggingSlowGo ? 'bg-gray-800 w-2' : 'bg-gray-600 group-hover:bg-gray-700 group-hover:w-1.5'}`} />
-                    {/* Subtle age tooltip */}
-                    {isDraggingSlowGo && (
-                        <div className="absolute -top-8 bg-gray-800 text-white px-2 py-1 rounded text-xs font-semibold shadow-lg">
-                            {slowGoEndAge}
+                    {/* Draggable handle indicator */}
+                    <div className={`absolute top-1/2 -translate-y-1/2 bg-gray-800 rounded transition-all ${isDraggingSlowGo ? 'w-4 h-8 shadow-lg' : 'w-3 h-6 group-hover:w-4 group-hover:h-8 group-hover:shadow-md'}`}>
+                        {/* Grip dots */}
+                        <div className="flex flex-col items-center justify-center h-full gap-0.5">
+                            <div className="w-0.5 h-0.5 bg-white rounded-full opacity-70"></div>
+                            <div className="w-0.5 h-0.5 bg-white rounded-full opacity-70"></div>
+                            <div className="w-0.5 h-0.5 bg-white rounded-full opacity-70"></div>
                         </div>
-                    )}
+                    </div>
                 </div>
 
                 {/* No-Go Years Section */}
@@ -2707,7 +2713,6 @@ const ShowMeTheMoneyCalculator = () => {
                 borderColor: scenario.lineColor,
                 borderWidth: 1,
                 borderRadius: 6,
-                yAxisID: 'y_monthly',
                 barPercentage: 0.55,
                 categoryPercentage: 0.72,
                 order: 1
@@ -3750,7 +3755,7 @@ const ShowMeTheMoneyCalculator = () => {
                     </div>
 
                     {/* Retirement Stages Slider - Below chart */}
-                    {['monthly', 'cumulative', 'combined', 'earlyLate', 'post70'].includes(chartView) && (
+                    {['monthly', 'cumulative', 'combined', 'earlyLate', 'post70', 'sscuts'].includes(chartView) && (
                         <div>
                             <RetirementStagesSlider
                                 goGoEndAge={goGoEndAge}

@@ -22,6 +22,8 @@ const WidowCalculator = () => {
     const [error, setError] = useState(null);
     const [activeStrategyDetails, setActiveStrategyDetails] = useState(null);
     const [showDeceasedSpousePiaModal, setShowDeceasedSpousePiaModal] = useState(false);
+    const [hoveredStrategyIndex, setHoveredStrategyIndex] = useState(null);
+    const [detailPanelOffset, setDetailPanelOffset] = useState(0);
 
     useEffect(() => {
         setActiveStrategyDetails(null);
@@ -54,7 +56,50 @@ const WidowCalculator = () => {
 
     const remarriageAge = calculateRemarriageAge();
 
-    const showStrategyDetails = (strategy) => {
+    const updateDetailPanelPosition = (cardIndex) => {
+        if (cardIndex === null) return;
+        
+        const cardElement = document.getElementById(`strategy-card-${cardIndex}`);
+        const detailElement = document.getElementById('inline-detail-chart');
+        
+        if (cardElement && detailElement) {
+            const cardRect = cardElement.getBoundingClientRect();
+            const detailRect = detailElement.getBoundingClientRect();
+            
+            // Calculate how far the detail panel should move to align with the card
+            const offset = cardRect.top - detailRect.top;
+            setDetailPanelOffset(offset);
+        }
+    };
+
+    useEffect(() => {
+        if (hoveredStrategyIndex === null) return;
+        
+        // Update position on scroll
+        const handleScroll = () => {
+            updateDetailPanelPosition(hoveredStrategyIndex);
+        };
+        
+        // Add scroll listener
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        
+        // Also update on animation frame for smooth tracking
+        let animationFrameId;
+        const trackPosition = () => {
+            updateDetailPanelPosition(hoveredStrategyIndex);
+            animationFrameId = requestAnimationFrame(trackPosition);
+        };
+        animationFrameId = requestAnimationFrame(trackPosition);
+        
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+        };
+    }, [hoveredStrategyIndex]);
+
+    const showStrategyDetails = (strategy, cardIndex = null) => {
         if (!strategy || !strategy.benefit_timeline || strategy.benefit_timeline.length === 0) {
             return;
         }
@@ -62,6 +107,11 @@ const WidowCalculator = () => {
             ...strategy,
             description: describeStrategy(strategy)
         });
+        
+        // Calculate initial offset to align detail panel with hovered card
+        if (cardIndex !== null) {
+            updateDetailPanelPosition(cardIndex);
+        }
     };
 
     const dismissStrategyDetails = () => setActiveStrategyDetails(null);
@@ -439,7 +489,120 @@ const WidowCalculator = () => {
                     </div>
 
                     {/* Results Panel */}
-                    <div className="lg:col-span-2">
+                    <div className="lg:col-span-2 relative">
+                        {/* Sankey Flow Animation Overlay - spans entire results area */}
+                        {hoveredStrategyIndex !== null && activeStrategyDetails && (
+                            <svg
+                                className="absolute inset-0 pointer-events-none"
+                                style={{ 
+                                    width: '100%', 
+                                    height: '100%',
+                                    left: 0,
+                                    top: 0,
+                                    zIndex: 50,
+                                    overflow: 'visible'
+                                }}
+                            >
+                                <defs>
+                                    <linearGradient id="sankeyGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" style={{ stopColor: '#10b981', stopOpacity: 0.8 }} />
+                                        <stop offset="50%" style={{ stopColor: '#3b82f6', stopOpacity: 0.8 }} />
+                                        <stop offset="100%" style={{ stopColor: '#8b5cf6', stopOpacity: 0.8 }} />
+                                    </linearGradient>
+                                    <filter id="sankeyGlow">
+                                        <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+                                        <feMerge>
+                                            <feMergeNode in="coloredBlur"/>
+                                            <feMergeNode in="SourceGraphic"/>
+                                        </feMerge>
+                                    </filter>
+                                </defs>
+                                {(() => {
+                                    try {
+                                        const cardElement = document.getElementById(`strategy-card-${hoveredStrategyIndex}`);
+                                        const detailPanel = document.querySelector('[role="dialog"]') || 
+                                                          document.querySelector('.fixed.inset-x-0.bottom-0');
+                                        
+                                        if (!cardElement) return null;
+                                        
+                                        const resultsPanel = cardElement.closest('.lg\\:col-span-2');
+                                        if (!resultsPanel) return null;
+                                        
+                                        const cardRect = cardElement.getBoundingClientRect();
+                                        const panelRect = resultsPanel.getBoundingClientRect();
+                                        
+                                        // Start from right edge of card
+                                        const startX = cardRect.right - panelRect.left;
+                                        const startY = cardRect.top + cardRect.height / 2 - panelRect.top;
+                                        
+                                        // End at right side of the panel or at detail panel if visible
+                                        let endX, endY;
+                                        if (detailPanel) {
+                                            const detailRect = detailPanel.getBoundingClientRect();
+                                            endX = detailRect.left - panelRect.left;
+                                            endY = detailRect.top + detailRect.height / 3 - panelRect.top;
+                                        } else {
+                                            // Default to right edge if no detail panel
+                                            endX = panelRect.width - 50;
+                                            endY = startY;
+                                        }
+                                        
+                                        // Bezier curve control points
+                                        const dx = endX - startX;
+                                        const controlX1 = startX + dx * 0.4;
+                                        const controlY1 = startY;
+                                        const controlX2 = startX + dx * 0.6;
+                                        const controlY2 = endY;
+                                        
+                                        const pathData = `M ${startX},${startY} C ${controlX1},${controlY1} ${controlX2},${controlY2} ${endX},${endY}`;
+                                        
+                                        return (
+                                            <>
+                                                {/* Main flowing path */}
+                                                <path
+                                                    d={pathData}
+                                                    stroke="url(#sankeyGradient)"
+                                                    strokeWidth="12"
+                                                    fill="none"
+                                                    filter="url(#sankeyGlow)"
+                                                    style={{
+                                                        strokeDasharray: '30 15',
+                                                        animation: 'sankeyFlow 2s linear infinite'
+                                                    }}
+                                                />
+                                                {/* Endpoint marker */}
+                                                <g transform={`translate(${endX}, ${endY})`}>
+                                                    <circle
+                                                        r="12"
+                                                        fill="#8b5cf6"
+                                                        className="animate-ping"
+                                                        style={{ opacity: 0.4 }}
+                                                    />
+                                                    <circle
+                                                        r="8"
+                                                        fill="#8b5cf6"
+                                                        stroke="white"
+                                                        strokeWidth="2"
+                                                    />
+                                                </g>
+                                            </>
+                                        );
+                                    } catch (e) {
+                                        console.error('Sankey flow error:', e);
+                                        return null;
+                                    }
+                                })()}
+                            </svg>
+                        )}
+                        
+                        <style>{`
+                            @keyframes sankeyFlow {
+                                to {
+                                    stroke-dashoffset: -45;
+                                }
+                            }
+                        `}</style>
+                        
                         {error && (
                             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
                                 <p className="text-red-800 font-medium">❌ {error}</p>
@@ -497,9 +660,9 @@ const WidowCalculator = () => {
                                         className="bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-600 rounded-lg shadow-sm p-6 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2"
                                         role="button"
                                         tabIndex={0}
-                                        onClick={() => showStrategyDetails(results.optimal_strategy)}
-                                        onMouseEnter={() => showStrategyDetails(results.optimal_strategy)}
-                                        onFocus={() => showStrategyDetails(results.optimal_strategy)}
+                                        onClick={() => showStrategyDetails(results.optimal_strategy, null)}
+                                        onMouseEnter={() => showStrategyDetails(results.optimal_strategy, null)}
+                                        onFocus={() => showStrategyDetails(results.optimal_strategy, null)}
                                         onKeyDown={(event) => handleStrategyKey(event, results.optimal_strategy)}
                                     >
                                         <h2 className="text-2xl font-bold text-emerald-900 mb-4">
@@ -693,58 +856,191 @@ const WidowCalculator = () => {
                                     </div>
                                 )}
 
-                                {/* All Strategies Comparison */}
+                                {/* All Strategies Comparison with Inline Detail View */}
                                 {results.all_strategies && results.all_strategies.length > 0 && (
-                                    <div className="bg-white rounded-lg shadow-sm p-6">
+                                    <div className="bg-white rounded-lg shadow-sm p-6 relative overflow-hidden">
                                         <h2 className="text-xl font-semibold text-gray-900 mb-4">
                                             📊 All Strategies Compared
                                         </h2>
                                         <p className="text-sm text-gray-500 mb-3">
                                             Hover or click any strategy to preview the detailed income timeline.
                                         </p>
-                                        <div className="space-y-3">
-                                            {results.all_strategies.map((strategy, index) => (
-                                                <div
-                                                    key={index}
-                                                    className={`border-l-4 rounded-lg p-4 cursor-pointer transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 ${getStrategyColor(index)}`}
-                                                    role="button"
-                                                    tabIndex={0}
-                                                    onClick={() => showStrategyDetails(strategy)}
-                                                    onMouseEnter={() => showStrategyDetails(strategy)}
-                                                    onFocus={() => showStrategyDetails(strategy)}
-                                                    onKeyDown={(event) => handleStrategyKey(event, strategy)}
-                                                >
-                                                    <div className="flex justify-between items-start mb-2">
-                                                        <div className="flex-1">
-                                                            <p className="font-semibold text-gray-900">
-                                                                {index === 0 && '👑 '}
-                                                                {getStrategyIcon(strategy.type)} {strategy.strategy}
-                                                            </p>
-                                                            <p className="text-sm text-gray-600 mt-1">
-                                                                Initial: {formatCurrency(strategy.initial_monthly)}/month
-                                                                {strategy.switched_monthly && (
-                                                                    <> → {formatCurrency(strategy.switched_monthly)}/month</>
-                                                                )}
-                                                            </p>
-                                                            {isCrossoverStrategy(strategy.type) && (
-                                                                <p className="text-xs text-gray-500 mt-1">
-                                                                    🔄 Crossover at age {strategy.switch_age}
+                                        
+                                        <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 relative">
+                                            {/* Strategy Cards - Left Side (40%) */}
+                                            <div className="lg:col-span-2 space-y-3">
+                                                {results.all_strategies.map((strategy, index) => (
+                                                    <div
+                                                        key={index}
+                                                        id={`strategy-card-${index}`}
+                                                        className={`border-l-4 rounded-lg p-4 cursor-pointer transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 ${getStrategyColor(index)} ${hoveredStrategyIndex === index ? 'shadow-lg scale-[1.02]' : ''}`}
+                                                        role="button"
+                                                        tabIndex={0}
+                                                        onClick={() => showStrategyDetails(strategy, index)}
+                                                        onMouseEnter={() => {
+                                                            showStrategyDetails(strategy, index);
+                                                            setHoveredStrategyIndex(index);
+                                                        }}
+                                                        onMouseLeave={() => {
+                                                            setHoveredStrategyIndex(null);
+                                                            setDetailPanelOffset(0);
+                                                        }}
+                                                        onFocus={() => showStrategyDetails(strategy, index)}
+                                                        onKeyDown={(event) => handleStrategyKey(event, strategy)}
+                                                    >
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <div className="flex-1">
+                                                                <p className="font-semibold text-gray-900">
+                                                                    {index === 0 && '👑 '}
+                                                                    {getStrategyIcon(strategy.type)} {strategy.strategy}
                                                                 </p>
-                                                            )}
-                                                        </div>
-                                                        <div className="text-right ml-4">
-                                                            <p className="text-xs text-gray-500">Lifetime Value</p>
-                                                            <p className="text-lg font-bold text-gray-900">
-                                                                {formatCurrency(strategy.lifetime_total)}
-                                                            </p>
+                                                                <p className="text-sm text-gray-600 mt-1">
+                                                                    Initial: {formatCurrency(strategy.initial_monthly)}/month
+                                                                    {strategy.switched_monthly && (
+                                                                        <> → {formatCurrency(strategy.switched_monthly)}/month</>
+                                                                    )}
+                                                                </p>
+                                                                {isCrossoverStrategy(strategy.type) && (
+                                                                    <p className="text-xs text-gray-500 mt-1">
+                                                                        🔄 Crossover at age {strategy.switch_age}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                            <div className="text-right ml-4">
+                                                                <p className="text-xs text-gray-500">Lifetime Value</p>
+                                                                <p className="text-lg font-bold text-gray-900">
+                                                                    {formatCurrency(strategy.lifetime_total)}
+                                                                </p>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                                <p className="text-sm text-gray-500 mt-3 text-center">
+                                                    Analyzed {results.all_strategies.length} strategies
+                                                </p>
+                                            </div>
+
+                                            {/* Detail Chart - Right Side (60%) - Sticky with dynamic positioning */}
+                                            <div 
+                                                id="inline-detail-chart" 
+                                                className="lg:col-span-3 flex items-start sticky top-6 self-start transition-transform duration-150 ease-out"
+                                                style={{
+                                                    transform: `translateY(${detailPanelOffset}px)`
+                                                }}
+                                            >
+                                                {activeStrategyDetails ? (
+                                                    <div className="w-full">
+                                                        <StrategyTimelineToaster
+                                                            strategy={activeStrategyDetails}
+                                                            onClose={dismissStrategyDetails}
+                                                            clientType="widow"
+                                                            inline={true}
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center justify-center w-full h-64 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                                                        <div className="text-center text-gray-400">
+                                                            <svg className="w-16 h-16 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                                            </svg>
+                                                            <p className="text-sm">Hover over a strategy to see details</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Sankey Flow Animation */}
+                                            {hoveredStrategyIndex !== null && activeStrategyDetails && (() => {
+                                                const cardColors = {
+                                                    0: { from: 'rgba(16, 185, 129, 0.6)', to: 'rgba(16, 185, 129, 0.2)' }, // emerald
+                                                    1: { from: 'rgba(59, 130, 246, 0.6)', to: 'rgba(59, 130, 246, 0.2)' },  // blue
+                                                    2: { from: 'rgba(168, 85, 247, 0.6)', to: 'rgba(168, 85, 247, 0.2)' },  // purple
+                                                    3: { from: 'rgba(245, 158, 11, 0.6)', to: 'rgba(245, 158, 11, 0.2)' },  // amber
+                                                    4: { from: 'rgba(236, 72, 153, 0.6)', to: 'rgba(236, 72, 153, 0.2)' }   // pink
+                                                };
+                                                const colorIndex = hoveredStrategyIndex % 5;
+                                                const color = cardColors[colorIndex];
+                                                
+                                                return (
+                                                    <svg
+                                                        className="absolute inset-0 pointer-events-none"
+                                                        style={{ 
+                                                            width: '100%', 
+                                                            height: '100%',
+                                                            zIndex: 10
+                                                        }}
+                                                    >
+                                                        <defs>
+                                                            <linearGradient id={`sankeyFlow-${hoveredStrategyIndex}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                                                                <stop offset="0%" style={{ stopColor: color.from, stopOpacity: 0.8 }} />
+                                                                <stop offset="100%" style={{ stopColor: color.to, stopOpacity: 0.3 }} />
+                                                            </linearGradient>
+                                                        </defs>
+                                                        {(() => {
+                                                            try {
+                                                                const cardElement = document.getElementById(`strategy-card-${hoveredStrategyIndex}`);
+                                                                const detailElement = document.getElementById('inline-detail-chart');
+                                                                const containerElement = cardElement?.closest('.grid');
+                                                                
+                                                                if (!cardElement || !detailElement || !containerElement) return null;
+                                                                
+                                                                const cardRect = cardElement.getBoundingClientRect();
+                                                                const detailRect = detailElement.getBoundingClientRect();
+                                                                const containerRect = containerElement.getBoundingClientRect();
+                                                                
+                                                                // Start from right edge of card
+                                                                const startX = cardRect.right - containerRect.left;
+                                                                const startY = cardRect.top + cardRect.height / 2 - containerRect.top;
+                                                                
+                                                                // End at left edge of detail chart
+                                                                const endX = detailRect.left - containerRect.left;
+                                                                const endYTop = detailRect.top - containerRect.top;
+                                                                const endYBottom = detailRect.bottom - containerRect.top;
+                                                                
+                                                                // Create flowing path with varying widths (Sankey style)
+                                                                // Flow from card edges to detail box edges
+                                                                const midX = (startX + endX) / 2;
+                                                                
+                                                                // Path data for area (filled shape) - flows from entire card height to entire detail box height
+                                                                const topPath = `M ${startX},${cardRect.top - containerRect.top} C ${startX + 60},${cardRect.top - containerRect.top} ${midX - 60},${endYTop} ${endX},${endYTop}`;
+                                                                const bottomPath = `L ${endX},${endYBottom} C ${midX - 60},${endYBottom} ${startX + 60},${cardRect.bottom - containerRect.top} ${startX},${cardRect.bottom - containerRect.top}`;
+                                                                
+                                                                return (
+                                                                    <>
+                                                                        {/* Sankey flow area */}
+                                                                        <path
+                                                                            d={`${topPath} ${bottomPath} Z`}
+                                                                            fill={`url(#sankeyFlow-${hoveredStrategyIndex})`}
+                                                                            opacity="0.4"
+                                                                            className="animate-pulse"
+                                                                        />
+                                                                        {/* Top edge */}
+                                                                        <path
+                                                                            d={topPath}
+                                                                            stroke={color.from}
+                                                                            strokeWidth="2"
+                                                                            fill="none"
+                                                                            opacity="0.6"
+                                                                        />
+                                                                        {/* Bottom edge */}
+                                                                        <path
+                                                                            d={bottomPath.substring(2)}
+                                                                            stroke={color.from}
+                                                                            strokeWidth="2"
+                                                                            fill="none"
+                                                                            opacity="0.6"
+                                                                        />
+                                                                    </>
+                                                                );
+                                                            } catch (e) {
+                                                                console.error('Sankey flow error:', e);
+                                                                return null;
+                                                            }
+                                                        })()}
+                                                    </svg>
+                                                );
+                                            })()}
                                         </div>
-                                        <p className="text-sm text-gray-500 mt-3 text-center">
-                                            Analyzed {results.all_strategies.length} strategies to find your optimal solution
-                                        </p>
                                     </div>
                                 )}
                             </div>
@@ -774,11 +1070,6 @@ const WidowCalculator = () => {
                     </div>
                 </div>
             </div>
-            <StrategyTimelineToaster
-                strategy={activeStrategyDetails}
-                onClose={dismissStrategyDetails}
-                clientType="widow"
-            />
 
             {/* Deceased Spouse PIA Info Modal */}
             {showDeceasedSpousePiaModal && (

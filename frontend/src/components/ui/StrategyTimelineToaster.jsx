@@ -21,7 +21,7 @@ const formatCurrency = (value) => {
     }).format(value);
 };
 
-const StrategyTimelineToaster = ({ strategy, onClose, clientType }) => {
+const StrategyTimelineToaster = ({ strategy, onClose, clientType, inline = false }) => {
     const [viewMode, setViewMode] = useState('annual'); // annual | monthly
 
     useEffect(() => {
@@ -146,8 +146,12 @@ const StrategyTimelineToaster = ({ strategy, onClose, clientType }) => {
         ? 'Survivor benefits grow with COLA, then switch to the higher own benefit.'
         : 'Watch income evolve across the strategy timeline with COLA adjustments.';
 
+    const containerClasses = inline 
+        ? "w-full h-full shadow-lg rounded-xl border border-slate-200 bg-white overflow-hidden"
+        : "fixed bottom-6 right-6 w-full max-w-xl shadow-2xl rounded-xl border border-slate-200 bg-white/95 backdrop-blur-lg z-50 overflow-hidden";
+
     return (
-        <div className="fixed bottom-6 right-6 w-full max-w-xl shadow-2xl rounded-xl border border-slate-200 bg-white/95 backdrop-blur-lg z-50 overflow-hidden">
+        <div className={containerClasses}>
             <div className="flex items-start justify-between px-6 py-4 bg-gradient-to-r from-sky-50 to-slate-50 border-b border-slate-200">
                 <div>
                     <p className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
@@ -158,14 +162,16 @@ const StrategyTimelineToaster = ({ strategy, onClose, clientType }) => {
                         Lifetime value {formatCurrency(strategy.lifetime_total)}
                     </p>
                 </div>
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="ml-4 rounded-full bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors h-8 w-8 flex items-center justify-center border border-slate-200"
-                    aria-label="Close strategy details"
-                >
-                    ×
-                </button>
+                {!inline && (
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="ml-4 rounded-full bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors h-8 w-8 flex items-center justify-center border border-slate-200"
+                        aria-label="Close strategy details"
+                    >
+                        ×
+                    </button>
+                )}
             </div>
 
             <div className="px-6 pt-5 pb-6">
@@ -207,14 +213,16 @@ const StrategyTimelineToaster = ({ strategy, onClose, clientType }) => {
                     {strategy.description || defaultDescription}
                 </div>
 
-                <div className="h-60">
+                <div className={inline ? "h-64" : "h-60"}>
                     <Bar data={chartData} options={chartOptions} />
                 </div>
 
-                <p className="mt-4 text-xs text-slate-500">
-                    These growing bars represent each year in the projection. Hover to see detailed tooltips for every bar.
-                    Close the window with the × when you are done reviewing this strategy.
-                </p>
+                {!inline && (
+                    <p className="mt-4 text-xs text-slate-500">
+                        These growing bars represent each year in the projection. Hover to see detailed tooltips for every bar.
+                        Close the window with the × when you are done reviewing this strategy.
+                    </p>
+                )}
             </div>
         </div>
     );
