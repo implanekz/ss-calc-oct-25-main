@@ -1704,6 +1704,11 @@ const ShowMeTheMoneyCalculator = () => {
     const [goGoEndAge, setGoGoEndAge] = useState(persistedState.goGoEndAge || 75);
     const [slowGoEndAge, setSlowGoEndAge] = useState(persistedState.slowGoEndAge || 85);
     
+    // Additional state variables that need to be declared before the persistence effect
+    const [monthlyNeeds, setMonthlyNeeds] = useState(persistedState.monthlyNeeds || 7000);
+    const [flowAge, setFlowAge] = useState(persistedState.flowAge || 70);
+    const [bubbleAge, setBubbleAge] = useState(persistedState.bubbleAge || 70);
+    
     // Persist ALL state changes
     useEffect(() => {
         if (isLoaded) {
@@ -1743,8 +1748,6 @@ const ShowMeTheMoneyCalculator = () => {
     const [ssCutsPayload, setSsCutsPayload] = useState(null);
     const [showSsCutInfo, setShowSsCutInfo] = useState(false);
     const [ssCutsAxisRanges, setSsCutsAxisRanges] = useState(null);
-    const [flowAge, setFlowAge] = useState(persistedState.flowAge || 70);
-    const [monthlyNeeds, setMonthlyNeeds] = useState(persistedState.monthlyNeeds || 7000);
     const [selectedStrategy, setSelectedStrategy] = useState(2); // 0=62, 1=67, 2=70
     const [piaStrategy, setPiaStrategy] = useState('late'); // 'early' or 'late'
     const [showPiaFraModal, setShowPiaFraModal] = useState(false);
@@ -1759,7 +1762,7 @@ const ShowMeTheMoneyCalculator = () => {
     const [spouse2CurrentBenefit, setSpouse2CurrentBenefit] = useState(null);
     const [spouse2FiledAge, setSpouse2FiledAge] = useState(65);
     const [showAlreadyFiledModal, setShowAlreadyFiledModal] = useState(false);
-    const [bubbleAge, setBubbleAge] = useState(persistedState.bubbleAge || 70); // Age slider for bubble chart
+    // bubbleAge already declared above with other persistent state
     
     // "Show me just this year" feature
     const [showYearView, setShowYearView] = useState(false);
