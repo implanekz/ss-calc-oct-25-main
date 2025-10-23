@@ -1709,9 +1709,13 @@ const ShowMeTheMoneyCalculator = () => {
     const [flowAge, setFlowAge] = useState(70);
     const [bubbleAge, setBubbleAge] = useState(70);
     
-    // Load persisted state when it becomes available
+    // Track if we've loaded initial persisted state to prevent infinite loop
+    const hasLoadedPersistedState = useRef(false);
+    
+    // Load persisted state when it becomes available (only once on mount)
     useEffect(() => {
-        if (isLoaded && persistedState) {
+        if (isLoaded && persistedState && !hasLoadedPersistedState.current) {
+            hasLoadedPersistedState.current = true;
             if (persistedState.isMarried !== undefined) setIsMarried(persistedState.isMarried);
             if (persistedState.spouse1Dob) setSpouse1Dob(persistedState.spouse1Dob);
             if (persistedState.spouse1Pia !== undefined) setSpouse1Pia(persistedState.spouse1Pia);

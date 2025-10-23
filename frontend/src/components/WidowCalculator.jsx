@@ -41,9 +41,13 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
     const [hoveredStrategyIndex, setHoveredStrategyIndex] = useState(null);
     const [detailPanelOffset, setDetailPanelOffset] = useState(0);
 
-    // Load persisted state when it becomes available
+    // Track if we've loaded initial persisted state to prevent infinite loop
+    const hasLoadedPersistedState = React.useRef(false);
+
+    // Load persisted state when it becomes available (only once on mount)
     useEffect(() => {
-        if (isLoaded && persistedState) {
+        if (isLoaded && persistedState && !hasLoadedPersistedState.current) {
+            hasLoadedPersistedState.current = true;
             if (persistedState.birthDate) setBirthDate(persistedState.birthDate);
             if (persistedState.ownPia !== undefined) setOwnPia(persistedState.ownPia);
             if (persistedState.deceasedSpousePia !== undefined) setDeceasedSpousePia(persistedState.deceasedSpousePia);
