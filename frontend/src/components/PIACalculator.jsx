@@ -1,31 +1,98 @@
 import React, { useState, useEffect } from 'react';
 import { getTaxableMaximum } from '../utils/taxableMaximum';
 import { tooltips } from '../utils/piaTooltips';
+import { useUser } from '../contexts/UserContext';
+import { Tabs, TabList, Tab, TabPanel } from './ui/Tabs';
 
 const PIACalculator = () => {
-    // State management
-    const [birthYear, setBirthYear] = useState(1960);
-    const [useCalculatedPIA, setUseCalculatedPIA] = useState(false); // Toggle: SSA PIA vs Calculated PIA
-    const [ssaPIA, setSsaPIA] = useState(''); // User's PIA from SSA.gov
-    const [earningsHistory, setEarningsHistory] = useState([]);
-    const [calculatedResult, setCalculatedResult] = useState(null);
-    const [isCalculating, setIsCalculating] = useState(false);
-    const [error, setError] = useState(null);
-    const [editingYear, setEditingYear] = useState(null);
-    const [isUploadingXML, setIsUploadingXML] = useState(false);
-    const [xmlUploadSuccess, setXmlUploadSuccess] = useState(null);
-    const [statementDate, setStatementDate] = useState(null);
-    const [personInfo, setPersonInfo] = useState(null);
+    // Get user context for names
+    const { profile, partners } = useUser();
+    
+    // Tab management
+    const [activeTab, setActiveTab] = useState('primary');
+    
+    // PRIMARY State management
+    const [primaryBirthYear, setPrimaryBirthYear] = useState(1964);
+    const [primaryUseCalculatedPIA, setPrimaryUseCalculatedPIA] = useState(false);
+    const [primarySsaPIA, setPrimarySsaPIA] = useState('');
+    const [primaryEarningsHistory, setPrimaryEarningsHistory] = useState([]);
+    const [primaryCalculatedResult, setPrimaryCalculatedResult] = useState(null);
+    const [primaryIsCalculating, setPrimaryIsCalculating] = useState(false);
+    const [primaryError, setPrimaryError] = useState(null);
+    const [primaryIsUploadingXML, setPrimaryIsUploadingXML] = useState(false);
+    const [primaryXmlUploadSuccess, setPrimaryXmlUploadSuccess] = useState(null);
+    const [primaryStatementDate, setPrimaryStatementDate] = useState(null);
+    const [primaryPersonInfo, setPrimaryPersonInfo] = useState(null);
+    const [primaryWhatIfScenario, setPrimaryWhatIfScenario] = useState(null);
+    const [primaryWhatIfResult, setPrimaryWhatIfResult] = useState(null);
+    const [primaryShowWhatIfModal, setPrimaryShowWhatIfModal] = useState(false);
+    const [primaryWhatIfEarnings, setPrimaryWhatIfEarnings] = useState([]);
+    const [primaryUploadedFileName, setPrimaryUploadedFileName] = useState(null);
+    const [primaryUploadedFileHash, setPrimaryUploadedFileHash] = useState(null);
 
-    // What-If Scenario state
-    const [whatIfScenario, setWhatIfScenario] = useState(null);
-    const [whatIfResult, setWhatIfResult] = useState(null);
-    const [showWhatIfModal, setShowWhatIfModal] = useState(false);
-    const [whatIfEarnings, setWhatIfEarnings] = useState([]);
+    // SPOUSE State management
+    const [spouseBirthYear, setSpouseBirthYear] = useState(1960);
+    const [spouseUseCalculatedPIA, setSpouseUseCalculatedPIA] = useState(false);
+    const [spouseSsaPIA, setSpouseSsaPIA] = useState('');
+    const [spouseEarningsHistory, setSpouseEarningsHistory] = useState([]);
+    const [spouseCalculatedResult, setSpouseCalculatedResult] = useState(null);
+    const [spouseIsCalculating, setSpouseIsCalculating] = useState(false);
+    const [spouseError, setSpouseError] = useState(null);
+    const [spouseIsUploadingXML, setSpouseIsUploadingXML] = useState(false);
+    const [spouseXmlUploadSuccess, setSpouseXmlUploadSuccess] = useState(null);
+    const [spouseStatementDate, setSpouseStatementDate] = useState(null);
+    const [spousePersonInfo, setSpousePersonInfo] = useState(null);
+    const [spouseWhatIfScenario, setSpouseWhatIfScenario] = useState(null);
+    const [spouseWhatIfResult, setSpouseWhatIfResult] = useState(null);
+    const [spouseShowWhatIfModal, setSpouseShowWhatIfModal] = useState(false);
+    const [spouseWhatIfEarnings, setSpouseWhatIfEarnings] = useState([]);
+    const [spouseUploadedFileName, setSpouseUploadedFileName] = useState(null);
+    const [spouseUploadedFileHash, setSpouseUploadedFileHash] = useState(null);
 
-    // Track upload source
-    const [uploadedFileName, setUploadedFileName] = useState(null);
-    const [uploadedFileHash, setUploadedFileHash] = useState(null);
+    // Helper: Get person-specific state based on active tab
+    const isPrimary = activeTab === 'primary';
+    const birthYear = isPrimary ? primaryBirthYear : spouseBirthYear;
+    const setBirthYear = isPrimary ? setPrimaryBirthYear : setSpouseBirthYear;
+    const useCalculatedPIA = isPrimary ? primaryUseCalculatedPIA : spouseUseCalculatedPIA;
+    const setUseCalculatedPIA = isPrimary ? setPrimaryUseCalculatedPIA : setSpouseUseCalculatedPIA;
+    const ssaPIA = isPrimary ? primarySsaPIA : spouseSsaPIA;
+    const setSsaPIA = isPrimary ? setPrimarySsaPIA : setSpouseSsaPIA;
+    const earningsHistory = isPrimary ? primaryEarningsHistory : spouseEarningsHistory;
+    const setEarningsHistory = isPrimary ? setPrimaryEarningsHistory : setSpouseEarningsHistory;
+    const calculatedResult = isPrimary ? primaryCalculatedResult : spouseCalculatedResult;
+    const setCalculatedResult = isPrimary ? setPrimaryCalculatedResult : setSpouseCalculatedResult;
+    const isCalculating = isPrimary ? primaryIsCalculating : spouseIsCalculating;
+    const setIsCalculating = isPrimary ? setPrimaryIsCalculating : setSpouseIsCalculating;
+    const error = isPrimary ? primaryError : spouseError;
+    const setError = isPrimary ? setPrimaryError : setSpouseError;
+    const isUploadingXML = isPrimary ? primaryIsUploadingXML : spouseIsUploadingXML;
+    const setIsUploadingXML = isPrimary ? setPrimaryIsUploadingXML : setSpouseIsUploadingXML;
+    const xmlUploadSuccess = isPrimary ? primaryXmlUploadSuccess : spouseXmlUploadSuccess;
+    const setXmlUploadSuccess = isPrimary ? setPrimaryXmlUploadSuccess : setSpouseXmlUploadSuccess;
+    const statementDate = isPrimary ? primaryStatementDate : spouseStatementDate;
+    const setStatementDate = isPrimary ? setPrimaryStatementDate : setSpouseStatementDate;
+    const personInfo = isPrimary ? primaryPersonInfo : spousePersonInfo;
+    const setPersonInfo = isPrimary ? setPrimaryPersonInfo : setSpousePersonInfo;
+    const whatIfScenario = isPrimary ? primaryWhatIfScenario : spouseWhatIfScenario;
+    const setWhatIfScenario = isPrimary ? setPrimaryWhatIfScenario : setSpouseWhatIfScenario;
+    const whatIfResult = isPrimary ? primaryWhatIfResult : spouseWhatIfResult;
+    const setWhatIfResult = isPrimary ? setPrimaryWhatIfResult : setSpouseWhatIfResult;
+    const showWhatIfModal = isPrimary ? primaryShowWhatIfModal : spouseShowWhatIfModal;
+    const setShowWhatIfModal = isPrimary ? setPrimaryShowWhatIfModal : setSpouseShowWhatIfModal;
+    const whatIfEarnings = isPrimary ? primaryWhatIfEarnings : spouseWhatIfEarnings;
+    const setWhatIfEarnings = isPrimary ? setPrimaryWhatIfEarnings : setSpouseWhatIfEarnings;
+    const uploadedFileName = isPrimary ? primaryUploadedFileName : spouseUploadedFileName;
+    const setUploadedFileName = isPrimary ? setPrimaryUploadedFileName : setSpouseUploadedFileName;
+    const uploadedFileHash = isPrimary ? primaryUploadedFileHash : spouseUploadedFileHash;
+    const setUploadedFileHash = isPrimary ? setPrimaryUploadedFileHash : setSpouseUploadedFileHash;
+    
+    // Get tab labels from user context
+    const primaryLabel = profile?.firstName && profile?.lastName 
+        ? `${profile.firstName} ${profile.lastName}` 
+        : 'Primary Spouse';
+    const spouseLabel = partners?.[0]?.firstName && partners?.[0]?.lastName
+        ? `${partners[0].firstName} ${partners[0].lastName}`
+        : 'Second Spouse';
 
     // Initialize earnings history with current year and future projections (only on first mount)
     useEffect(() => {
@@ -121,17 +188,25 @@ const PIACalculator = () => {
 
     // Calculate What-If PIA
     const calculateWhatIfPIA = async () => {
+        console.log('Calculate What-If PIA clicked');
         setIsCalculating(true);
         setError(null);
 
         try {
+            // Include ALL years, not just non-zero ones
             const relevantEarnings = whatIfEarnings
-                .filter(e => e.earnings > 0 || e.year >= new Date().getFullYear() - 5)
+                .filter(e => e.visible) // Only send visible earnings
                 .map(e => ({
                     year: e.year,
                     earnings: Math.min(parseFloat(e.earnings) || 0, getTaxableMaximum(e.year)),
                     is_projected: e.is_projected
                 }));
+
+            console.log('Sending what-if request:', {
+                birth_year: birthYear,
+                earnings_count: relevantEarnings.length,
+                sample: relevantEarnings.slice(0, 3)
+            });
 
             const response = await fetch('http://localhost:8000/calculate-pia-from-earnings', {
                 method: 'POST',
@@ -146,12 +221,17 @@ const PIACalculator = () => {
                 })
             });
 
+            console.log('What-if response status:', response.status);
+
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Calculation failed');
+                const errorText = await response.text();
+                console.error('What-if error response:', errorText);
+                throw new Error(`API Error (${response.status}): ${errorText}`);
             }
 
             const result = await response.json();
+            console.log('What-if result:', result);
+            
             setWhatIfResult(result);
             setWhatIfScenario({
                 name: 'What-If Scenario',
@@ -160,8 +240,10 @@ const PIACalculator = () => {
             });
             setShowWhatIfModal(false);
         } catch (err) {
-            setError(err.message);
+            const errorMsg = `What-If Calculation Failed: ${err.message}`;
+            setError(errorMsg);
             console.error('What-If calculation error:', err);
+            alert(errorMsg); // Show alert for immediate feedback
         } finally {
             setIsCalculating(false);
         }
@@ -261,10 +343,22 @@ const PIACalculator = () => {
                 setStatementDate(result.person_info.statement_date);
             }
 
-            // Update birth year from XML
+            // Update birth year from XML (only if provided and valid)
             if (result.person_info?.birth_date) {
                 const birthDate = new Date(result.person_info.birth_date);
-                setBirthYear(birthDate.getFullYear());
+                const year = birthDate.getFullYear();
+                if (year >= 1937 && year <= 2010) {
+                    setBirthYear(year);
+                }
+            }
+            // If no birth date in XML, try to infer from earnings years
+            else if (result.spreadsheet_data && result.spreadsheet_data.length > 0) {
+                const earliestYear = Math.min(...result.spreadsheet_data.map(r => r.year));
+                // Assume work started at age 18
+                const inferredBirthYear = earliestYear - 18;
+                if (inferredBirthYear >= 1937 && inferredBirthYear <= 2010) {
+                    setBirthYear(inferredBirthYear);
+                }
             }
 
             // Update SSA PIA if available
@@ -393,21 +487,83 @@ const PIACalculator = () => {
                 </p>
             </div>
 
+            {/* Tabs for Primary and Spouse - LARGER & MORE PROMINENT */}
+            <div className="mb-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-300 rounded-lg">
+                <Tabs>
+                    <TabList className="flex gap-3">
+                        <Tab 
+                            active={activeTab === 'primary'} 
+                            onClick={() => setActiveTab('primary')}
+                            className={`px-6 py-3 text-base font-bold rounded-lg transition-all ${
+                                activeTab === 'primary' 
+                                    ? 'bg-blue-600 text-white shadow-lg' 
+                                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                            }`}
+                        >
+                            <span className="text-xl">👤</span> {primaryLabel}
+                            {primaryCalculatedResult && (
+                                <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-normal">
+                                    ✓ Calculated
+                                </span>
+                            )}
+                        </Tab>
+                        <Tab 
+                            active={activeTab === 'spouse'} 
+                            onClick={() => setActiveTab('spouse')}
+                            className={`px-6 py-3 text-base font-bold rounded-lg transition-all ${
+                                activeTab === 'spouse' 
+                                    ? 'bg-purple-600 text-white shadow-lg' 
+                                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                            }`}
+                        >
+                            <span className="text-xl">💑</span> {spouseLabel}
+                            {spouseCalculatedResult && (
+                                <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-normal">
+                                    ✓ Calculated
+                                </span>
+                            )}
+                        </Tab>
+                    </TabList>
+                </Tabs>
+            </div>
+
+            {/* Calculator Content - Renders for BOTH tabs based on activeTab state */}
             {/* Birth Year Input */}
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Your Birth Year
+                    Your Birth Year {birthYear < 1937 && <span className="text-red-600 font-bold">(⚠️ Too Early - Must be 1937+)</span>}
                 </label>
                 <input
                     type="number"
                     min="1937"
                     max="2010"
                     value={birthYear}
-                    onChange={(e) => setBirthYear(parseInt(e.target.value))}
-                    className="w-32 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onChange={(e) => {
+                        const year = parseInt(e.target.value) || 1964;
+                        // Only allow valid years to be set
+                        if (year >= 1937 && year <= 2010) {
+                            setBirthYear(year);
+                            setError(null);
+                        } else {
+                            // Show error but don't update state with invalid value
+                            setError(`Birth year must be between 1937 and 2010. You entered: ${year}`);
+                        }
+                    }}
+                    onBlur={(e) => {
+                        // On blur, if invalid, reset to 1964
+                        const year = parseInt(e.target.value);
+                        if (!year || year < 1937 || year > 2010) {
+                            setBirthYear(1964);
+                            setError('Birth year reset to 1964. Please enter a valid year between 1937-2010.');
+                            e.target.value = 1964;
+                        }
+                    }}
+                    className={`w-32 px-3 py-2 border-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        birthYear < 1937 ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    }`}
                 />
                 <p className="mt-2 text-xs text-gray-600">
-                    Used to calculate wage indexing (at age 60) and bend points (at age 62)
+                    Used to calculate wage indexing (at age 60) and bend points (at age 62). <strong className="text-blue-700">Current: {birthYear}</strong>
                 </p>
             </div>
 
@@ -485,7 +641,7 @@ const PIACalculator = () => {
                 <div className="flex items-start justify-between mb-4">
                     <div>
                         <h3 className="text-lg font-bold text-gray-900 mb-1">
-                            Primary Insurance Amount (PIA)
+                            {isPrimary ? 'Primary Insurance Amount (PIA)' : 'Second Spouse Insurance Amount (PIA)'}
                         </h3>
                         <p className="text-sm text-gray-600">
                             Toggle between SSA's estimate and your calculated PIA
