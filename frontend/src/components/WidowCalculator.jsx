@@ -19,18 +19,18 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
         inflationRate: 0.025
     });
 
-    // Form inputs - initialized from persisted state
-    const [birthDate, setBirthDate] = useState(persistedState.birthDate || '1964-01-01');
-    const [ownPia, setOwnPia] = useState(persistedState.ownPia || 1800);
-    const [deceasedSpousePia, setDeceasedSpousePia] = useState(persistedState.deceasedSpousePia || 2800);
-    const [deceasedActualBenefit, setDeceasedActualBenefit] = useState(persistedState.deceasedActualBenefit || '');
-    const [deceasedSpouseDeathDate, setDeceasedSpouseDeathDate] = useState(persistedState.deceasedSpouseDeathDate || '2023-01-01');
-    const [isRemarried, setIsRemarried] = useState(persistedState.isRemarried || false);
-    const [remarriageDate, setRemarriageDate] = useState(persistedState.remarriageDate || '');
-    const [hasChildUnder16, setHasChildUnder16] = useState(persistedState.hasChildUnder16 || false);
-    const [childBirthDate, setChildBirthDate] = useState(persistedState.childBirthDate || '2015-01-01');
-    const [longevityAge, setLongevityAge] = useState(persistedState.longevityAge || 95);
-    const [inflationRate, setInflationRate] = useState(persistedState.inflationRate || 0.025);
+    // Form inputs - initialized with defaults, loaded from persistence in useEffect
+    const [birthDate, setBirthDate] = useState('1964-01-01');
+    const [ownPia, setOwnPia] = useState(1800);
+    const [deceasedSpousePia, setDeceasedSpousePia] = useState(2800);
+    const [deceasedActualBenefit, setDeceasedActualBenefit] = useState('');
+    const [deceasedSpouseDeathDate, setDeceasedSpouseDeathDate] = useState('2023-01-01');
+    const [isRemarried, setIsRemarried] = useState(false);
+    const [remarriageDate, setRemarriageDate] = useState('');
+    const [hasChildUnder16, setHasChildUnder16] = useState(false);
+    const [childBirthDate, setChildBirthDate] = useState('2015-01-01');
+    const [longevityAge, setLongevityAge] = useState(95);
+    const [inflationRate, setInflationRate] = useState(0.025);
 
     // Results
     const [results, setResults] = useState(null);
@@ -40,6 +40,23 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
     const [showDeceasedSpousePiaModal, setShowDeceasedSpousePiaModal] = useState(false);
     const [hoveredStrategyIndex, setHoveredStrategyIndex] = useState(null);
     const [detailPanelOffset, setDetailPanelOffset] = useState(0);
+
+    // Load persisted state when it becomes available
+    useEffect(() => {
+        if (isLoaded && persistedState) {
+            if (persistedState.birthDate) setBirthDate(persistedState.birthDate);
+            if (persistedState.ownPia !== undefined) setOwnPia(persistedState.ownPia);
+            if (persistedState.deceasedSpousePia !== undefined) setDeceasedSpousePia(persistedState.deceasedSpousePia);
+            if (persistedState.deceasedActualBenefit !== undefined) setDeceasedActualBenefit(persistedState.deceasedActualBenefit);
+            if (persistedState.deceasedSpouseDeathDate) setDeceasedSpouseDeathDate(persistedState.deceasedSpouseDeathDate);
+            if (persistedState.isRemarried !== undefined) setIsRemarried(persistedState.isRemarried);
+            if (persistedState.remarriageDate !== undefined) setRemarriageDate(persistedState.remarriageDate);
+            if (persistedState.hasChildUnder16 !== undefined) setHasChildUnder16(persistedState.hasChildUnder16);
+            if (persistedState.childBirthDate) setChildBirthDate(persistedState.childBirthDate);
+            if (persistedState.longevityAge !== undefined) setLongevityAge(persistedState.longevityAge);
+            if (persistedState.inflationRate !== undefined) setInflationRate(persistedState.inflationRate);
+        }
+    }, [isLoaded, persistedState]);
 
     // Persist ALL state changes
     useEffect(() => {

@@ -1688,26 +1688,47 @@ const ShowMeTheMoneyCalculator = () => {
         bubbleAge: 70
     });
 
-    const [isMarried, setIsMarried] = useState(persistedState.isMarried ?? getInitialMarriedState());
+    const [isMarried, setIsMarried] = useState(getInitialMarriedState());
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-    const [spouse1Dob, setSpouse1Dob] = useState(persistedState.spouse1Dob || getInitialSpouse1Dob());
-    const [spouse1Pia, setSpouse1Pia] = useState(persistedState.spouse1Pia || '');
-    const [spouse1PreferredYear, setSpouse1PreferredYear] = useState(persistedState.spouse1PreferredYear || 67);
-    const [spouse1PreferredMonth, setSpouse1PreferredMonth] = useState(persistedState.spouse1PreferredMonth || 0);
-    const [spouse2Dob, setSpouse2Dob] = useState(persistedState.spouse2Dob || getInitialSpouse2Dob());
-    const [spouse2Pia, setSpouse2Pia] = useState(persistedState.spouse2Pia || '');
-    const [spouse2PreferredYear, setSpouse2PreferredYear] = useState(persistedState.spouse2PreferredYear || 65);
-    const [spouse2PreferredMonth, setSpouse2PreferredMonth] = useState(persistedState.spouse2PreferredMonth || 0);
-    const [inflation, setInflation] = useState(persistedState.inflation || 0.025);
+    const [spouse1Dob, setSpouse1Dob] = useState(getInitialSpouse1Dob());
+    const [spouse1Pia, setSpouse1Pia] = useState('');
+    const [spouse1PreferredYear, setSpouse1PreferredYear] = useState(67);
+    const [spouse1PreferredMonth, setSpouse1PreferredMonth] = useState(0);
+    const [spouse2Dob, setSpouse2Dob] = useState(getInitialSpouse2Dob());
+    const [spouse2Pia, setSpouse2Pia] = useState('');
+    const [spouse2PreferredYear, setSpouse2PreferredYear] = useState(65);
+    const [spouse2PreferredMonth, setSpouse2PreferredMonth] = useState(0);
+    const [inflation, setInflation] = useState(0.025);
     
     // Retirement stages slider state (purely visual)
-    const [goGoEndAge, setGoGoEndAge] = useState(persistedState.goGoEndAge || 75);
-    const [slowGoEndAge, setSlowGoEndAge] = useState(persistedState.slowGoEndAge || 85);
+    const [goGoEndAge, setGoGoEndAge] = useState(75);
+    const [slowGoEndAge, setSlowGoEndAge] = useState(85);
     
     // Additional state variables that need to be declared before the persistence effect
-    const [monthlyNeeds, setMonthlyNeeds] = useState(persistedState.monthlyNeeds || 7000);
-    const [flowAge, setFlowAge] = useState(persistedState.flowAge || 70);
-    const [bubbleAge, setBubbleAge] = useState(persistedState.bubbleAge || 70);
+    const [monthlyNeeds, setMonthlyNeeds] = useState(7000);
+    const [flowAge, setFlowAge] = useState(70);
+    const [bubbleAge, setBubbleAge] = useState(70);
+    
+    // Load persisted state when it becomes available
+    useEffect(() => {
+        if (isLoaded && persistedState) {
+            if (persistedState.isMarried !== undefined) setIsMarried(persistedState.isMarried);
+            if (persistedState.spouse1Dob) setSpouse1Dob(persistedState.spouse1Dob);
+            if (persistedState.spouse1Pia !== undefined) setSpouse1Pia(persistedState.spouse1Pia);
+            if (persistedState.spouse1PreferredYear !== undefined) setSpouse1PreferredYear(persistedState.spouse1PreferredYear);
+            if (persistedState.spouse1PreferredMonth !== undefined) setSpouse1PreferredMonth(persistedState.spouse1PreferredMonth);
+            if (persistedState.spouse2Dob) setSpouse2Dob(persistedState.spouse2Dob);
+            if (persistedState.spouse2Pia !== undefined) setSpouse2Pia(persistedState.spouse2Pia);
+            if (persistedState.spouse2PreferredYear !== undefined) setSpouse2PreferredYear(persistedState.spouse2PreferredYear);
+            if (persistedState.spouse2PreferredMonth !== undefined) setSpouse2PreferredMonth(persistedState.spouse2PreferredMonth);
+            if (persistedState.inflation !== undefined) setInflation(persistedState.inflation);
+            if (persistedState.goGoEndAge !== undefined) setGoGoEndAge(persistedState.goGoEndAge);
+            if (persistedState.slowGoEndAge !== undefined) setSlowGoEndAge(persistedState.slowGoEndAge);
+            if (persistedState.monthlyNeeds !== undefined) setMonthlyNeeds(persistedState.monthlyNeeds);
+            if (persistedState.flowAge !== undefined) setFlowAge(persistedState.flowAge);
+            if (persistedState.bubbleAge !== undefined) setBubbleAge(persistedState.bubbleAge);
+        }
+    }, [isLoaded, persistedState]);
     
     // Persist ALL state changes
     useEffect(() => {
