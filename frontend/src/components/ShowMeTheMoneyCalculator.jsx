@@ -1669,26 +1669,32 @@ const ShowMeTheMoneyCalculator = () => {
         return '1965-06-18';
     };
 
-    // Persistence hook for calculator settings
+    // Persistence hook for calculator settings - ALL user inputs
     const { state: persistedState, setState: setPersistedState, isLoaded } = useCalculatorPersistence('showMeTheMoney', {
+        isMarried: getInitialMarriedState(),
+        spouse1Dob: getInitialSpouse1Dob(),
         spouse1Pia: '',
         spouse1PreferredYear: 67,
         spouse1PreferredMonth: 0,
+        spouse2Dob: getInitialSpouse2Dob(),
         spouse2Pia: '',
         spouse2PreferredYear: 65,
         spouse2PreferredMonth: 0,
         inflation: 0.025,
         goGoEndAge: 75,
-        slowGoEndAge: 85
+        slowGoEndAge: 85,
+        monthlyNeeds: 7000,
+        flowAge: 70,
+        bubbleAge: 70
     });
 
-    const [isMarried, setIsMarried] = useState(getInitialMarriedState());
+    const [isMarried, setIsMarried] = useState(persistedState.isMarried ?? getInitialMarriedState());
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-    const [spouse1Dob, setSpouse1Dob] = useState(getInitialSpouse1Dob());
+    const [spouse1Dob, setSpouse1Dob] = useState(persistedState.spouse1Dob || getInitialSpouse1Dob());
     const [spouse1Pia, setSpouse1Pia] = useState(persistedState.spouse1Pia || '');
     const [spouse1PreferredYear, setSpouse1PreferredYear] = useState(persistedState.spouse1PreferredYear || 67);
     const [spouse1PreferredMonth, setSpouse1PreferredMonth] = useState(persistedState.spouse1PreferredMonth || 0);
-    const [spouse2Dob, setSpouse2Dob] = useState(getInitialSpouse2Dob());
+    const [spouse2Dob, setSpouse2Dob] = useState(persistedState.spouse2Dob || getInitialSpouse2Dob());
     const [spouse2Pia, setSpouse2Pia] = useState(persistedState.spouse2Pia || '');
     const [spouse2PreferredYear, setSpouse2PreferredYear] = useState(persistedState.spouse2PreferredYear || 65);
     const [spouse2PreferredMonth, setSpouse2PreferredMonth] = useState(persistedState.spouse2PreferredMonth || 0);
@@ -1698,22 +1704,28 @@ const ShowMeTheMoneyCalculator = () => {
     const [goGoEndAge, setGoGoEndAge] = useState(persistedState.goGoEndAge || 75);
     const [slowGoEndAge, setSlowGoEndAge] = useState(persistedState.slowGoEndAge || 85);
     
-    // Persist state changes
+    // Persist ALL state changes
     useEffect(() => {
         if (isLoaded) {
             setPersistedState({
+                isMarried,
+                spouse1Dob,
                 spouse1Pia,
                 spouse1PreferredYear,
                 spouse1PreferredMonth,
+                spouse2Dob,
                 spouse2Pia,
                 spouse2PreferredYear,
                 spouse2PreferredMonth,
                 inflation,
                 goGoEndAge,
-                slowGoEndAge
+                slowGoEndAge,
+                monthlyNeeds,
+                flowAge,
+                bubbleAge
             });
         }
-    }, [spouse1Pia, spouse1PreferredYear, spouse1PreferredMonth, spouse2Pia, spouse2PreferredYear, spouse2PreferredMonth, inflation, goGoEndAge, slowGoEndAge, isLoaded, setPersistedState]);
+    }, [isMarried, spouse1Dob, spouse1Pia, spouse1PreferredYear, spouse1PreferredMonth, spouse2Dob, spouse2Pia, spouse2PreferredYear, spouse2PreferredMonth, inflation, goGoEndAge, slowGoEndAge, monthlyNeeds, flowAge, bubbleAge, isLoaded, setPersistedState]);
     
     const [chartView, setChartView] = useState('monthly'); // monthly, cumulative, combined, earlyLate, post70, sscuts
     const [chartData, setChartData] = useState({ labels: [], datasets: [] });
@@ -1731,8 +1743,8 @@ const ShowMeTheMoneyCalculator = () => {
     const [ssCutsPayload, setSsCutsPayload] = useState(null);
     const [showSsCutInfo, setShowSsCutInfo] = useState(false);
     const [ssCutsAxisRanges, setSsCutsAxisRanges] = useState(null);
-    const [flowAge, setFlowAge] = useState(70);
-    const [monthlyNeeds, setMonthlyNeeds] = useState(7000);
+    const [flowAge, setFlowAge] = useState(persistedState.flowAge || 70);
+    const [monthlyNeeds, setMonthlyNeeds] = useState(persistedState.monthlyNeeds || 7000);
     const [selectedStrategy, setSelectedStrategy] = useState(2); // 0=62, 1=67, 2=70
     const [piaStrategy, setPiaStrategy] = useState('late'); // 'early' or 'late'
     const [showPiaFraModal, setShowPiaFraModal] = useState(false);
@@ -1747,7 +1759,7 @@ const ShowMeTheMoneyCalculator = () => {
     const [spouse2CurrentBenefit, setSpouse2CurrentBenefit] = useState(null);
     const [spouse2FiledAge, setSpouse2FiledAge] = useState(65);
     const [showAlreadyFiledModal, setShowAlreadyFiledModal] = useState(false);
-    const [bubbleAge, setBubbleAge] = useState(70); // Age slider for bubble chart
+    const [bubbleAge, setBubbleAge] = useState(persistedState.bubbleAge || 70); // Age slider for bubble chart
     
     // "Show me just this year" feature
     const [showYearView, setShowYearView] = useState(false);

@@ -1,20 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { StrategyTimelineToaster } from './ui';
+import { useCalculatorPersistence } from '../hooks/useCalculatorPersistence';
 
-const WidowCalculator = () => {
-    // Form inputs
-    const [birthDate, setBirthDate] = useState('1964-01-01');
-    const [ownPia, setOwnPia] = useState(1800);
-    const [deceasedSpousePia, setDeceasedSpousePia] = useState(2800);
-    const [deceasedActualBenefit, setDeceasedActualBenefit] = useState('');
-    const [deceasedSpouseDeathDate, setDeceasedSpouseDeathDate] = useState('2023-01-01');
-    const [isRemarried, setIsRemarried] = useState(false);
-    const [remarriageDate, setRemarriageDate] = useState('');
-    const [hasChildUnder16, setHasChildUnder16] = useState(false);
-    const [childBirthDate, setChildBirthDate] = useState('2015-01-01');
-    const [longevityAge, setLongevityAge] = useState(95);
-    const [inflationRate, setInflationRate] = useState(0.025);
+const WidowCalculator = ({ onSwitchToMarried }) => {
+    // Persistence hook for ALL user inputs
+    const { state: persistedState, setState: setPersistedState, isLoaded } = useCalculatorPersistence('widow', {
+        birthDate: '1964-01-01',
+        ownPia: 1800,
+        deceasedSpousePia: 2800,
+        deceasedActualBenefit: '',
+        deceasedSpouseDeathDate: '2023-01-01',
+        isRemarried: false,
+        remarriageDate: '',
+        hasChildUnder16: false,
+        childBirthDate: '2015-01-01',
+        longevityAge: 95,
+        inflationRate: 0.025
+    });
+
+    // Form inputs - initialized from persisted state
+    const [birthDate, setBirthDate] = useState(persistedState.birthDate || '1964-01-01');
+    const [ownPia, setOwnPia] = useState(persistedState.ownPia || 1800);
+    const [deceasedSpousePia, setDeceasedSpousePia] = useState(persistedState.deceasedSpousePia || 2800);
+    const [deceasedActualBenefit, setDeceasedActualBenefit] = useState(persistedState.deceasedActualBenefit || '');
+    const [deceasedSpouseDeathDate, setDeceasedSpouseDeathDate] = useState(persistedState.deceasedSpouseDeathDate || '2023-01-01');
+    const [isRemarried, setIsRemarried] = useState(persistedState.isRemarried || false);
+    const [remarriageDate, setRemarriageDate] = useState(persistedState.remarriageDate || '');
+    const [hasChildUnder16, setHasChildUnder16] = useState(persistedState.hasChildUnder16 || false);
+    const [childBirthDate, setChildBirthDate] = useState(persistedState.childBirthDate || '2015-01-01');
+    const [longevityAge, setLongevityAge] = useState(persistedState.longevityAge || 95);
+    const [inflationRate, setInflationRate] = useState(persistedState.inflationRate || 0.025);
 
     // Results
     const [results, setResults] = useState(null);
@@ -24,6 +40,25 @@ const WidowCalculator = () => {
     const [showDeceasedSpousePiaModal, setShowDeceasedSpousePiaModal] = useState(false);
     const [hoveredStrategyIndex, setHoveredStrategyIndex] = useState(null);
     const [detailPanelOffset, setDetailPanelOffset] = useState(0);
+
+    // Persist ALL state changes
+    useEffect(() => {
+        if (isLoaded) {
+            setPersistedState({
+                birthDate,
+                ownPia,
+                deceasedSpousePia,
+                deceasedActualBenefit,
+                deceasedSpouseDeathDate,
+                isRemarried,
+                remarriageDate,
+                hasChildUnder16,
+                childBirthDate,
+                longevityAge,
+                inflationRate
+            });
+        }
+    }, [birthDate, ownPia, deceasedSpousePia, deceasedActualBenefit, deceasedSpouseDeathDate, isRemarried, remarriageDate, hasChildUnder16, childBirthDate, longevityAge, inflationRate, isLoaded, setPersistedState]);
 
     useEffect(() => {
         setActiveStrategyDetails(null);

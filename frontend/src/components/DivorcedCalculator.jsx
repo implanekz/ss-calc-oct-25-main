@@ -1,19 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { StrategyTimelineToaster } from './ui';
+import { useCalculatorPersistence } from '../hooks/useCalculatorPersistence';
 
 const DivorcedCalculator = ({ onSwitchToMarried }) => {
-    // Form inputs
-    const [birthDate, setBirthDate] = useState('1963-01-01');
-    const [ownPia, setOwnPia] = useState(1800);
-    const [exSpousePia, setExSpousePia] = useState(2800);
-    const [marriageDurationYears, setMarriageDurationYears] = useState(15);
-    const [divorceDate, setDivorceDate] = useState('2010-01-01');
-    const [isRemarried, setIsRemarried] = useState(false);
-    const [hasChildUnder16, setHasChildUnder16] = useState(false);
-    const [childBirthDate, setChildBirthDate] = useState('2015-01-01');
-    const [longevityAge, setLongevityAge] = useState(90);
-    const [inflationRate, setInflationRate] = useState(0.025);
+    // Persistence hook for ALL user inputs
+    const { state: persistedState, setState: setPersistedState, isLoaded } = useCalculatorPersistence('divorced', {
+        birthDate: '1963-01-01',
+        ownPia: 1800,
+        exSpousePia: 2800,
+        marriageDurationYears: 15,
+        divorceDate: '2010-01-01',
+        isRemarried: false,
+        hasChildUnder16: false,
+        childBirthDate: '2015-01-01',
+        longevityAge: 90,
+        inflationRate: 0.025
+    });
+
+    // Form inputs - initialized from persisted state
+    const [birthDate, setBirthDate] = useState(persistedState.birthDate || '1963-01-01');
+    const [ownPia, setOwnPia] = useState(persistedState.ownPia || 1800);
+    const [exSpousePia, setExSpousePia] = useState(persistedState.exSpousePia || 2800);
+    const [marriageDurationYears, setMarriageDurationYears] = useState(persistedState.marriageDurationYears || 15);
+    const [divorceDate, setDivorceDate] = useState(persistedState.divorceDate || '2010-01-01');
+    const [isRemarried, setIsRemarried] = useState(persistedState.isRemarried || false);
+    const [hasChildUnder16, setHasChildUnder16] = useState(persistedState.hasChildUnder16 || false);
+    const [childBirthDate, setChildBirthDate] = useState(persistedState.childBirthDate || '2015-01-01');
+    const [longevityAge, setLongevityAge] = useState(persistedState.longevityAge || 90);
+    const [inflationRate, setInflationRate] = useState(persistedState.inflationRate || 0.025);
 
     // Results
     const [results, setResults] = useState(null);
@@ -23,6 +38,24 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
     const [showExSpousePiaModal, setShowExSpousePiaModal] = useState(false);
     const [hoveredStrategyIndex, setHoveredStrategyIndex] = useState(null);
     const [detailPanelOffset, setDetailPanelOffset] = useState(0);
+
+    // Persist ALL state changes
+    useEffect(() => {
+        if (isLoaded) {
+            setPersistedState({
+                birthDate,
+                ownPia,
+                exSpousePia,
+                marriageDurationYears,
+                divorceDate,
+                isRemarried,
+                hasChildUnder16,
+                childBirthDate,
+                longevityAge,
+                inflationRate
+            });
+        }
+    }, [birthDate, ownPia, exSpousePia, marriageDurationYears, divorceDate, isRemarried, hasChildUnder16, childBirthDate, longevityAge, inflationRate, isLoaded, setPersistedState]);
 
     useEffect(() => {
         setActiveStrategyDetails(null);
