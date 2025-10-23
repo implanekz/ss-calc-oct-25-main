@@ -117,8 +117,9 @@ class SSAXMLProcessor:
             
             earnings_history = []
             for record in earnings_elements:
-                year = int(self._safe_find_text(record, './/Year', '0'))
-                earnings = float(self._safe_find_text(record, './/Earnings', '0'))
+                # Use relative paths since we're already inside the EarningsRecord element
+                year = int(self._safe_find_text(record, 'Year', '0'))
+                earnings = float(self._safe_find_text(record, 'Earnings', '0'))
                 
                 if year > 0:  # Valid year
                     earnings_record = EarningsRecord(
@@ -127,6 +128,10 @@ class SSAXMLProcessor:
                         is_zero=(earnings == 0)
                     )
                     earnings_history.append(earnings_record)
+            
+            # Validate that we got some earnings
+            if not earnings_history:
+                raise ValueError("No earnings history found in XML file. Please check XML format.")
             
             # Sort by year
             earnings_history.sort(key=lambda x: x.year)
