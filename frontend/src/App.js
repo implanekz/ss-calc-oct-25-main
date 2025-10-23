@@ -157,7 +157,7 @@ function LoginScreen() {
   );
 }
 
-// Onboarding screen - Single page with conditional sections
+// Onboarding screen - Single page with all fields visible
 function OnboardingScreen({ devMode = null }) {
   const [formData, setFormData] = useState({
     dateOfBirth: '',
@@ -170,9 +170,7 @@ function OnboardingScreen({ devMode = null }) {
     marriageLength: '',
     dateOfDeath: '',
     // Children
-    children: [],
-    // Calculator
-    preferredCalculator: ''
+    children: []
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -180,25 +178,6 @@ function OnboardingScreen({ devMode = null }) {
   // Use dev mode handlers if provided, otherwise use real User context
   const realUserContext = useUser();
   const { profile, completeOnboarding, updateProfile } = devMode || realUserContext;
-
-  // Auto-select recommended calculator based on relationship status
-  const getRecommendedCalculator = (status) => {
-    const mapping = {
-      'single': 'married',
-      'married': 'married',
-      'divorced': 'divorced',
-      'widowed': 'widowed'
-    };
-    return mapping[status] || 'married';
-  };
-
-  const handleRelationshipChange = (status) => {
-    setFormData({
-      ...formData,
-      relationshipStatus: status,
-      preferredCalculator: getRecommendedCalculator(status)
-    });
-  };
 
   const addChild = () => {
     setFormData({
@@ -219,8 +198,17 @@ function OnboardingScreen({ devMode = null }) {
   };
 
   const handleComplete = async () => {
+    // Validation
+    if (!formData.dateOfBirth) {
+      setError('Please enter your date of birth');
+      return;
+    }
     if (!formData.relationshipStatus) {
       setError('Please select your relationship status');
+      return;
+    }
+    if (formData.receivingBenefits === null) {
+      setError('Please indicate if you are receiving Social Security benefits');
       return;
     }
 
@@ -235,8 +223,8 @@ function OnboardingScreen({ devMode = null }) {
         already_receiving_benefits: formData.receivingBenefits === true
       });
 
-      // Save partner info if applicable
-      if (['married', 'divorced', 'widowed'].includes(formData.relationshipStatus) && formData.partnerDob) {
+          // Save partner info if applicable (not required, but save if provided)
+          if (['married', 'divorced', 'widowed'].includes(formData.relationshipStatus) && formData.partnerDob) {
         const partnerData = {
           relationship_type: formData.relationshipStatus === 'married' ? 'spouse' : 
                             formData.relationshipStatus === 'divorced' ? 'ex_spouse' : 'deceased_spouse',
@@ -296,300 +284,280 @@ function OnboardingScreen({ devMode = null }) {
     }
   };
 
-  const showPartnerSection = ['married', 'divorced', 'widowed'].includes(formData.relationshipStatus);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 px-4">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 px-4">
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-slate-900 mb-3">Welcome to SS K.I.N.D. ✨</h1>
-          <p className="text-lg text-slate-600">Let's personalize your Social Security optimization plan</p>
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Let's personalize SS K.I.N.D.</h1>
+          <p className="text-slate-600">We use your information to provide the most accurate Social Security analysis</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8 space-y-8">
+        <div className="bg-white rounded-2xl shadow-lg p-8">
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-              <p className="text-red-800">{error}</p>
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded mb-6">
+              <p className="text-red-800 font-medium">{error}</p>
             </div>
           )}
 
-          {/* 1. Your Date of Birth */}
-          <section>
-            <h2 className="text-xl font-semibold text-slate-900 mb-4">What's your date of birth?</h2>
-            <input
-              type="date"
-              value={formData.dateOfBirth || ''}
-              onChange={(e) => setFormData({...formData, dateOfBirth: e.target.value})}
-              className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-lg"
-              required
-            />
-            <p className="text-sm text-slate-500 mt-2">
-              📌 This cannot be changed later to protect your account security
-            </p>
-          </section>
-
-          {/* 2. Relationship Status */}
-          {formData.dateOfBirth && (
-          <section className="animate-fade-in">
-            <h2 className="text-xl font-semibold text-slate-900 mb-4">What's your relationship status?</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[
-                { value: 'single', emoji: '👤', label: 'Single', desc: 'Not currently married' },
-                { value: 'married', emoji: '💑', label: 'Married', desc: 'Currently married' },
-                { value: 'divorced', emoji: '💔', label: 'Divorced', desc: 'Previously married' },
-                { value: 'widowed', emoji: '🕊️', label: 'Widowed', desc: 'Spouse is deceased' }
-              ].map(status => (
-                <button
-                  key={status.value}
-                  onClick={() => handleRelationshipChange(status.value)}
-                  className={`p-6 rounded-xl border-2 transition-all text-left ${
-                    formData.relationshipStatus === status.value
-                      ? 'border-blue-500 bg-blue-50 shadow-md scale-105'
-                      : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
-                  }`}
-                >
-                  <div className="text-4xl mb-2">{status.emoji}</div>
-                  <div className="font-semibold text-lg text-slate-900">{status.label}</div>
-                  <div className="text-sm text-slate-600">{status.desc}</div>
-                </button>
-              ))}
-            </div>
-          </section>
-          )}
-
-          {/* 2. Benefits Status */}
-          {formData.relationshipStatus && (
-            <section className="animate-fade-in">
-              <h2 className="text-xl font-semibold text-slate-900 mb-4">Are you currently receiving Social Security benefits?</h2>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setFormData({...formData, receivingBenefits: false})}
-                  className={`flex-1 p-4 rounded-xl border-2 transition-all ${
-                    formData.receivingBenefits === false
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-slate-200 hover:border-blue-300'
-                  }`}
-                >
-                  <div className="text-2xl mb-1">📋</div>
-                  <div className="font-semibold">No</div>
-                  <div className="text-sm text-slate-600">Not yet receiving</div>
-                </button>
-                <button
-                  onClick={() => setFormData({...formData, receivingBenefits: true})}
-                  className={`flex-1 p-4 rounded-xl border-2 transition-all ${
-                    formData.receivingBenefits === true
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-slate-200 hover:border-blue-300'
-                  }`}
-                >
-                  <div className="text-2xl mb-1">✅</div>
-                  <div className="font-semibold">Yes</div>
-                  <div className="text-sm text-slate-600">Currently receiving</div>
-                </button>
-              </div>
-            </section>
-          )}
-
-          {/* 3. Partner Information */}
-          {showPartnerSection && (
-            <section className="animate-fade-in border-t pt-8">
-              <h2 className="text-xl font-semibold text-slate-900 mb-4">
-                {formData.relationshipStatus === 'married' ? 'About your spouse' : 
-                 formData.relationshipStatus === 'divorced' ? 'About your ex-spouse' : 
-                 'About your deceased spouse'}
-              </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Left Column - Your Information */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-bold text-slate-900 border-b pb-2">Your Information</h3>
               
-              <div className="space-y-4">
+              {/* Date of Birth */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Date of birth
+                </label>
+                <input
+                  type="date"
+                  value={formData.dateOfBirth}
+                  onChange={(e) => setFormData({...formData, dateOfBirth: e.target.value})}
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              {/* Relationship Status */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Relationship status
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { value: 'single', label: 'Single' },
+                    { value: 'married', label: 'Married' },
+                    { value: 'divorced', label: 'Divorced' },
+                    { value: 'widowed', label: 'Widowed' }
+                  ].map(status => (
+                    <button
+                      key={status.value}
+                      type="button"
+                      onClick={() => setFormData({...formData, relationshipStatus: status.value})}
+                      className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${
+                        formData.relationshipStatus === status.value
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                      }`}
+                    >
+                      {status.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Benefits Status */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Receiving Social Security?
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, receivingBenefits: false})}
+                    className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${
+                      formData.receivingBenefits === false
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                    }`}
+                  >
+                    No
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, receivingBenefits: true})}
+                    className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${
+                      formData.receivingBenefits === true
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                    }`}
+                  >
+                    Yes
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Partner & Children */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-bold text-slate-900 border-b pb-2">
+                {formData.relationshipStatus === 'married' ? 'Spouse Information (optional)' :
+                 formData.relationshipStatus === 'divorced' ? 'Ex-Spouse Information (optional)' :
+                 formData.relationshipStatus === 'widowed' ? 'Deceased Spouse Information (optional)' :
+                 'Partner Information (optional)'}
+              </h3>
+              
+              {/* Partner DOB */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Date of birth
+                </label>
+                <input
+                  type="date"
+                  value={formData.partnerDob}
+                  onChange={(e) => setFormData({...formData, partnerDob: e.target.value})}
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* Partner Benefits */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Receiving benefits?
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, partnerReceivingBenefits: false})}
+                    className={`py-2 px-4 rounded-lg border-2 transition-all font-medium ${
+                      formData.partnerReceivingBenefits === false
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                    }`}
+                  >
+                    No
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, partnerReceivingBenefits: true})}
+                    className={`py-2 px-4 rounded-lg border-2 transition-all font-medium ${
+                      formData.partnerReceivingBenefits === true
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                    }`}
+                  >
+                    Yes
+                  </button>
+                </div>
+              </div>
+
+              {/* Divorce-specific fields */}
+              {formData.relationshipStatus === 'divorced' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Divorce date
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.divorceDate}
+                      onChange={(e) => setFormData({...formData, divorceDate: e.target.value})}
+                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Marriage length (years)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.marriageLength}
+                      onChange={(e) => setFormData({...formData, marriageLength: e.target.value})}
+                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="10"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Widowed-specific fields */}
+              {formData.relationshipStatus === 'widowed' && (
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    {formData.relationshipStatus === 'married' ? "Spouse's" : 
-                     formData.relationshipStatus === 'divorced' ? "Ex-spouse's" : 
-                     "Deceased spouse's"} date of birth
+                    Date of death
                   </label>
                   <input
                     type="date"
-                    value={formData.partnerDob}
-                    onChange={(e) => setFormData({...formData, partnerDob: e.target.value})}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    value={formData.dateOfDeath}
+                    onChange={(e) => setFormData({...formData, dateOfDeath: e.target.value})}
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Are they receiving Social Security benefits?
+              {/* Children Section */}
+              <div className="border-t pt-6 mt-2">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-medium text-slate-700">
+                    Children under 16 (optional)
                   </label>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setFormData({...formData, partnerReceivingBenefits: false})}
-                      className={`flex-1 py-2 px-4 rounded-lg border-2 transition ${
-                        formData.partnerReceivingBenefits === false
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-slate-200 hover:border-blue-300'
-                      }`}
-                    >
-                      No
-                    </button>
-                    <button
-                      onClick={() => setFormData({...formData, partnerReceivingBenefits: true})}
-                      className={`flex-1 py-2 px-4 rounded-lg border-2 transition ${
-                        formData.partnerReceivingBenefits === true
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-slate-200 hover:border-blue-300'
-                      }`}
-                    >
-                      Yes
-                    </button>
-                  </div>
-                </div>
-
-                {formData.relationshipStatus === 'divorced' && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Divorce date</label>
-                      <input
-                        type="date"
-                        value={formData.divorceDate}
-                        onChange={(e) => setFormData({...formData, divorceDate: e.target.value})}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Length of marriage (years)</label>
-                      <input
-                        type="number"
-                        value={formData.marriageLength}
-                        onChange={(e) => setFormData({...formData, marriageLength: e.target.value})}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        placeholder="10"
-                      />
-                    </div>
-                  </>
-                )}
-
-                {formData.relationshipStatus === 'widowed' && (
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Date of death</label>
-                    <input
-                      type="date"
-                      value={formData.dateOfDeath}
-                      onChange={(e) => setFormData({...formData, dateOfDeath: e.target.value})}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                )}
-              </div>
-            </section>
-          )}
-
-          {/* 4. Children */}
-          {formData.relationshipStatus && (
-            <section className="animate-fade-in border-t pt-8">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h2 className="text-xl font-semibold text-slate-900">Do you have any children under age 16?</h2>
-                  <p className="text-sm text-slate-600 mt-1">Only children under 16 qualify for certain Social Security benefits</p>
-                </div>
-                <button
-                  onClick={addChild}
-                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition"
-                >
-                  + Add Child
-                </button>
-              </div>
-
-              {formData.children.length > 0 && (
-                <div className="space-y-3">
-                  {formData.children.map((child, index) => (
-                    <div key={index} className="flex gap-3 items-center">
-                      <input
-                        type="date"
-                        value={child.dateOfBirth}
-                        onChange={(e) => updateChild(index, e.target.value)}
-                        className="flex-1 px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        placeholder="Child's date of birth"
-                      />
-                      <button
-                        onClick={() => removeChild(index)}
-                        className="px-4 py-3 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {formData.children.length === 0 && (
-                <p className="text-slate-500 text-center py-4 italic">No children added</p>
-              )}
-            </section>
-          )}
-
-          {/* 5. Recommended Calculator */}
-          {formData.relationshipStatus && (
-            <section className="animate-fade-in border-t pt-8">
-              <h2 className="text-xl font-semibold text-slate-900 mb-2">Choose your starting calculator</h2>
-              <p className="text-sm text-slate-600 mb-4">Based on your profile, we recommend starting here (you can switch anytime)</p>
-              
-              <div className="grid gap-3">
-                {[
-                  { value: 'married', emoji: '👫', label: 'Married/Single Calculator', desc: 'Optimize benefits for couples or individuals' },
-                  { value: 'divorced', emoji: '💔', label: 'Divorced Calculator', desc: 'Calculate ex-spouse and survivor benefits' },
-                  { value: 'widowed', emoji: '🕊️', label: 'Widowed Calculator', desc: 'Explore widow/widower benefits' }
-                ].map(calc => (
                   <button
-                    key={calc.value}
-                    onClick={() => setFormData({...formData, preferredCalculator: calc.value})}
-                    className={`p-4 rounded-xl border-2 transition-all text-left ${
-                      formData.preferredCalculator === calc.value
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-slate-200 hover:border-blue-300'
-                    } ${getRecommendedCalculator(formData.relationshipStatus) === calc.value ? 'ring-2 ring-blue-200' : ''}`}
+                    type="button"
+                    onClick={addChild}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="text-3xl">{calc.emoji}</div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-slate-900 flex items-center gap-2">
-                          {calc.label}
-                          {getRecommendedCalculator(formData.relationshipStatus) === calc.value && (
-                            <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">Recommended</span>
-                          )}
-                        </div>
-                        <div className="text-sm text-slate-600">{calc.desc}</div>
-                      </div>
-                    </div>
+                    + Add child
                   </button>
-                ))}
-              </div>
-            </section>
-          )}
+                </div>
 
-          {/* Complete Button */}
-          {formData.relationshipStatus && (
-            <div className="pt-6">
-              <button
-                onClick={handleComplete}
-                disabled={loading}
-                className="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold rounded-xl shadow-lg transition-all text-lg"
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Setting up your account...
-                  </span>
-                ) : (
-                  'Complete Setup & Start Planning →'
+                {formData.children.length > 0 && (
+                  <div className="space-y-2">
+                    {formData.children.map((child, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          type="date"
+                          value={child.dateOfBirth}
+                          onChange={(e) => updateChild(index, e.target.value)}
+                          className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeChild(index)}
+                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition text-sm"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
-              </button>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
 
-        {/* Footer note */}
-        <p className="text-center text-sm text-slate-500 mt-6">
-          You can always update your information later from the settings menu
-        </p>
+          {/* Save Button */}
+          <div className="mt-8">
+            <button
+              type="button"
+              onClick={handleComplete}
+              disabled={loading}
+              className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold rounded-xl shadow-md transition-all text-base"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Saving...
+                </span>
+              ) : (
+                'Save & Continue'
+              )}
+            </button>
+          </div>
+
+          {/* What Happens Next */}
+          <div className="mt-6 pt-6 border-t">
+            <h4 className="font-semibold text-slate-900 mb-3">What happens next?</h4>
+            <ul className="space-y-2 text-sm text-slate-700">
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 mt-0.5">•</span>
+                <span>Your profile is saved securely and can be updated anytime from Settings</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 mt-0.5">•</span>
+                <span>You'll be taken to the Social Security calculator best suited for your situation</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 mt-0.5">•</span>
+                <span>You can switch between calculators anytime using the navigation menu</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600 mt-0.5">•</span>
+                <span>All your inputs are automatically saved as you work</span>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   );
