@@ -1844,6 +1844,7 @@ const ShowMeTheMoneyCalculator = () => {
     const calculateProjections = (pia, dob, filingYear, filingMonth, inflationRate) => {
         const birthDate = new Date(dob);
         const birthYear = birthDate.getFullYear();
+        const birthMonthIndex = birthDate.getMonth(); // 0-11
         const claimAgeYears = filingYear + (filingMonth || 0) / 12;
         const currentAgeMonths = ageInMonths(birthDate, new Date());
         const currentAgeYears = currentAgeMonths / 12;
@@ -1868,15 +1869,21 @@ const ShowMeTheMoneyCalculator = () => {
 
         for (let year = startYear; year <= endYear; year++) {
             let monthlyBenefit = 0;
+            let monthsInYear = 12;
 
             if (year >= claimingCalendarYear) {
                 const yearsAfterClaim = year - claimingCalendarYear;
                 monthlyBenefit = benefitAfterClaim(baseMonthlyAtClaim, yearsAfterClaim, inflationRate);
+                
+                // In the claiming year, only count months after birthday month
+                if (year === claimingCalendarYear) {
+                    monthsInYear = 12 - birthMonthIndex; // e.g., if born in June (month 5), get 7 months
+                }
             }
 
             const roundedMonthly = Number(monthlyBenefit.toFixed(2));
             monthlyProjection[year] = roundedMonthly;
-            cumulative = Number((cumulative + roundedMonthly * 12).toFixed(2));
+            cumulative = Number((cumulative + roundedMonthly * monthsInYear).toFixed(2));
             cumulativeProjection[year] = cumulative;
         }
 
@@ -4045,7 +4052,7 @@ const ShowMeTheMoneyCalculator = () => {
                                             monthly: projections.age70.monthly[calendarYear] || 0,
                                             cumulative: cumulativeSince70(projections.age70),
                                             filingAge: 70,
-                                            started: selectedYearAge >= 70
+                                            started: (projections.age70.monthly[calendarYear] || 0) > 0
                                         },
                                         {
                                             name: 'File at 67',
@@ -4054,7 +4061,7 @@ const ShowMeTheMoneyCalculator = () => {
                                             monthly: projections.preferred.monthly[calendarYear] || 0,
                                             cumulative: cumulativeSince70(projections.preferred),
                                             filingAge: 67,
-                                            started: selectedYearAge >= 67
+                                            started: (projections.preferred.monthly[calendarYear] || 0) > 0
                                         },
                                         {
                                             name: 'File at 62',
@@ -4063,7 +4070,7 @@ const ShowMeTheMoneyCalculator = () => {
                                             monthly: projections.age62.monthly[calendarYear] || 0,
                                             cumulative: cumulativeSince70(projections.age62),
                                             filingAge: 62,
-                                            started: selectedYearAge >= 62
+                                            started: (projections.age62.monthly[calendarYear] || 0) > 0
                                         }
                                     ];
 
