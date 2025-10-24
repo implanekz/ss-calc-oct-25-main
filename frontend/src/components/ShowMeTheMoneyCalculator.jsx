@@ -4036,12 +4036,13 @@ const ShowMeTheMoneyCalculator = () => {
                                             : scenarioData.combinedProjections;
 
                                     // Calculate cumulative since age 70 for each strategy
-                                    const age70CalendarYear = primaryBirthYear + 70;
+                                    // Use age 69 as baseline so age 70 is fully included in "since 70"
+                                    const age69CalendarYear = primaryBirthYear + 69;
                                     const cumulativeSince70 = (projection) => {
                                         if (selectedYearAge < 70) return 0;
                                         const currentCumulative = projection.cumulative[calendarYear] || 0;
-                                        const age70Cumulative = projection.cumulative[age70CalendarYear] || 0;
-                                        return Math.max(0, currentCumulative - age70Cumulative);
+                                        const age69Cumulative = projection.cumulative[age69CalendarYear] || 0;
+                                        return Math.max(0, currentCumulative - age69Cumulative);
                                     };
 
                                     const strategies = [
