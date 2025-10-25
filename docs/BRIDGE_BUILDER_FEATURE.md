@@ -80,6 +80,112 @@ The personalization isn't UI polish - it's the entire psychological foundation.
 
 ---
 
+## The Client Journey: From Albatross to Eagle
+
+### The Devastating Reality of Filing at 62
+
+> "Most people file at 62 and leave hundreds of thousands of dollars on the table... unknowingly and unnecessarily."
+
+When someone files at age 62, they receive a **permanently reduced benefit** - only 70% of their Primary Insurance Amount (PIA). This isn't temporary. It's for life.
+
+**The Albatross:**
+- Their benefit is so reduced that it can barely cover their bills
+- They thought they were buying freedom, but they've chained themselves to inadequacy
+- They still need to bridge from their savings... forever
+- Instead of building a bridge to age 70 with maximum benefits waiting, they're building a bridge to the end of their lives
+- That crippled benefit hangs around their neck like an albatross
+
+### The Empowering Alternative
+
+> "So if you're building the bridge anyway, why not have a pot of gold at the other side?"
+
+This question reframes everything:
+- ❌ Not: "Should I delay?" (scary, uncertain)
+- ✅ Instead: "Where do I want my bridge to lead?" (empowering, strategic)
+
+**The Choice:**
+1. **Bridge to nowhere:** File at 62, crippled benefit forever
+2. **Bridge to the eagle:** Wait until 70, maximum benefit for life
+
+### The Journey Arc: Building Momentum
+
+**Phase 1: Ages 62-67 (The Foundation)**
+- Small monthly wins build confidence
+- "One month at a time" makes it manageable
+- Each month avoided saves them from permanent reduction
+- **Total structural benefit increase: 42.86%** (from 70% to 100% of PIA)
+
+**Phase 2: Ages 67-70 (The Acceleration) 🚀**
+
+This is when clients get "juiced and excited."
+
+When they hit age 67 (Full Retirement Age), **Delayed Retirement Credits kick in:**
+- **8% increase per year** (0.67% per month)
+- **PLUS** annual COLA (assume 3%)
+- Over 3 years: **~37% total increase** from age 67 to 70
+
+The math:
+```
+Year 1 (67→68): 1.08 × 1.03 = 1.1124 (+11.24%)
+Year 2 (68→69): 1.1124 × 1.08 × 1.03 = 1.2378 (+11.26% more)
+Year 3 (69→70): 1.2378 × 1.08 × 1.03 = 1.3767 (+11.22% more)
+
+Total from age 67 to 70: ~37.67% increase
+```
+
+This is where momentum becomes unstoppable. They're not just avoiding losses anymore - they're **actively earning** massive guaranteed increases.
+
+**Phase 3: The Victory (Age 70)**
+
+From age 62 to age 70, the total structural increase is **77%** (without COLA):
+- Filing at 62: 70% of PIA
+- Filing at 70: 124% of PIA (100% + 24% DRCs)
+- Increase: 124% ÷ 70% = **1.77 = 77% more**
+
+**With 8 years of 3% COLA compounding, the real-world difference is even larger.**
+
+### The Transformation
+
+**The Albatross (File at 62):**
+- Permanently reduced benefit (70% of PIA)
+- Can't cover expenses
+- Must draw from savings forever
+- Bridge to the end of life with inadequacy
+
+**The Eagle (Wait to 70):**
+- Maximum benefit (124% of PIA)
+- Covers most/all expenses
+- Preserves savings
+- Bridge to freedom and security
+
+### Why "One Month at a Time" Makes This Possible
+
+Without breaking it down:
+- "Wait 8 years" feels impossible
+- The math is overwhelming
+- Fear wins, they file early
+
+With monthly micro-commitments:
+- "Wait one more month" feels doable
+- Each month is a small victory
+- Momentum builds naturally
+- At age 67, they hit the acceleration phase and get excited
+- They see the light at the end of the tunnel
+- **The albatross becomes an eagle** 🦅
+
+### Messaging Strategy by Phase
+
+**Ages 62-67: Stop the Bleeding**
+> "Each month you wait, you KEEP more of your full benefit. This month prevents a permanent X% reduction."
+
+**Ages 67-70: Capture the Gains**
+> "Each month you wait, you EARN 0.67% more for life, PLUS inflation protection. This is when patience pays the most!"
+
+**At Age 70: Victory**
+> "You've transformed your benefit from an albatross to an eagle. You've earned 77% more in guaranteed lifetime income. This is financial freedom."
+
+---
+
 ## Feature Specifications
 
 ### Modal Name
