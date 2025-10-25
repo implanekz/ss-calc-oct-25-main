@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>One Month at a Time - Demo</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .demo-container {
+      max-width: 800px;
+      width: 100%;
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    h1 {
+      color: #4c51bf;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: #718096;
+      margin-bottom: 30px;
+    }
+    
+    .demo-button {
+      display: block;
+      width: 100%;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-bottom: 20px;
+    }
+    
+    .demo-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+    
+    .demo-button:active {
+      transform: translateY(0);
+    }
+    
+    .info-box {
+      background: #f7fafc;
+      border-left: 4px solid #4c51bf;
+      padding: 20px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    
+    .info-box h3 {
+      margin-top: 0;
+      color: #2d3748;
+    }
+    
+    .info-box ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+    
+    .info-box li {
+      margin: 8px 0;
+      color: #4a5568;
+    }
+    
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .feature-card {
+      background: #edf2f7;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    
+    .feature-card h4 {
+      margin: 0 0 8px 0;
+      color: #2d3748;
+      font-size: 14px;
+    }
+    
+    .feature-card p {
+      margin: 0;
+      color: #718096;
+      font-size: 12px;
+    }
+    
+    .status {
+      background: #c6f6d5;
+      color: #22543d;
+      padding: 8px 16px;
+      border-radius: 20px;
+      display: inline-block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 20px;
+    }
+    
+    .note {
+      background: #fff5f5;
+      border: 1px solid #feb2b2;
+      color: #742a2a;
+      padding: 15px;
+      border-radius: 5px;
+      font-size: 14px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <h1>🎯 One Month at a Time</h1>
+    <p class="subtitle">Interactive Demo of the "Building the Bridge" Feature</p>
+    
+    <button class="demo-button" onclick="openReactApp()">
+      🚀 Launch Interactive Demo
+    </button>
+    
+    <div class="info-box">
+      <h3>What is this feature?</h3>
+      <p>The "One Month at a Time" feature helps users understand the value of delaying Social Security benefits by breaking down the 8-year wait (age 62 to 70) into 96 achievable monthly micro-commitments.</p>
+      
+      <h4 style="margin-top: 15px;">Key Components:</h4>
+      <ul>
+        <li><strong>Three-Bar Chart:</strong> Visual comparison of benefits at 62, current selection, and 70</li>
+        <li><strong>Month/Year Controls:</strong> Easy increment/decrement by months or years</li>
+        <li><strong>Benefit Calculations:</strong> Accurate SS calculations including FRA and DRCs</li>
+        <li><strong>Output Display:</strong> Shows monthly gain and cumulative lifetime benefit</li>
+      </ul>
+    </div>
+    
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>📊 Visual Impact</h4>
+        <p>See your benefits grow month by month</p>
+      </div>
+      <div class="feature-card">
+        <h4>💰 Real Numbers</h4>
+        <p>Actual dollar values for each decision</p>
+      </div>
+      <div class="feature-card">
+        <h4>🎯 Micro-Commitments</h4>
+        <p>96 small steps instead of 1 big leap</p>
+      </div>
+      <div class="feature-card">
+        <h4>✅ RISE & SHINE</h4>
+        <p>Navigate stage of the framework</p>
+      </div>
+    </div>
+    
+    <div style="text-align: center;">
+      <span class="status">✓ MVP Complete</span>
+    </div>
+    
+    <div class="note">
+      <strong>Note:</strong> To see this feature in action, you need to integrate it into your React app. 
+      The button above is a placeholder. See the integration guide in 
+      <code>docs/features/one-month-at-a-time-implementation-plan.md</code> for instructions.
+    </div>
+  </div>
+  
+  <script>
+    function openReactApp() {
+      alert('To use this feature:\n\n1. Import OneMonthAtATimeModal into your React component\n2. Add state to control modal visibility\n3. Pass benefit data as props\n\nSee the implementation plan for details!');
+      
+      // In a real implementation, this would trigger the React modal
+      // For now, we show instructions
+      console.log('OneMonthAtATimeModal should be imported and used in a React component');
+    }
+  </script>
+</body>
+</html>
