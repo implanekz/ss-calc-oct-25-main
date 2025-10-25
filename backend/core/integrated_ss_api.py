@@ -212,7 +212,7 @@ class WhatIfComparisonResult(BaseModel):
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="Social Security K.I.N.D. Platform API",
+    title="The RISE and SHINE Method™ API",
     description="Complete Social Security optimization with XML earnings analysis",
     version="2.0.0"
 )
@@ -238,7 +238,7 @@ user_sessions = {}
 @app.get("/")
 async def root():
     """Health check endpoint"""
-    return {"message": "Social Security K.I.N.D. Platform API", "status": "healthy", "version": "2.0.0"}
+    return {"message": "The RISE and SHINE Method™ API", "status": "healthy", "version": "2.0.0"}
 
 @app.post("/generate-bcr")
 async def generate_bcr_endpoint(request: BCRRequest):

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EarningsRecord>
+  <Meta>
+    <AsOf>2025-10-16</AsOf>
+    <Note>SSA-style projection: ages 61–67 repeat latest earnings; includes 3 historical zero years and 2 low years.</Note>
+  </Meta>
+  <TaxedEarnings>
+    <Year year="1997" amount="30000"/>
+    <Year year="1998" amount="31500"/>
+    <Year year="1999" amount="33000"/>
+    <Year year="2000" amount="80000"/>
+    <Year year="2001" amount="0"/>
+    <Year year="2002" amount="83000"/>
+    <Year year="2003" amount="84500"/>
+    <Year year="2004" amount="20000"/>
+    <Year year="2005" amount="80000"/>
+    <Year year="2006" amount="81500"/>
+    <Year year="2007" amount="83000"/>
+    <Year year="2008" amount="84500"/>
+    <Year year="2009" amount="0"/>
+    <Year year="2010" amount="80000"/>
+    <Year year="2011" amount="81500"/>
+    <Year year="2012" amount="20000"/>
+    <Year year="2013" amount="84500"/>
+    <Year year="2014" amount="86000"/>
+    <Year year="2015" amount="80000"/>
+    <Year year="2016" amount="0"/>
+    <Year year="2017" amount="83000"/>
+    <Year year="2018" amount="84500"/>
+    <Year year="2019" amount="86000"/>
+    <Year year="2020" amount="80000"/>
+    <Year year="2021" amount="81500"/>
+    <Year year="2022" amount="83000"/>
+    <Year year="2023" amount="84500"/>
+    <Year year="2024" amount="86000"/>
+    <Year year="2025" amount="80000"/>
+    <Year year="2026" amount="80000"/>
+    <Year year="2027" amount="80000"/>
+    <Year year="2028" amount="80000"/>
+    <Year year="2029" amount="80000"/>
+    <Year year="2030" amount="80000"/>
+    <Year year="2031" amount="80000"/>
+  </TaxedEarnings>
+</EarningsRecord>

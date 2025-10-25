@@ -109,28 +109,60 @@ class SSAXMLProcessor:
                 'statement_date': self.statement_date.strftime('%Y-%m-%d')
             }
 
-            # Extract earnings history
-            earnings_elements = root.findall('.//EarningsRecord')
-            if not earnings_elements:
-                # Try alternative XML structure
-                earnings_elements = root.findall('.//YearlyEarnings')
-            
+            # Extract earnings history - support multiple XML formats
             earnings_history = []
-            for record in earnings_elements:
-                # Use relative paths since we're already inside the EarningsRecord element
-                year = int(self._safe_find_text(record, 'Year', '0'))
-                earnings = float(self._safe_find_text(record, 'Earnings', '0'))
+            
+            # Format 1: SSA nested structure with EarningsRecord elements
+            earnings_elements = root.findall('.//EarningsRecord')
+            
+            if earnings_elements:
+                # SSA format: <EarningsRecord><Year>1997</Year><Earnings>30000</Earnings></EarningsRecord>
+                print(f"DEBUG: Found {len(earnings_elements)} EarningsRecord elements (SSA format)")
+                for record in earnings_elements:
+                    year_text = self._safe_find_text(record, 'Year', '0')
+                    earnings_text = self._safe_find_text(record, 'Earnings', '0')
+                    
+                    print(f"DEBUG: SSA format - Year: {year_text}, Earnings: {earnings_text}")
+                    
+                    year = int(year_text)
+                    earnings = float(earnings_text)
+                    
+                    if year > 0:
+                        earnings_history.append(EarningsRecord(
+                            year=year,
+                            earnings=earnings,
+                            is_zero=(earnings == 0)
+                        ))
+            else:
+                # Format 2: Attribute-based format with Year elements
+                year_elements = root.findall('.//Year')
                 
-                if year > 0:  # Valid year
-                    earnings_record = EarningsRecord(
-                        year=year,
-                        earnings=earnings,
-                        is_zero=(earnings == 0)
-                    )
-                    earnings_history.append(earnings_record)
+                if year_elements:
+                    # Attribute format: <Year year="1997" amount="30000"/>
+                    print(f"DEBUG: Found {len(year_elements)} Year elements (attribute format)")
+                    for year_elem in year_elements:
+                        year_text = year_elem.get('year', '0')
+                        earnings_text = year_elem.get('amount', '0')
+                        
+                        print(f"DEBUG: Attribute format - Year: {year_text}, Amount: {earnings_text}")
+                        
+                        year = int(year_text)
+                        earnings = float(earnings_text)
+                        
+                        if year > 0:
+                            earnings_history.append(EarningsRecord(
+                                year=year,
+                                earnings=earnings,
+                                is_zero=(earnings == 0)
+                            ))
+            
+            print(f"DEBUG: Total earnings records created: {len(earnings_history)}")
             
             # Validate that we got some earnings
             if not earnings_history:
+                print("ERROR: No earnings history loaded!")
+                print(f"DEBUG: Root tag: {root.tag}")
+                print(f"DEBUG: XML content preview: {xml_content[:500]}")
                 raise ValueError("No earnings history found in XML file. Please check XML format.")
             
             # Sort by year
