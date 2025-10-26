@@ -43,8 +43,17 @@ const PIACalculator = () => {
     const [primaryUploadedFileName, setPrimaryUploadedFileName] = useState(null);
     const [primaryUploadedFileHash, setPrimaryUploadedFileHash] = useState(null);
 
-    // SPOUSE State management
-    const [spouseBirthYear, setSpouseBirthYear] = useState(1960);
+    // SPOUSE State management - use partner DOB if available
+    const getInitialSpouseBirthYear = () => {
+        if (partners && partners.length > 0 && partners[0].date_of_birth) {
+            const birthYear = new Date(partners[0].date_of_birth).getFullYear();
+            if (birthYear >= 1937 && birthYear <= 2010) {
+                return birthYear;
+            }
+        }
+        return 1960;
+    };
+    const [spouseBirthYear, setSpouseBirthYear] = useState(getInitialSpouseBirthYear());
     const [spouseUseCalculatedPIA, setSpouseUseCalculatedPIA] = useState(false);
     const [spouseSsaPIA, setSpouseSsaPIA] = useState('');
     const [spouseEarningsHistory, setSpouseEarningsHistory] = useState([]);
@@ -105,7 +114,7 @@ const PIACalculator = () => {
         : 'Primary Spouse';
     const spouseLabel = partners?.[0]?.firstName && partners?.[0]?.lastName
         ? `${partners[0].firstName} ${partners[0].lastName}`
-        : 'Second Spouse';
+        : 'Spouse Filer';
 
     // Initialize earnings history with current year and future projections (only on first mount)
     useEffect(() => {

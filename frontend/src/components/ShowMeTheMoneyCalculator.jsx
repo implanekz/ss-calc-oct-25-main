@@ -3020,24 +3020,22 @@ const ShowMeTheMoneyCalculator = () => {
                                 <p className="text-xs text-gray-600">DOB: {spouse1Dob} • Age: {formatAge(spouse1Dob)}</p>
                             </div>
                             <div className="flex flex-col gap-1">
-                                <label className="flex items-center gap-1 cursor-pointer">
+                                <label className="flex items-center gap-1 cursor-pointer" title="This setting can also be changed in the Settings/gear icon">
                                     <input
                                         type="checkbox"
                                         checked={!isMarried}
                                         onChange={(e) => setIsMarried(!e.target.checked)}
                                         className="w-3 h-3 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                                        title="This setting can also be changed in the Settings section"
                                     />
                                     <span className="text-xs text-gray-700">Single?</span>
                                 </label>
                                 {isMarried && (
-                                    <label className="flex items-center gap-1 cursor-pointer">
+                                    <label className="flex items-center gap-1 cursor-pointer" title="This setting can also be changed in the Settings/gear icon">
                                         <input
                                             type="checkbox"
                                             checked={isMarried}
                                             onChange={(e) => setIsMarried(e.target.checked)}
                                             className="w-3 h-3 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                                            title="This setting can also be changed in the Settings section"
                                         />
                                         <span className="text-xs text-gray-700">Married?</span>
                                     </label>
