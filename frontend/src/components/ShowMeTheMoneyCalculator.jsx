@@ -1183,6 +1183,39 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
         <div className="h-full flex flex-col p-4">
             {/* Age Display, Play Button, and View Toggle at Top */}
             <div className="flex items-center justify-center gap-4">
+                {/* Navigation triangles - simple, no background */}
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => {
+                            setIsPlaying(false);
+                            setCurrentRaceAge(prev => Math.max(62, prev - 1));
+                        }}
+                        className={`text-xl transition-colors ${
+                            currentRaceAge <= 62 
+                                ? 'text-gray-300 cursor-not-allowed' 
+                                : 'text-gray-500 hover:text-gray-700 cursor-pointer'
+                        }`}
+                        title="Go back one year"
+                        disabled={currentRaceAge <= 62}
+                    >
+                        ◀
+                    </button>
+                    <button
+                        onClick={() => {
+                            setIsPlaying(false);
+                            setCurrentRaceAge(prev => Math.min(95, prev + 1));
+                        }}
+                        className={`text-xl transition-colors ${
+                            currentRaceAge >= 95 
+                                ? 'text-gray-300 cursor-not-allowed' 
+                                : 'text-gray-500 hover:text-gray-700 cursor-pointer'
+                        }`}
+                        title="Go forward one year"
+                        disabled={currentRaceAge >= 95}
+                    >
+                        ▶
+                    </button>
+                </div>
                 <button
                     onClick={handlePlayClick}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-semibold"
