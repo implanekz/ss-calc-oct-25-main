@@ -2154,7 +2154,7 @@ const ShowMeTheMoneyCalculator = () => {
                 labels,
                 datasets: [
                     { label: 'File at 62', data: displayYearsForData.map(year => Math.round(projections.age62.monthly[year] || 0)), backgroundColor: 'rgba(255, 99, 132, 0.9)', ...monthlyBarStyle },
-                    { label: 'Preferred Age', data: displayYearsForData.map(year => Math.round(projections.preferred.monthly[year] || 0)), backgroundColor: 'rgba(54, 162, 235, 0.9)', ...monthlyBarStyle },
+                    { label: 'Preferred Filing Age', data: displayYearsForData.map(year => Math.round(projections.preferred.monthly[year] || 0)), backgroundColor: 'rgba(54, 162, 235, 0.9)', ...monthlyBarStyle },
                     { label: 'File at 70', data: displayYearsForData.map(year => Math.round(projections.age70.monthly[year] || 0)), backgroundColor: 'rgba(75, 192, 192, 0.9)', ...monthlyBarStyle },
                 ]
             };
@@ -2177,7 +2177,7 @@ const ShowMeTheMoneyCalculator = () => {
                 labels,
                 datasets: [
                     { label: 'File at 62', data: displayYearsForData.map(year => Math.round(projections.age62.cumulative[year] || 0)), borderColor: 'red', fill: false },
-                    { label: 'Preferred Age', data: displayYearsForData.map(year => Math.round(projections.preferred.cumulative[year] || 0)), borderColor: 'blue', fill: false },
+                    { label: 'Preferred Filing Age', data: displayYearsForData.map(year => Math.round(projections.preferred.cumulative[year] || 0)), borderColor: 'blue', fill: false },
                     { label: 'File at 70', data: displayYearsForData.map(year => Math.round(projections.age70.cumulative[year] || 0)), borderColor: 'green', fill: false },
                 ]
             };
@@ -2287,7 +2287,7 @@ const ShowMeTheMoneyCalculator = () => {
                     pointRadius: 3
                 },
                 {
-                    label: 'Preferred Age',
+                    label: 'Preferred Filing Age',
                     data: monthlyValues(combinedProjections.preferred),
                     borderColor: 'rgba(54, 162, 235, 1)',
                     backgroundColor: 'rgba(54, 162, 235, 0.12)',
@@ -2317,7 +2317,7 @@ const ShowMeTheMoneyCalculator = () => {
                     pointRadius: 3
                 },
                 {
-                    label: 'Preferred Age',
+                    label: 'Preferred Filing Age',
                     data: cumulativeAfter70(combinedProjections.preferred),
                     borderColor: 'rgba(54, 162, 235, 1)',
                     backgroundColor: 'rgba(54, 162, 235, 0.12)',
@@ -2448,7 +2448,7 @@ const ShowMeTheMoneyCalculator = () => {
                         },
                         {
                             type: 'bar',
-                            label: 'Preferred Age',
+                            label: 'Preferred Filing Age',
                             data: monthlyValues(combinedProjections.preferred),
                             backgroundColor: 'rgba(54, 162, 235, 0.65)',
                             yAxisID: 'y_monthly',
@@ -2477,7 +2477,7 @@ const ShowMeTheMoneyCalculator = () => {
                         },
                         {
                             type: 'line',
-                            label: 'Cumulative Preferred Age',
+                            label: 'Cumulative Preferred Filing Age',
                             data: cumulativeAfter70(combinedProjections.preferred),
                             borderColor: 'rgba(54, 162, 235, 1)',
                             backgroundColor: 'transparent',
@@ -2528,10 +2528,10 @@ const ShowMeTheMoneyCalculator = () => {
                 labels,
                 datasets: [
                     { type: 'bar', label: 'Monthly File at 62', data: displayYearsForData.map(year => Math.round(projections.age62.monthly[year] || 0)), backgroundColor: 'rgba(255, 99, 132, 0.9)', yAxisID: 'y_monthly', barPercentage: 0.65, categoryPercentage: 0.8, maxBarThickness: 70, borderRadius: 4 },
-                    { type: 'bar', label: 'Monthly Preferred Age', data: displayYearsForData.map(year => Math.round(projections.preferred.monthly[year] || 0)), backgroundColor: 'rgba(54, 162, 235, 0.9)', yAxisID: 'y_monthly', barPercentage: 0.65, categoryPercentage: 0.8, maxBarThickness: 70, borderRadius: 4 },
+                    { type: 'bar', label: 'Monthly Preferred Filing Age', data: displayYearsForData.map(year => Math.round(projections.preferred.monthly[year] || 0)), backgroundColor: 'rgba(54, 162, 235, 0.9)', yAxisID: 'y_monthly', barPercentage: 0.65, categoryPercentage: 0.8, maxBarThickness: 70, borderRadius: 4 },
                     { type: 'bar', label: 'Monthly File at 70', data: displayYearsForData.map(year => Math.round(projections.age70.monthly[year] || 0)), backgroundColor: 'rgba(75, 192, 192, 0.9)', yAxisID: 'y_monthly', barPercentage: 0.65, categoryPercentage: 0.8, maxBarThickness: 70, borderRadius: 4 },
                     { type: 'line', label: 'Cumulative File at 62', data: displayYearsForData.map(year => Math.round(projections.age62.cumulative[year] || 0)), borderColor: 'red', yAxisID: 'y_cumulative', fill: false, order: 2, borderWidth: 2 },
-                    { type: 'line', label: 'Cumulative Preferred Age', data: displayYearsForData.map(year => Math.round(projections.preferred.cumulative[year] || 0)), borderColor: 'blue', yAxisID: 'y_cumulative', fill: false, order: 2, borderWidth: 2 },
+                    { type: 'line', label: 'Cumulative Preferred Filing Age', data: displayYearsForData.map(year => Math.round(projections.preferred.cumulative[year] || 0)), borderColor: 'blue', yAxisID: 'y_cumulative', fill: false, order: 2, borderWidth: 2 },
                     { type: 'line', label: 'Cumulative File at 70', data: displayYearsForData.map(year => Math.round(projections.age70.cumulative[year] || 0)), borderColor: 'green', yAxisID: 'y_cumulative', fill: false, order: 2, borderWidth: 2 },
                 ]
             };
@@ -2614,7 +2614,7 @@ const ShowMeTheMoneyCalculator = () => {
 
                 const scenarioConfigs = [
                     { key: 'age62', label: 'File at 62', barColor: 'rgba(239, 68, 68, 0.78)', lineColor: 'rgba(239, 68, 68, 1)' },
-                    { key: 'preferred', label: 'Preferred Age', barColor: 'rgba(59, 130, 246, 0.78)', lineColor: 'rgba(59, 130, 246, 1)' },
+                    { key: 'preferred', label: 'Preferred Filing Age', barColor: 'rgba(59, 130, 246, 0.78)', lineColor: 'rgba(59, 130, 246, 1)' },
                     { key: 'age70', label: 'File at 70', barColor: 'rgba(45, 212, 191, 0.78)', lineColor: 'rgba(20, 184, 166, 1)' },
                 ];
 
@@ -2818,7 +2818,7 @@ const ShowMeTheMoneyCalculator = () => {
 
         const scenarioConfigs = [
             { key: 'age62', label: 'File at 62', barColor: 'rgba(239, 68, 68, 0.78)', lineColor: 'rgba(239, 68, 68, 1)' },
-            { key: 'preferred', label: 'Preferred Age', barColor: 'rgba(59, 130, 246, 0.78)', lineColor: 'rgba(59, 130, 246, 1)' },
+            { key: 'preferred', label: 'Preferred Filing Age', barColor: 'rgba(59, 130, 246, 0.78)', lineColor: 'rgba(59, 130, 246, 1)' },
             { key: 'age70', label: 'File at 70', barColor: 'rgba(45, 212, 191, 0.78)', lineColor: 'rgba(20, 184, 166, 1)' },
         ];
 
