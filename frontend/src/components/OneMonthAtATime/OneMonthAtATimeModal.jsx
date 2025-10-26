@@ -385,43 +385,79 @@ const OneMonthAtATimeModal = ({
                     Benefit Adjustment by Filing Age
                   </h3>
                   
-                  {/* SVG Bar Chart */}
-                  <svg viewBox="0 0 800 400" className="w-full h-auto">
+                  {/* SVG Bar Chart with Zone Backgrounds */}
+                  <svg viewBox="0 0 800 420" className="w-full h-auto">
+                    {/* Zone Background Shading */}
+                    {/* Early Filing Penalty Zone (62-66) */}
+                    <rect x="100" y="40" width="320" height="305" fill="#FEE2E2" opacity="0.5" rx="8" />
+                    
+                    {/* FRA Zone (67) */}
+                    <rect x="340" y="40" width="120" height="305" fill="#E5E7EB" opacity="0.5" rx="8" />
+                    
+                    {/* Delayed Credit Zone (68-70) */}
+                    <rect x="480" y="40" width="220" height="305" fill="#D1FAE5" opacity="0.5" rx="8" />
+                    
+                    {/* Zone Labels */}
+                    <text x="260" y="25" fontSize="13" fontWeight="700" textAnchor="middle" fill="#B91C1C">Early Filing Penalty Zone</text>
+                    <text x="400" y="25" fontSize="13" fontWeight="700" textAnchor="middle" fill="#6B7280">FRA</text>
+                    <text x="590" y="25" fontSize="13" fontWeight="700" textAnchor="middle" fill="#047857">Delayed Credit Zone</text>
+                    
                     {/* Horizontal baseline at 100% */}
                     <line x1="100" y1="200" x2="700" y2="200" stroke="#6B7280" strokeWidth="2" strokeDasharray="5,5" />
                     <text x="50" y="205" fontSize="14" fill="#6B7280" fontWeight="600">100%</text>
-                    <text x="710" y="205" fontSize="12" fill="#6B7280">FRA (67)</text>
                     
-                    {/* Age 62 - Red bar (down) */}
-                    <rect x="150" y="200" width="60" height="120" fill="#EF4444" rx="4" />
-                    <text x="180" y="335" fontSize="14" fontWeight="600" textAnchor="middle" fill="#1F2937">62</text>
-                    <text x="180" y="315" fontSize="16" fontWeight="700" textAnchor="middle" fill="#DC2626">70%</text>
-                    <text x="180" y="295" fontSize="11" textAnchor="middle" fill="#7F1D1D">-30%</text>
+                    {/* Age 62 - Red bar */}
+                    <rect x="120" y="200" width="50" height="120" fill="#EF4444" rx="4" />
+                    <text x="145" y="335" fontSize="14" fontWeight="600" textAnchor="middle" fill="#1F2937">62</text>
+                    <text x="145" y="315" fontSize="15" fontWeight="700" textAnchor="middle" fill="#DC2626">70%</text>
                     
-                    {/* Age 64 - Light red bar */}
-                    <rect x="230" y="200" width="60" height="80" fill="#FCA5A5" rx="4" />
-                    <text x="260" y="335" fontSize="14" fontWeight="600" textAnchor="middle" fill="#1F2937">64</text>
-                    <text x="260" y="295" fontSize="14" fontWeight="600" textAnchor="middle" fill="#DC2626">80%</text>
+                    {/* Age 63 */}
+                    <rect x="180" y="200" width="50" height="100" fill="#F87171" rx="4" />
+                    <text x="205" y="335" fontSize="14" fontWeight="600" textAnchor="middle" fill="#1F2937">63</text>
+                    <text x="205" y="310" fontSize="14" fontWeight="600" textAnchor="middle" fill="#DC2626">75%</text>
                     
-                    {/* Age 67 - Gray bar (baseline) */}
-                    <rect x="370" y="180" width="60" height="20" fill="#9CA3AF" rx="4" />
-                    <text x="400" y="335" fontSize="14" fontWeight="700" textAnchor="middle" fill="#1F2937">67</text>
-                    <text x="400" y="170" fontSize="16" fontWeight="700" textAnchor="middle" fill="#374151">100%</text>
-                    <text x="400" y="155" fontSize="11" textAnchor="middle" fill="#4B5563">FRA</text>
+                    {/* Age 64 */}
+                    <rect x="240" y="200" width="50" height="80" fill="#FCA5A5" rx="4" />
+                    <text x="265" y="335" fontSize="14" fontWeight="600" textAnchor="middle" fill="#1F2937">64</text>
+                    <text x="265" y="295" fontSize="14" fontWeight="600" textAnchor="middle" fill="#DC2626">80%</text>
                     
-                    {/* Age 68 - Light green bar (up) */}
-                    <rect x="450" y="120" width="60" height="80" fill="#86EFAC" rx="4" />
-                    <text x="480" y="335" fontSize="14" fontWeight="600" textAnchor="middle" fill="#1F2937">68</text>
-                    <text x="480" y="110" fontSize="14" fontWeight="600" textAnchor="middle" fill="#059669">108%</text>
+                    {/* Age 65 */}
+                    <rect x="300" y="200" width="50" height="53" fill="#FED7AA" rx="4" />
+                    <text x="325" y="335" fontSize="14" fontWeight="600" textAnchor="middle" fill="#1F2937">65</text>
+                    <text x="325" y="268" fontSize="13" fontWeight="600" textAnchor="middle" fill="#C2410C">86.7%</text>
                     
-                    {/* Age 70 - Green bar (up) */}
-                    <rect x="590" y="80" width="60" height="120" fill="#10B981" rx="4" />
-                    <text x="620" y="335" fontSize="14" fontWeight="600" textAnchor="middle" fill="#1F2937">70</text>
-                    <text x="620" y="70" fontSize="16" fontWeight="700" textAnchor="middle" fill="#047857">124%</text>
-                    <text x="620" y="55" fontSize="11" textAnchor="middle" fill="#065F46">+24%</text>
-
-                    {/* Labels */}
-                    <text x="400" y="375" fontSize="16" fontWeight="600" textAnchor="middle" fill="#374151">Filing Age</text>
+                    {/* Age 66 */}
+                    <rect x="360" y="200" width="50" height="27" fill="#FDBA74" rx="4" />
+                    <text x="385" y="335" fontSize="14" fontWeight="600" textAnchor="middle" fill="#1F2937">66</text>
+                    <text x="385" y="245" fontSize="13" fontWeight="600" textAnchor="middle" fill="#C2410C">93.3%</text>
+                    
+                    {/* Age 67 - Gray bar (baseline) - FRA */}
+                    <rect x="420" y="195" width="50" height="10" fill="#6B7280" rx="4" />
+                    <text x="445" y="335" fontSize="15" fontWeight="700" textAnchor="middle" fill="#1F2937">67</text>
+                    <text x="445" y="180" fontSize="16" fontWeight="700" textAnchor="middle" fill="#374151">100%</text>
+                    <text x="445" y="162" fontSize="12" fontWeight="600" textAnchor="middle" fill="#4B5563">FRA</text>
+                    
+                    {/* Age 68 - Light green bar */}
+                    <rect x="500" y="136" width="50" height="64" fill="#86EFAC" rx="4" />
+                    <text x="525" y="335" fontSize="14" fontWeight="600" textAnchor="middle" fill="#1F2937">68</text>
+                    <text x="525" y="120" fontSize="14" fontWeight="600" textAnchor="middle" fill="#059669">108%</text>
+                    
+                    {/* Age 69 */}
+                    <rect x="560" y="104" width="50" height="96" fill="#6EE7B7" rx="4" />
+                    <text x="585" y="335" fontSize="14" fontWeight="600" textAnchor="middle" fill="#1F2937">69</text>
+                    <text x="585" y="88" fontSize="14" fontWeight="600" textAnchor="middle" fill="#047857">116%</text>
+                    
+                    {/* Age 70 - Green bar */}
+                    <rect x="620" y="72" width="50" height="128" fill="#10B981" rx="4" />
+                    <text x="645" y="335" fontSize="15" fontWeight="700" textAnchor="middle" fill="#1F2937">70</text>
+                    <text x="645" y="56" fontSize="16" fontWeight="700" textAnchor="middle" fill="#047857">124%</text>
+                    
+                    {/* Bottom label */}
+                    <text x="400" y="365" fontSize="16" fontWeight="600" textAnchor="middle" fill="#374151">Filing Age</text>
+                    
+                    {/* Extreme labels */}
+                    <text x="145" y="295" fontSize="11" textAnchor="middle" fill="#7F1D1D">-30%</text>
+                    <text x="645" y="40" fontSize="11" textAnchor="middle" fill="#065F46">+24%</text>
                   </svg>
 
                   <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
@@ -555,6 +591,10 @@ const OneMonthAtATimeModal = ({
                     <li className="flex items-start gap-2">
                       <span className="text-blue-600 font-bold mt-0.5">•</span>
                       <span><strong>These are monthly calculations</strong> - even one month makes a difference!</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-600 font-bold mt-0.5">•</span>
+                      <span><strong>COLA adjustments apply on top</strong> - these percentages show the base adjustment, then annual cost-of-living increases are added to your benefit amount</span>
                     </li>
                   </ul>
                 </div>
