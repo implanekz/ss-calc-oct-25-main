@@ -34,6 +34,7 @@ const OneMonthAtATimeModal = ({
   const [spouseMonths, setSpouseMonths] = useState(0);
   const [longevityAge, setLongevityAge] = useState(85);
   const [showFormulaInfo, setShowFormulaInfo] = useState(false);
+  const [showOnlyPrimary, setShowOnlyPrimary] = useState(!isMarried);
 
   // Get benefit calculations for primary
   const primaryCalcs = useBenefitCalculations({
@@ -66,11 +67,13 @@ const OneMonthAtATimeModal = ({
   const primaryCurrent = primaryCalcs.getBenefitForAge(primaryAge, primaryMonths);
   const primaryMax = primaryCalcs.getBenefitForAge(70, 0);
 
-  const spouseBaseline = isMarried ? spouseCalcs.getBenefitForAge(62, 0) : 0;
-  const spouseCurrent = isMarried ? spouseCalcs.getBenefitForAge(spouseAge, spouseMonths) : 0;
-  const spouseMax = isMarried ? spouseCalcs.getBenefitForAge(70, 0) : 0;
+  // Only include spouse if married AND not in "show only primary" mode
+  const includeSpouse = isMarried && !showOnlyPrimary;
+  const spouseBaseline = includeSpouse ? spouseCalcs.getBenefitForAge(62, 0) : 0;
+  const spouseCurrent = includeSpouse ? spouseCalcs.getBenefitForAge(spouseAge, spouseMonths) : 0;
+  const spouseMax = includeSpouse ? spouseCalcs.getBenefitForAge(70, 0) : 0;
 
-  // Combined totals for married couples
+  // Combined totals (will be just primary if showOnlyPrimary is true)
   const baselineBenefit = primaryBaseline + spouseBaseline;
   const currentBenefit = primaryCurrent + spouseCurrent;
   const maxBenefit = primaryMax + spouseMax;
@@ -89,7 +92,7 @@ const OneMonthAtATimeModal = ({
   };
 
   const primaryCumulativeIncome = calculateCumulativeIncome(primaryCurrent, primaryAge, primaryMonths, longevityAge);
-  const spouseCumulativeIncome = isMarried ? calculateCumulativeIncome(spouseCurrent, spouseAge, spouseMonths, longevityAge) : 0;
+  const spouseCumulativeIncome = includeSpouse ? calculateCumulativeIncome(spouseCurrent, spouseAge, spouseMonths, longevityAge) : 0;
   const totalCumulativeIncome = primaryCumulativeIncome + spouseCumulativeIncome;
 
   const baselineCumulativeIncome = calculateCumulativeIncome(baselineBenefit, 62, 0, longevityAge);
@@ -159,10 +162,25 @@ const OneMonthAtATimeModal = ({
                       {primaryAge}y {primaryMonths}m
                     </div>
                   </div>
+
+                  {/* Marital Status Toggle */}
+                  <div className="mt-3 pt-2 border-t border-blue-200">
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={showOnlyPrimary}
+                        onChange={(e) => setShowOnlyPrimary(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-xs font-medium text-gray-700 group-hover:text-blue-700 transition-colors">
+                        {showOnlyPrimary ? 'Show only this person' : 'Include spouse in calculations'}
+                      </span>
+                    </label>
+                  </div>
                 </div>
 
-                {/* Spouse Section (if married) */}
-                {isMarried && (
+                {/* Spouse Section (if married and not hidden) */}
+                {isMarried && !showOnlyPrimary && (
                   <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
                     <h3 className="text-xs font-bold text-purple-900 mb-2">
                       Spouse
