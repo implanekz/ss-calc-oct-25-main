@@ -5,14 +5,27 @@ import { useUser } from '../contexts/UserContext';
 import { Tabs, TabList, Tab, TabPanel } from './ui/Tabs';
 
 const PIACalculator = () => {
-    // Get user context for names
+    // Get user context for names and marital status
     const { profile, partners } = useUser();
+    
+    // Determine if user is married
+    const isMarried = profile?.relationship_status && 
+        ['married', 'divorced', 'widowed'].includes(profile.relationship_status);
     
     // Tab management
     const [activeTab, setActiveTab] = useState('primary');
     
-    // PRIMARY State management
-    const [primaryBirthYear, setPrimaryBirthYear] = useState(1964);
+    // PRIMARY State management - use profile DOB if available
+    const getInitialBirthYear = () => {
+        if (profile?.date_of_birth) {
+            const birthYear = new Date(profile.date_of_birth).getFullYear();
+            if (birthYear >= 1937 && birthYear <= 2010) {
+                return birthYear;
+            }
+        }
+        return 1964;
+    };
+    const [primaryBirthYear, setPrimaryBirthYear] = useState(getInitialBirthYear());
     const [primaryUseCalculatedPIA, setPrimaryUseCalculatedPIA] = useState(false);
     const [primarySsaPIA, setPrimarySsaPIA] = useState('');
     const [primaryEarningsHistory, setPrimaryEarningsHistory] = useState([]);
@@ -487,45 +500,61 @@ const PIACalculator = () => {
                 </p>
             </div>
 
-            {/* Tabs for Primary and Spouse - LARGER & MORE PROMINENT */}
-            <div className="mb-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-300 rounded-lg">
-                <Tabs>
-                    <TabList className="flex gap-3">
-                        <Tab 
-                            active={activeTab === 'primary'} 
-                            onClick={() => setActiveTab('primary')}
-                            className={`px-6 py-3 text-base font-bold rounded-lg transition-all ${
-                                activeTab === 'primary' 
-                                    ? 'bg-blue-600 text-white shadow-lg' 
-                                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                            }`}
-                        >
-                            <span className="text-xl">👤</span> {primaryLabel}
+            {/* Tabs for Primary and Spouse - LARGER & MORE PROMINENT - Only show spouse tab if married */}
+            {isMarried ? (
+                <div className="mb-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-300 rounded-lg">
+                    <Tabs>
+                        <TabList className="flex gap-3">
+                            <Tab 
+                                active={activeTab === 'primary'} 
+                                onClick={() => setActiveTab('primary')}
+                                className={`px-6 py-3 text-base font-bold rounded-lg transition-all ${
+                                    activeTab === 'primary' 
+                                        ? 'bg-blue-600 text-white shadow-lg' 
+                                        : 'bg-white text-gray-700 hover:bg-gray-100'
+                                }`}
+                            >
+                                <span className="text-xl">👤</span> {primaryLabel}
+                                {primaryCalculatedResult && (
+                                    <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-normal">
+                                        ✓ Calculated
+                                    </span>
+                                )}
+                            </Tab>
+                            <Tab 
+                                active={activeTab === 'spouse'} 
+                                onClick={() => setActiveTab('spouse')}
+                                className={`px-6 py-3 text-base font-bold rounded-lg transition-all ${
+                                    activeTab === 'spouse' 
+                                        ? 'bg-purple-600 text-white shadow-lg' 
+                                        : 'bg-white text-gray-700 hover:bg-gray-100'
+                                }`}
+                            >
+                                <span className="text-xl">💑</span> {spouseLabel}
+                                {spouseCalculatedResult && (
+                                    <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-normal">
+                                        ✓ Calculated
+                                    </span>
+                                )}
+                            </Tab>
+                        </TabList>
+                    </Tabs>
+                </div>
+            ) : (
+                <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-3">
+                        <span className="text-2xl">👤</span>
+                        <div>
+                            <h3 className="text-lg font-bold text-gray-900">{primaryLabel}</h3>
                             {primaryCalculatedResult && (
-                                <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-normal">
-                                    ✓ Calculated
+                                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-semibold">
+                                    ✓ PIA Calculated
                                 </span>
                             )}
-                        </Tab>
-                        <Tab 
-                            active={activeTab === 'spouse'} 
-                            onClick={() => setActiveTab('spouse')}
-                            className={`px-6 py-3 text-base font-bold rounded-lg transition-all ${
-                                activeTab === 'spouse' 
-                                    ? 'bg-purple-600 text-white shadow-lg' 
-                                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                            }`}
-                        >
-                            <span className="text-xl">💑</span> {spouseLabel}
-                            {spouseCalculatedResult && (
-                                <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-normal">
-                                    ✓ Calculated
-                                </span>
-                            )}
-                        </Tab>
-                    </TabList>
-                </Tabs>
-            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Calculator Content - Renders for BOTH tabs based on activeTab state */}
             {/* Birth Year Input */}
