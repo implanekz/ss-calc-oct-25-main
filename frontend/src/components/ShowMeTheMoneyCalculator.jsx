@@ -9,6 +9,7 @@ import { useUser } from '../contexts/UserContext.jsx';
 import { useDevMode } from '../contexts/DevModeContext.jsx';
 import { useCalculatorPersistence } from '../hooks/useCalculatorPersistence';
 import { useNavigate } from 'react-router-dom';
+import { OneMonthAtATimeModal } from './OneMonthAtATime';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, annotationPlugin, SankeyController, Flow, BubbleController);
 
@@ -1779,6 +1780,9 @@ const ShowMeTheMoneyCalculator = () => {
     const [isDraggingGoGo, setIsDraggingGoGo] = useState(false);
     const [isDraggingSlowGo, setIsDraggingSlowGo] = useState(false);
 
+    // One Month at a Time modal state
+    const [showOneMonthModal, setShowOneMonthModal] = useState(false);
+
     // Already Filed state variables
     const [spouse1AlreadyFiled, setSpouse1AlreadyFiled] = useState(false);
     const [spouse1CurrentBenefit, setSpouse1CurrentBenefit] = useState(null);
@@ -3367,6 +3371,30 @@ const ShowMeTheMoneyCalculator = () => {
                                 </div>
                             </button>
                         </div>
+
+                        {/* Featured: One Month at a Time */}
+                        <div className="mt-6 p-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 border-2 border-indigo-300 rounded-xl shadow-lg">
+                            <div className="flex items-start gap-3 mb-3">
+                                <div className="flex-shrink-0">
+                                    <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
+                                        <span className="text-white text-xl">🎯</span>
+                                    </div>
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="text-base font-bold text-indigo-900 mb-1">One Month at a Time</h4>
+                                    <p className="text-xs text-indigo-700">See how each month of waiting builds guaranteed retirement income</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowOneMonthModal(true)}
+                                className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                            >
+                                📊 Explore Month-by-Month Value
+                            </button>
+                            <p className="text-xs text-indigo-600 mt-2 text-center italic">
+                                ✨ NEW: Interactive bridge-building tool
+                            </p>
+                        </div>
                     </div>
                         </div>
                     </div>
@@ -4327,6 +4355,18 @@ const ShowMeTheMoneyCalculator = () => {
                     </div>
                 </div>
             )}
+
+            {/* One Month at a Time Modal */}
+            <OneMonthAtATimeModal
+                isOpen={showOneMonthModal}
+                onClose={() => setShowOneMonthModal(false)}
+                baseBenefitAt62={spouse1Pia || 2500}
+                inflationRate={inflation}
+                birthYear={new Date(spouse1Dob).getFullYear()}
+                isMarried={isMarried}
+                spouseBenefitAt62={spouse2Pia || 2000}
+                spouseBirthYear={new Date(spouse2Dob).getFullYear()}
+            />
         </div>
     );
 };
