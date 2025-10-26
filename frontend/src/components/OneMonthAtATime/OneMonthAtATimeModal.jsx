@@ -172,7 +172,10 @@ const OneMonthAtATimeModal = ({
                         onChange={(e) => setShowOnlyPrimary(e.target.checked)}
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                       />
-                      <span className="text-xs font-medium text-gray-700 group-hover:text-blue-700 transition-colors">
+                      <span 
+                        className="text-xs font-medium text-gray-700 group-hover:text-blue-700 transition-colors"
+                        title="This setting can also be changed in the Settings section"
+                      >
                         {showOnlyPrimary ? 'Show only this person' : 'Include spouse in calculations'}
                       </span>
                     </label>
