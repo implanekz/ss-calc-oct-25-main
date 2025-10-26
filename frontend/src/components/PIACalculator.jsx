@@ -2,15 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { getTaxableMaximum } from '../utils/taxableMaximum';
 import { tooltips } from '../utils/piaTooltips';
 import { useUser } from '../contexts/UserContext';
+import { useCalculatorPersistence } from '../hooks/useCalculatorPersistence';
 import { Tabs, TabList, Tab, TabPanel } from './ui/Tabs';
 
 const PIACalculator = () => {
     // Get user context for names and marital status
     const { profile, partners } = useUser();
     
-    // Determine if user is married
-    const isMarried = profile?.relationship_status && 
-        ['married', 'divorced', 'widowed'].includes(profile.relationship_status);
+    // Read the main calculator's persisted state to sync married/single view
+    const { state: mainCalcState } = useCalculatorPersistence('showMeTheMoney', {});
+    
+    // Determine if user is married - use main calculator's state if available, otherwise fall back to profile
+    const isMarried = mainCalcState?.isMarried !== undefined 
+        ? mainCalcState.isMarried 
+        : (profile?.relationship_status && ['married', 'divorced', 'widowed'].includes(profile.relationship_status));
     
     // Tab management
     const [activeTab, setActiveTab] = useState('primary');
