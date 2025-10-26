@@ -82,7 +82,7 @@ const MonthYearControls = ({
     <div className="w-full">
       {/* Current Age Display - Compact */}
       <div className="text-center mb-3">
-        <div className="text-xs text-gray-500 mb-1">Selected Filing Age</div>
+        <div className="text-xs text-gray-500 mb-1">Selected Preferred Filing Age</div>
         <div className="text-2xl font-bold text-blue-600">
           {currentAge}
           {currentMonths > 0 && (

@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 /**
  * ThreeBarChart Component
  * 
- * Displays three bars representing Social Security benefits at different filing ages:
- * - Red Bar: Age 62 (minimum filing age baseline)
+ * Displays three bars representing Social Security benefits at different preferred filing ages:
+ * - Red Bar: Age 62 (minimum preferred filing age baseline)
  * - Blue Bar: Currently selected age (variable based on user input)
  * - Green Bar: Age 70 (maximum benefit)
  * 
@@ -241,7 +241,7 @@ const ThreeBarChart = ({
             {/* Age Label */}
             <div className="mt-3 text-center">
               <div className="text-sm font-semibold text-gray-700">Baseline</div>
-              <div className="text-xs text-gray-500">Earliest Filing Age</div>
+              <div className="text-xs text-gray-500">Earliest Preferred Filing Age</div>
             </div>
           </div>
 
@@ -269,7 +269,7 @@ const ThreeBarChart = ({
             {/* Age Label */}
             <div className="mt-3 text-center">
               <div className="text-sm font-semibold text-gray-700">Your Selection</div>
-              <div className="text-xs text-gray-500">Current Filing Age</div>
+              <div className="text-xs text-gray-500">Current Preferred Filing Age</div>
             </div>
           </div>
 
@@ -297,7 +297,7 @@ const ThreeBarChart = ({
             {/* Age Label */}
             <div className="mt-3 text-center">
               <div className="text-sm font-semibold text-gray-700">Maximum</div>
-              <div className="text-xs text-gray-500">Latest Filing Age</div>
+              <div className="text-xs text-gray-500">Latest Preferred Filing Age</div>
             </div>
           </div>
         </div>

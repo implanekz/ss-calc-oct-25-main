@@ -3040,7 +3040,7 @@ const ShowMeTheMoneyCalculator = () => {
                             </div>
 
                             <div className="bg-primary-100 rounded p-2">
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Filing Age</label>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">Preferred Filing Age</label>
                                 <div className="grid grid-cols-2 gap-2">
                                     <div>
                                         <input
@@ -3107,7 +3107,7 @@ const ShowMeTheMoneyCalculator = () => {
                                 </div>
 
                                 <div className="bg-primary-100 rounded p-2">
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Filing Age</label>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Preferred Filing Age</label>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
                                             <input
@@ -4227,7 +4227,7 @@ const ShowMeTheMoneyCalculator = () => {
                                         } else if (selectedYearAge < 67) {
                                             return "Only early filing (age 62) provides income at this age. Later filing strategies require waiting longer.";
                                         } else if (selectedYearAge < 70) {
-                                            return "File at 70 strategy hasn't started yet. Early and preferred age filing provide income now.";
+                                            return "File at 70 strategy hasn't started yet. Early and preferred filing age provide income now.";
                                         } else if (monthly70 > monthly62) {
                                             const difference = monthly70 - monthly62;
                                             const percentIncrease = ((difference / monthly62) * 100).toFixed(0);

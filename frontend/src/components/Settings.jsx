@@ -178,7 +178,7 @@ const Settings = () => {
                     <ul className="text-sm text-blue-800 space-y-1">
                         <li>• Your date of birth determines your Full Retirement Age (FRA)</li>
                         <li>• Relationship status affects survivor benefit calculations</li>
-                        <li>• Calculator settings (PIAs, filing ages, etc.) are saved automatically</li>
+                        <li>• Calculator settings (PIAs, preferred filing ages, etc.) are saved automatically</li>
                         <li>• Changes here update your profile used across all calculators</li>
                     </ul>
                 </div>
