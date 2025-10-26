@@ -4,13 +4,24 @@ import { useState, useEffect, useMemo } from 'react';
  * useBenefitCalculations Hook
  * 
  * Calculates Social Security benefits for each month from age 62 to 70
- * Handles:
- * - Early retirement reductions (before FRA)
- * - Delayed Retirement Credits (after FRA)
- * - COLA/inflation adjustments
+ * Uses the same SSA formulas as the main calculator for consistency
  * 
  * Part of the "One Month at a Time" feature - MVP Sprint 3
  */
+
+// SSA reduction/credit formulas - MUST match ShowMeTheMoneyCalculator
+const delayedRetirementCreditFactor = (monthsAfterFra) => {
+  const months = Math.max(0, monthsAfterFra);
+  return 1 + ((2 / 3) / 100) * months;
+};
+
+const earlyReductionFactor = (monthsBeforeFra) => {
+  const months = Math.abs(Math.min(0, monthsBeforeFra));
+  const first36 = Math.min(36, months);
+  const extra = Math.max(0, months - 36);
+  const reduction = first36 * (5 / 9) / 100 + extra * (5 / 12) / 100;
+  return Math.max(0, 1 - reduction);
+};
 
 const useBenefitCalculations = ({
   baseBenefitAt62 = 2500,  // Monthly benefit if filing at 62
@@ -21,64 +32,75 @@ const useBenefitCalculations = ({
   // State for all calculated benefits
   const [benefitsByMonth, setBenefitsByMonth] = useState({});
 
-  // Calculate Full Retirement Age based on birth year
-  const calculateFRA = (year) => {
-    if (year <= 1954) return 66;
-    if (year >= 1960) return 67;
-    // Born 1955-1959: 66 + 2 months per year
-    const monthsToAdd = (year - 1954) * 2;
-    return {
-      years: 66,
-      months: monthsToAdd
-    };
+  // Calculate Full Retirement Age based on birth year - matches main calculator
+  const FRA_LOOKUP = {
+    1937: { years: 65, months: 0 },
+    1938: { years: 65, months: 2 },
+    1939: { years: 65, months: 4 },
+    1940: { years: 65, months: 6 },
+    1941: { years: 65, months: 8 },
+    1942: { years: 65, months: 10 },
+    1943: { years: 66, months: 0 },
+    1944: { years: 66, months: 0 },
+    1945: { years: 66, months: 0 },
+    1946: { years: 66, months: 0 },
+    1947: { years: 66, months: 0 },
+    1948: { years: 66, months: 0 },
+    1949: { years: 66, months: 0 },
+    1950: { years: 66, months: 0 },
+    1951: { years: 66, months: 0 },
+    1952: { years: 66, months: 0 },
+    1953: { years: 66, months: 0 },
+    1954: { years: 66, months: 0 },
+    1955: { years: 66, months: 2 },
+    1956: { years: 66, months: 4 },
+    1957: { years: 66, months: 6 },
+    1958: { years: 66, months: 8 },
+    1959: { years: 66, months: 10 },
+    1960: { years: 67, months: 0 }
   };
 
-  // Get FRA in months from age 62
-  const getFRAMonths = () => {
-    const fra = calculateFRA(birthYear);
-    if (typeof fra === 'number') {
-      return (fra - 62) * 12;
+  const getFra = (birthYear) => {
+    if (birthYear <= 1937) {
+      return { years: 65, months: 0 };
     }
-    return (fra.years - 62) * 12 + fra.months;
+    if (birthYear >= 1960) {
+      return { years: 67, months: 0 };
+    }
+    return FRA_LOOKUP[birthYear] || { years: 67, months: 0 };
   };
 
-  // Calculate benefit for a specific age in months
-  const calculateMonthlyBenefit = (totalMonths) => {
-    const fraMonths = getFRAMonths();
-    const totalMonthsTo70 = (70 - 62) * 12; // 96 months
+  // Get FRA in years (decimal)
+  const getFRAYears = () => {
+    const fra = getFra(birthYear);
+    return fra.years + (fra.months || 0) / 12;
+  };
+
+  // Calculate benefit for a specific age in years (decimal)
+  const calculateMonthlyBenefit = (ageYears) => {
+    const fraYears = getFRAYears();
     
-    // Early retirement reduction factors (before FRA)
-    // Benefits are reduced by approximately 6.67% per year (0.556% per month) before FRA
-    const earlyReductionPerMonth = 0.00556; // ~6.67% per year / 12
+    // Calculate months from FRA
+    const monthsFromFra = Math.round((ageYears - fraYears) * 12);
     
-    // Delayed Retirement Credits (after FRA)
-    // Benefits increase by 8% per year (0.667% per month) after FRA
-    const delayedCreditPerMonth = 0.00667; // 8% per year / 12
+    // Back-calculate PIA from age 62 benefit
+    // Age 62 benefit = PIA * earlyReductionFactor(months before FRA at 62)
+    const monthsBeforeFraAt62 = Math.round((fraYears - 62) * 12);
+    const piaFRA = baseBenefitAt62 / earlyReductionFactor(-monthsBeforeFraAt62);
     
-    let benefit = baseBenefitAt62;
-    
-    if (totalMonths < fraMonths) {
-      // Before FRA: Calculate based on early retirement reduction
-      // The formula is more complex, but simplified: 
-      // FRA benefit = base * (1 / (1 - reduction))
-      // Current benefit = FRA benefit * (1 - (months before FRA * monthly reduction))
-      
-      const monthsBeforeFRA = fraMonths - totalMonths;
-      const fullBenefit = baseBenefitAt62 / (1 - (fraMonths * earlyReductionPerMonth));
-      benefit = fullBenefit * (1 - (monthsBeforeFRA * earlyReductionPerMonth));
-    } else if (totalMonths === fraMonths) {
-      // At FRA: Calculate full benefit
-      benefit = baseBenefitAt62 / (1 - (fraMonths * earlyReductionPerMonth));
+    // Now calculate benefit at the target age
+    let benefit;
+    if (monthsFromFra >= 0) {
+      // At or after FRA - apply delayed credits
+      benefit = piaFRA * delayedRetirementCreditFactor(monthsFromFra);
     } else {
-      // After FRA: Add Delayed Retirement Credits
-      const monthsAfterFRA = totalMonths - fraMonths;
-      const fullBenefit = baseBenefitAt62 / (1 - (fraMonths * earlyReductionPerMonth));
-      benefit = fullBenefit * (1 + (monthsAfterFRA * delayedCreditPerMonth));
+      // Before FRA - apply early reduction
+      benefit = piaFRA * earlyReductionFactor(monthsFromFra);
     }
     
-    // Apply inflation adjustment (simplified - compounded annually)
-    const years = totalMonths / 12;
-    const inflationAdjustment = Math.pow(1 + inflationRate, years);
+    // Apply inflation from age 62 to target age
+    const yearsFromAge62 = ageYears - 62;
+    const inflationAdjustment = Math.pow(1 + inflationRate, yearsFromAge62);
     benefit = benefit * inflationAdjustment;
     
     return Math.round(benefit);
@@ -94,7 +116,9 @@ const useBenefitCalculations = ({
         const years = Math.floor(month / 12) + 62;
         const months = month % 12;
         const key = `${years}_${months}`;
-        benefits[key] = calculateMonthlyBenefit(month);
+        // Convert to age in years (decimal)
+        const ageYears = years + (months / 12);
+        benefits[key] = calculateMonthlyBenefit(ageYears);
       }
       
       setBenefitsByMonth(benefits);
@@ -102,6 +126,12 @@ const useBenefitCalculations = ({
 
     calculateAllBenefits();
   }, [baseBenefitAt62, fullRetirementAge, inflationRate, birthYear]);
+
+  // Get FRA in months from age 62 (for compatibility)
+  const getFRAMonths = () => {
+    const fraYears = getFRAYears();
+    return (fraYears - 62) * 12;
+  };
 
   // Helper function to get benefit for specific age
   const getBenefitForAge = (years, months) => {

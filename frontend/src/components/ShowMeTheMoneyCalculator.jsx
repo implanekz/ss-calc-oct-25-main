@@ -4360,11 +4360,39 @@ const ShowMeTheMoneyCalculator = () => {
             <OneMonthAtATimeModal
                 isOpen={showOneMonthModal}
                 onClose={() => setShowOneMonthModal(false)}
-                baseBenefitAt62={spouse1Pia || 2500}
+                baseBenefitAt62={(() => {
+                    if (!spouse1Pia) return 2500;
+                    const birthYear = new Date(spouse1Dob).getFullYear();
+                    const fra = getFra(birthYear);
+                    const fraYears = fra.years + (fra.months || 0) / 12;
+                    const currentAgeMonths = ageInMonths(new Date(spouse1Dob), new Date());
+                    const currentAgeYears = currentAgeMonths / 12;
+                    return monthlyBenefitAtClaim({
+                        piaFRA: spouse1Pia,
+                        claimAgeYears: 62,
+                        currentAgeYears,
+                        rate: inflation,
+                        fraYears
+                    });
+                })()}
                 inflationRate={inflation}
                 birthYear={new Date(spouse1Dob).getFullYear()}
                 isMarried={isMarried}
-                spouseBenefitAt62={spouse2Pia || 2000}
+                spouseBenefitAt62={(() => {
+                    if (!isMarried || !spouse2Pia) return 2000;
+                    const birthYear = new Date(spouse2Dob).getFullYear();
+                    const fra = getFra(birthYear);
+                    const fraYears = fra.years + (fra.months || 0) / 12;
+                    const currentAgeMonths = ageInMonths(new Date(spouse2Dob), new Date());
+                    const currentAgeYears = currentAgeMonths / 12;
+                    return monthlyBenefitAtClaim({
+                        piaFRA: spouse2Pia,
+                        claimAgeYears: 62,
+                        currentAgeYears,
+                        rate: inflation,
+                        fraYears
+                    });
+                })()}
                 spouseBirthYear={new Date(spouse2Dob).getFullYear()}
             />
         </div>
