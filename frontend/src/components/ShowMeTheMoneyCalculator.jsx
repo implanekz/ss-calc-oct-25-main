@@ -357,10 +357,10 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
             gap: Math.max(0, inflatedMonthlyNeeds - age62Monthly),
             color: '#EF4444'
         },
-        {
-            label: 'File at 67',
-            age: 67,
-            income: age67Monthly,
+                    {
+                        label: `File at ${spouse1PreferredYear}${spouse1PreferredMonth > 0 ? `y ${spouse1PreferredMonth}m` : ''}`,
+                        age: spouse1PreferredYear,
+                        income: age67Monthly,
             covered: Math.min(age67Monthly, inflatedMonthlyNeeds),
             gap: Math.max(0, inflatedMonthlyNeeds - age67Monthly),
             color: '#3B82F6'
