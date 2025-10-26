@@ -3072,7 +3072,7 @@ const ShowMeTheMoneyCalculator = () => {
                                         onChange={handlePrimaryOnlyToggle}
                                         className="w-3.5 h-3.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                                     />
-                                    <span>Show only this person</span>
+                                    <span title="This setting can also be changed in the Settings section">Show only this person</span>
                                 </label>
                             </div>
                         </div>
@@ -3140,7 +3140,7 @@ const ShowMeTheMoneyCalculator = () => {
                                         onChange={handleSpouseOnlyToggle}
                                         className="w-3.5 h-3.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                                     />
-                                    <span>Show only this person</span>
+                                    <span title="This setting can also be changed in the Settings section">Show only this person</span>
                                 </label>
                             </div>
                         </div>
