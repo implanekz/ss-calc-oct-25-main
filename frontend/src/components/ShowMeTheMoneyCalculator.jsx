@@ -3971,12 +3971,72 @@ const ShowMeTheMoneyCalculator = () => {
                                 </button>
                             </div>
 
-                            {/* What is FRA? */}
+                            {/* What is PIA? - MOVED TO TOP */}
+                            <div className="mb-6">
+                                <h3 className="text-xl font-semibold text-primary-600 mb-3">What is PIA?</h3>
+                                <p className="text-gray-700 mb-3">
+                                    <strong>PIA (Primary Insurance Amount)</strong> is your monthly benefit amount at Full Retirement Age. It's calculated based on your 35 highest-earning years.
+                                </p>
+                                <p className="text-gray-700 mb-4">
+                                    If you claim before FRA, your benefit is reduced. If you wait until after FRA, your benefit is increased.
+                                </p>
+                            </div>
+
+                            {/* How to Find Your PIA */}
+                            <div className="mb-6">
+                                <h3 className="text-xl font-semibold text-primary-600 mb-3">How to Find Your PIA</h3>
+                                <p className="text-gray-700 mb-3">
+                                    You can get your specific benefit estimate at{' '}
+                                    <a
+                                        href="https://www.ssa.gov"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-primary-600 hover:text-primary-700 underline font-medium"
+                                    >
+                                        SSA.gov
+                                    </a>{' '}
+                                    by creating a "my Social Security" account.
+                                </p>
+
+                                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+                                    <div className="flex">
+                                        <div className="flex-shrink-0">
+                                            <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div className="ml-3">
+                                            <p className="text-sm font-semibold text-gray-900">Don't know your number?</p>
+                                            <p className="text-sm text-gray-700 mt-1">
+                                                The average individual Social Security benefit in 2025 is $2,006/month. Use this as a starting point, then get your actual estimate from SSA.gov for more accurate planning.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* What is FRA? - MOVED TO BOTTOM */}
                             <div className="mb-6">
                                 <h3 className="text-xl font-semibold text-primary-600 mb-3">What is FRA?</h3>
                                 <p className="text-gray-700 mb-4">
                                     <strong>FRA (Full Retirement Age)</strong> is the age at which you're entitled to receive 100% of your Social Security benefit.
                                 </p>
+
+                                <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded mb-4">
+                                    <div className="flex">
+                                        <div className="flex-shrink-0">
+                                            <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div className="ml-3">
+                                            <p className="text-sm font-semibold text-gray-900">We calculate your FRA automatically</p>
+                                            <p className="text-sm text-gray-700 mt-1">
+                                                Based on your date of birth, we automatically determine your Full Retirement Age and use it in all calculations.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <div className="bg-gray-50 rounded-lg p-4 mb-4">
                                     <h4 className="font-semibold text-gray-900 mb-3">Your FRA by Birth Year:</h4>
@@ -4019,50 +4079,6 @@ const ShowMeTheMoneyCalculator = () => {
                                     <p className="text-sm italic text-gray-600 mt-3">
                                         For 95% of people planning today, FRA is age 67.
                                     </p>
-                                </div>
-                            </div>
-
-                            {/* What is PIA? */}
-                            <div className="mb-6">
-                                <h3 className="text-xl font-semibold text-primary-600 mb-3">What is PIA?</h3>
-                                <p className="text-gray-700 mb-3">
-                                    <strong>PIA (Primary Insurance Amount)</strong> is your monthly benefit amount at Full Retirement Age. It's calculated based on your 35 highest-earning years.
-                                </p>
-                                <p className="text-gray-700 mb-4">
-                                    If you claim before FRA, your benefit is reduced. If you wait until after FRA, your benefit is increased.
-                                </p>
-                            </div>
-
-                            {/* How to Find Your PIA */}
-                            <div className="mb-6">
-                                <h3 className="text-xl font-semibold text-primary-600 mb-3">How to Find Your PIA</h3>
-                                <p className="text-gray-700 mb-3">
-                                    You can get your specific benefit estimate at{' '}
-                                    <a
-                                        href="https://www.ssa.gov"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-primary-600 hover:text-primary-700 underline font-medium"
-                                    >
-                                        SSA.gov
-                                    </a>{' '}
-                                    by creating a "my Social Security" account.
-                                </p>
-
-                                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
-                                    <div className="flex">
-                                        <div className="flex-shrink-0">
-                                            <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                                            </svg>
-                                        </div>
-                                        <div className="ml-3">
-                                            <p className="text-sm font-semibold text-gray-900">Don't know your number?</p>
-                                            <p className="text-sm text-gray-700 mt-1">
-                                                The average individual Social Security benefit in 2025 is $2,006/month. Use this as a starting point, then get your actual estimate from SSA.gov for more accurate planning.
-                                            </p>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
 

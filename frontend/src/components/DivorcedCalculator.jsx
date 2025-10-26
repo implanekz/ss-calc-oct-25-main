@@ -38,6 +38,11 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
     const [showExSpousePiaModal, setShowExSpousePiaModal] = useState(false);
     const [hoveredStrategyIndex, setHoveredStrategyIndex] = useState(null);
     const [detailPanelOffset, setDetailPanelOffset] = useState(0);
+    
+    // Scenario comparison state
+    const [selectedScenarios, setSelectedScenarios] = useState([]);
+    const [showComparisonModal, setShowComparisonModal] = useState(false);
+    const [comparisonViewMode, setComparisonViewMode] = useState('monthly'); // 'monthly' or 'annual'
 
     // Track if we've loaded initial persisted state to prevent infinite loop
     const hasLoadedPersistedState = React.useRef(false);
@@ -249,6 +254,22 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
             default:
                 return 'Review the projected income for this strategy before you lock it in.';
         }
+    };
+
+    // Handle scenario selection for comparison
+    const handleScenarioSelection = (index) => {
+        setSelectedScenarios(prev => {
+            if (prev.includes(index)) {
+                // Deselect if already selected
+                return prev.filter(i => i !== index);
+            } else if (prev.length < 2) {
+                // Select if less than 2 selected
+                return [...prev, index];
+            } else {
+                // Replace oldest selection if 2 already selected
+                return [prev[1], index];
+            }
+        });
     };
 
     return (
@@ -771,12 +792,35 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                 {/* All Strategies Comparison with Inline Detail View */}
                                 {results.all_strategies && results.all_strategies.length > 0 && (
                                     <div className="bg-white rounded-lg shadow-sm p-6 relative overflow-hidden">
-                                        <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                                            📊 All Strategies Compared
-                                        </h2>
-                                        <p className="text-sm text-gray-500 mb-3">
-                                            Hover or click any strategy to preview the detailed income timeline.
-                                        </p>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div>
+                                                <h2 className="text-xl font-semibold text-gray-900">
+                                                    📊 All Strategies Compared
+                                                </h2>
+                                                <p className="text-sm text-gray-500 mt-1">
+                                                    Hover or click any strategy to preview the detailed income timeline.
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                {selectedScenarios.length > 0 && (
+                                                    <span className="text-sm text-gray-600">
+                                                        {selectedScenarios.length} of 2 selected
+                                                    </span>
+                                                )}
+                                                <button
+                                                    onClick={() => setShowComparisonModal(true)}
+                                                    disabled={selectedScenarios.length !== 2}
+                                                    className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                                                >
+                                                    Compare Selected ({selectedScenarios.length}/2)
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                                            <p className="text-sm text-blue-900">
+                                                💡 <strong>Compare Scenarios:</strong> Select any 2 strategies using the checkboxes to see a side-by-side comparison chart.
+                                            </p>
+                                        </div>
                                         
                                         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 relative">
                                             {/* Strategy Cards - Left Side (40%) */}
@@ -785,44 +829,61 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                                     <div
                                                         key={index}
                                                         id={`strategy-card-${index}`}
-                                                        className={`border-l-4 rounded-lg p-4 cursor-pointer transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 ${getStrategyColor(index)} ${hoveredStrategyIndex === index ? 'shadow-lg scale-[1.02]' : ''}`}
-                                                        role="button"
-                                                        tabIndex={0}
-                                                        onClick={() => showStrategyDetails(strategy, index)}
-                                                        onMouseEnter={() => {
-                                                            showStrategyDetails(strategy, index);
-                                                            setHoveredStrategyIndex(index);
-                                                        }}
-                                                        onMouseLeave={() => {
-                                                            setHoveredStrategyIndex(null);
-                                                            setDetailPanelOffset(0);
-                                                        }}
-                                                        onFocus={() => showStrategyDetails(strategy, index)}
-                                                        onKeyDown={(event) => handleStrategyKey(event, strategy)}
+                                                        className={`border-l-4 rounded-lg p-4 transition-all hover:shadow-md ${getStrategyColor(index)} ${hoveredStrategyIndex === index ? 'shadow-lg scale-[1.02]' : ''} ${selectedScenarios.includes(index) ? 'ring-2 ring-purple-500' : ''}`}
                                                     >
-                                                        <div className="flex justify-between items-start mb-2">
-                                                            <div className="flex-1">
+                                                        <div className="flex items-start gap-3 mb-2">
+                                                            {/* Checkbox for comparison */}
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedScenarios.includes(index)}
+                                                                onChange={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleScenarioSelection(index);
+                                                                }}
+                                                                className="mt-1 h-5 w-5 text-purple-600 focus:ring-purple-500 border-gray-300 rounded cursor-pointer"
+                                                                aria-label={`Select ${strategy.strategy} for comparison`}
+                                                            />
+                                                            <div 
+                                                                className="flex-1 cursor-pointer"
+                                                                role="button"
+                                                                tabIndex={0}
+                                                                onClick={() => showStrategyDetails(strategy, index)}
+                                                                onMouseEnter={() => {
+                                                                    showStrategyDetails(strategy, index);
+                                                                    setHoveredStrategyIndex(index);
+                                                                }}
+                                                                onMouseLeave={() => {
+                                                                    setHoveredStrategyIndex(null);
+                                                                    setDetailPanelOffset(0);
+                                                                }}
+                                                                onFocus={() => showStrategyDetails(strategy, index)}
+                                                                onKeyDown={(event) => handleStrategyKey(event, strategy)}
+                                                            >
+                                                                <div className="flex justify-between items-start">
+                                                                    <div className="flex-1">
                                                                 <p className="font-semibold text-gray-900">
                                                                     {index === 0 && '👑 '}
                                                                     {getStrategyIcon(strategy.type)} {strategy.strategy}
                                                                 </p>
-                                                                <p className="text-sm text-gray-600 mt-1">
-                                                                    Initial: {formatCurrency(strategy.initial_monthly)}/month
-                                                                    {strategy.switched_monthly && (
-                                                                        <> → {formatCurrency(strategy.switched_monthly)}/month</>
-                                                                    )}
-                                                                </p>
-                                                            </div>
-                                                            <div className="text-right ml-4">
-                                                                <p className="text-xs text-gray-500">Lifetime Value</p>
-                                                                <p className="text-lg font-bold text-gray-900">
-                                                                    {formatCurrency(strategy.lifetime_total)}
-                                                                </p>
+                                                                        <p className="text-sm text-gray-600 mt-1">
+                                                                            Initial: {formatCurrency(strategy.initial_monthly)}/month
+                                                                            {strategy.switched_monthly && (
+                                                                                <> → {formatCurrency(strategy.switched_monthly)}/month</>
+                                                                            )}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className="text-right ml-4">
+                                                                        <p className="text-xs text-gray-500">Lifetime Value</p>
+                                                                        <p className="text-lg font-bold text-gray-900">
+                                                                            {formatCurrency(strategy.lifetime_total)}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                                {strategy.note && (
+                                                                    <p className="text-xs text-gray-600 italic mt-2">{strategy.note}</p>
+                                                                )}
                                                             </div>
                                                         </div>
-                                                        {strategy.note && (
-                                                            <p className="text-xs text-gray-600 italic mt-2">{strategy.note}</p>
-                                                        )}
                                                     </div>
                                                 ))}
                                                 <p className="text-sm text-gray-500 mt-3 text-center">
@@ -979,6 +1040,205 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                     </div>
                 </div>
             </div>
+
+            {/* Scenario Comparison Modal */}
+            {showComparisonModal && selectedScenarios.length === 2 && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6">
+                            <div className="flex justify-between items-start mb-6">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-gray-900">
+                                        📊 Scenario Comparison
+                                    </h2>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        Comparing benefits at key milestone ages
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    {/* Monthly/Annual Toggle */}
+                                    <div className="flex bg-gray-100 rounded-lg p-1">
+                                        <button
+                                            onClick={() => setComparisonViewMode('monthly')}
+                                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                                                comparisonViewMode === 'monthly'
+                                                    ? 'bg-white text-purple-700 shadow'
+                                                    : 'text-gray-600 hover:text-gray-900'
+                                            }`}
+                                        >
+                                            Monthly
+                                        </button>
+                                        <button
+                                            onClick={() => setComparisonViewMode('annual')}
+                                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                                                comparisonViewMode === 'annual'
+                                                    ? 'bg-white text-purple-700 shadow'
+                                                    : 'text-gray-600 hover:text-gray-900'
+                                            }`}
+                                        >
+                                            Annual
+                                        </button>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowComparisonModal(false)}
+                                        className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 rounded p-1"
+                                        aria-label="Close comparison"
+                                    >
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {(() => {
+                                const scenario1 = results.all_strategies[selectedScenarios[0]];
+                                const scenario2 = results.all_strategies[selectedScenarios[1]];
+                                const milestoneAges = [62, 67, 70, 75, 80, 85, 90, 95];
+                                const multiplier = comparisonViewMode === 'annual' ? 12 : 1;
+
+                                // Get benefits for each milestone age
+                                const getData = (strategy) => {
+                                    return milestoneAges.map(age => {
+                                        if (age < currentAge) {
+                                            return null; // N/A for past ages
+                                        }
+                                        
+                                        // Find benefit for this age from timeline
+                                        const timelineEntry = strategy.benefit_timeline?.find(entry => entry.age === age);
+                                        return timelineEntry ? timelineEntry.monthly_benefit * multiplier : null;
+                                    });
+                                };
+
+                                const data1 = getData(scenario1);
+                                const data2 = getData(scenario2);
+                                
+                                // Find max value for scaling
+                                const allValues = [...data1, ...data2].filter(v => v !== null);
+                                const maxValue = Math.max(...allValues);
+                                const yAxisMax = Math.ceil(maxValue / 1000) * 1000;
+
+                                return (
+                                    <div className="space-y-6">
+                                        {/* Legend */}
+                                        <div className="flex items-center justify-center gap-8">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-6 h-6 bg-gradient-to-b from-blue-600 to-blue-400 rounded"></div>
+                                                <div>
+                                                    <p className="font-semibold text-gray-900">{scenario1.strategy}</p>
+                                                    <p className="text-sm text-gray-600">Lifetime: {formatCurrency(scenario1.lifetime_total)}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-6 h-6 bg-gradient-to-b from-orange-500 to-orange-300 rounded"></div>
+                                                <div>
+                                                    <p className="font-semibold text-gray-900">{scenario2.strategy}</p>
+                                                    <p className="text-sm text-gray-600">Lifetime: {formatCurrency(scenario2.lifetime_total)}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Bar Chart */}
+                                        <div className="bg-gray-50 rounded-lg p-6">
+                                            <div className="flex items-end justify-between gap-4 h-96 border-b-2 border-l-2 border-gray-300">
+                                                {milestoneAges.map((age, index) => {
+                                                    const value1 = data1[index];
+                                                    const value2 = data2[index];
+                                                    const isPast = age < currentAge;
+
+                                                    return (
+                                                        <div key={age} className="flex-1 flex flex-col justify-end items-center h-full">
+                                                            {/* Age label */}
+                                                            <div className="text-xs font-semibold text-gray-700 mb-2">
+                                                                Age {age}
+                                                            </div>
+
+                                                            {isPast ? (
+                                                                /* N/A indicator for past ages */
+                                                                <div className="flex flex-col items-center justify-center h-32 w-full">
+                                                                    <div className="text-gray-400 text-sm font-medium">N/A</div>
+                                                                    <div className="text-gray-400 text-xs">(past)</div>
+                                                                </div>
+                                                            ) : (
+                                                                /* Bars for future ages */
+                                                                <div className="flex gap-2 items-end w-full h-full pb-8">
+                                                                    {/* Scenario 1 bar - Blue gradient */}
+                                                                    <div className="flex-1 flex flex-col items-center justify-end group relative h-full">
+                                                                        <div
+                                                                            className="w-full bg-gradient-to-b from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 transition-colors rounded-t cursor-pointer shadow-sm"
+                                                                            style={{ height: `${(value1 / yAxisMax) * 100}%` }}
+                                                                        >
+                                                                        </div>
+                                                                        {/* Tooltip */}
+                                                                        <div className="hidden group-hover:block absolute bottom-full mb-2 bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-20">
+                                                                            {formatCurrency(value1)}
+                                                                            {comparisonViewMode === 'monthly' ? '/mo' : '/yr'}
+                                                                        </div>
+                                                                    </div>
+                                                                    {/* Scenario 2 bar - Orange gradient */}
+                                                                    <div className="flex-1 flex flex-col items-center justify-end group relative h-full">
+                                                                        <div
+                                                                            className="w-full bg-gradient-to-b from-orange-500 to-orange-300 hover:from-orange-600 hover:to-orange-400 transition-colors rounded-t cursor-pointer shadow-sm"
+                                                                            style={{ height: `${(value2 / yAxisMax) * 100}%` }}
+                                                                        >
+                                                                        </div>
+                                                                        {/* Tooltip */}
+                                                                        <div className="hidden group-hover:block absolute bottom-full mb-2 bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-20">
+                                                                            {formatCurrency(value2)}
+                                                                            {comparisonViewMode === 'monthly' ? '/mo' : '/yr'}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+
+                                            {/* Y-axis label */}
+                                            <div className="mt-4 text-center">
+                                                <p className="text-sm text-gray-600">
+                                                    {comparisonViewMode === 'monthly' ? 'Monthly' : 'Annual'} Benefit Amount
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Key Insights */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                                <h3 className="font-semibold text-blue-900 mb-2">{scenario1.strategy}</h3>
+                                                <p className="text-sm text-blue-800">
+                                                    {describeStrategy(scenario1)}
+                                                </p>
+                                            </div>
+                                            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                                                <h3 className="font-semibold text-purple-900 mb-2">{scenario2.strategy}</h3>
+                                                <p className="text-sm text-purple-800">
+                                                    {describeStrategy(scenario2)}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Lifetime Difference */}
+                                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+                                            <p className="text-center text-gray-900">
+                                                <span className="font-semibold">💰 Lifetime Difference:</span>{' '}
+                                                <span className="text-lg font-bold text-green-700">
+                                                    {formatCurrency(Math.abs(scenario1.lifetime_total - scenario2.lifetime_total))}
+                                                </span>
+                                                {' '}in favor of{' '}
+                                                <span className="font-semibold">
+                                                    {scenario1.lifetime_total > scenario2.lifetime_total ? scenario1.strategy : scenario2.strategy}
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Ex-Spouse PIA Info Modal */}
             {showExSpousePiaModal && (
