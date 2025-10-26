@@ -261,7 +261,7 @@ const RetirementStagesSlider = ({
 };
 
 // Flow Visualization Component - Three Scenarios Side-by-Side
-const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, isMarried, inflationRate, currentAge, selectedStrategy, setSelectedStrategy, piaStrategy, setPiaStrategy }) => {
+const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, isMarried, inflationRate, currentAge, selectedStrategy, setSelectedStrategy, piaStrategy, setPiaStrategy, preferredFilingYear, preferredFilingMonth }) => {
     // Responsive container refs/state must be declared before any early returns (React hooks rule)
     const containerRef = useRef(null);
     const [svgHeight, setSvgHeight] = useState(700);
@@ -358,8 +358,8 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
             color: '#EF4444'
         },
                     {
-                        label: `File at ${spouse1PreferredYear}${spouse1PreferredMonth > 0 ? `y ${spouse1PreferredMonth}m` : ''}`,
-                        age: spouse1PreferredYear,
+                        label: `File at ${preferredFilingYear}${preferredFilingMonth > 0 ? `y ${preferredFilingMonth}m` : ''}`,
+                        age: preferredFilingYear,
                         income: age67Monthly,
             covered: Math.min(age67Monthly, inflatedMonthlyNeeds),
             gap: Math.max(0, inflatedMonthlyNeeds - age67Monthly),
@@ -3595,6 +3595,8 @@ const ShowMeTheMoneyCalculator = () => {
                                     inflationRate={inflation}
                                     piaStrategy={piaStrategy}
                                     setPiaStrategy={setPiaStrategy}
+                                    preferredFilingYear={spouse1PreferredYear}
+                                    preferredFilingMonth={spouse1PreferredMonth}
                                     currentAge={(() => {
                                         const dob = new Date(spouse1Dob);
                                         const today = new Date();
