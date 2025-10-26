@@ -3014,9 +3014,35 @@ const ShowMeTheMoneyCalculator = () => {
                         <div className="p-4 space-y-4">
                     {/* Primary Filer - Compact */}
                     <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                        <div className="mb-2">
-                            <h3 className="text-sm font-semibold text-gray-900">Primary Filer</h3>
-                            <p className="text-xs text-gray-600">DOB: {spouse1Dob} • Age: {formatAge(spouse1Dob)}</p>
+                        <div className="mb-2 flex items-start justify-between">
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-900">Primary Filer</h3>
+                                <p className="text-xs text-gray-600">DOB: {spouse1Dob} • Age: {formatAge(spouse1Dob)}</p>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <label className="flex items-center gap-1 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={!isMarried}
+                                        onChange={(e) => setIsMarried(!e.target.checked)}
+                                        className="w-3 h-3 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                        title="This setting can also be changed in the Settings section"
+                                    />
+                                    <span className="text-xs text-gray-700">Single?</span>
+                                </label>
+                                {isMarried && (
+                                    <label className="flex items-center gap-1 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={isMarried}
+                                            onChange={(e) => setIsMarried(e.target.checked)}
+                                            className="w-3 h-3 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                            title="This setting can also be changed in the Settings section"
+                                        />
+                                        <span className="text-xs text-gray-700">Married?</span>
+                                    </label>
+                                )}
+                            </div>
                         </div>
                         <div className="space-y-2">
                             <div>
