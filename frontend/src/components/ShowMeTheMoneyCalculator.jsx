@@ -1810,6 +1810,7 @@ const ShowMeTheMoneyCalculator = () => {
     const [selectedStrategy, setSelectedStrategy] = useState(2); // 0=62, 1=67, 2=70
     const [piaStrategy, setPiaStrategy] = useState('late'); // 'early' or 'late'
     const [showPiaFraModal, setShowPiaFraModal] = useState(false);
+    const [showPreferredFilingModal, setShowPreferredFilingModal] = useState(false);
     const [isDraggingGoGo, setIsDraggingGoGo] = useState(false);
     const [isDraggingSlowGo, setIsDraggingSlowGo] = useState(false);
 
@@ -3078,7 +3079,7 @@ const ShowMeTheMoneyCalculator = () => {
                         <div className="space-y-2">
                             <div>
                                 <label className="block text-xs text-gray-600 mb-1 flex items-center gap-1">
-                                    PIA at FRA ($)
+                                    Enter Your PIA ($)
                                     <button
                                         type="button"
                                         onClick={() => setShowPiaFraModal(true)}
@@ -3092,12 +3093,21 @@ const ShowMeTheMoneyCalculator = () => {
                                     value={spouse1Pia}
                                     onChange={e => setSpouse1Pia(e.target.value ? Number(e.target.value) : '')}
                                     className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                                    placeholder="Enter PIA here"
+                                    placeholder="Insert PIA here"
                                 />
                             </div>
 
                             <div className="bg-primary-100 rounded p-2">
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Preferred Filing Age</label>
+                                <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
+                                    Preferred Filing Age
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPreferredFilingModal(true)}
+                                        className="text-primary-600 hover:text-primary-700 underline text-xs"
+                                    >
+                                        What's This?
+                                    </button>
+                                </label>
                                 <div className="grid grid-cols-2 gap-2">
                                     <div>
                                         <input
@@ -3145,7 +3155,7 @@ const ShowMeTheMoneyCalculator = () => {
                             <div className="space-y-2">
                                 <div>
                                     <label className="block text-xs text-gray-600 mb-1 flex items-center gap-1">
-                                        PIA at FRA ($)
+                                        Enter Your PIA ($)
                                         <button
                                             type="button"
                                             onClick={() => setShowPiaFraModal(true)}
@@ -3159,12 +3169,21 @@ const ShowMeTheMoneyCalculator = () => {
                                         value={spouse2Pia}
                                         onChange={e => setSpouse2Pia(e.target.value ? Number(e.target.value) : '')}
                                         className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                                        placeholder="Enter PIA here"
+                                        placeholder="Insert PIA here"
                                     />
                                 </div>
 
                                 <div className="bg-primary-100 rounded p-2">
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Preferred Filing Age</label>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
+                                        Preferred Filing Age
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPreferredFilingModal(true)}
+                                            className="text-primary-600 hover:text-primary-700 underline text-xs"
+                                        >
+                                            What's This?
+                                        </button>
+                                    </label>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
                                             <input
@@ -4435,6 +4454,114 @@ const ShowMeTheMoneyCalculator = () => {
 
                             <div className="flex justify-end mt-6">
                                 <Button onClick={() => setShowAlreadyFiledModal(false)} variant="primary">
+                                    Got It
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Preferred Filing Age Modal */}
+            {showPreferredFilingModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6">
+                            <div className="flex justify-between items-start mb-4">
+                                <h2 className="text-2xl font-bold text-gray-900">About Preferred Filing Age</h2>
+                                <button
+                                    onClick={() => setShowPreferredFilingModal(false)}
+                                    className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                                >
+                                    ×
+                                </button>
+                            </div>
+
+                            {/* What is it? */}
+                            <div className="mb-6">
+                                <h3 className="text-xl font-semibold text-primary-600 mb-3">What is Preferred Filing Age?</h3>
+                                <p className="text-gray-700 mb-3">
+                                    This is when you plan to start claiming your Social Security benefits. You can choose <strong>any age from 62 to 70</strong>, and even specify a particular month.
+                                </p>
+                                <p className="text-gray-700 mb-4">
+                                    This choice directly affects how much you'll receive each month - the longer you wait, the higher your monthly benefit.
+                                </p>
+                            </div>
+
+                            {/* Flexibility */}
+                            <div className="mb-6">
+                                <h3 className="text-xl font-semibold text-primary-600 mb-3">Complete Flexibility</h3>
+                                <div className="space-y-3">
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex-shrink-0 mt-1">
+                                            <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-900">Change it anytime</p>
+                                            <p className="text-sm text-gray-600">Explore different scenarios by adjusting these values whenever you want</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex-shrink-0 mt-1">
+                                            <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-900">Choose any year AND month</p>
+                                            <p className="text-sm text-gray-600">You have precise control - file at 65 years 3 months, 68 years 7 months, or any combination</p>
+                                        </div>
+                                    </div>
+
+                                    {isMarried && (
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex-shrink-0 mt-1">
+                                                <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-gray-900">Each spouse files independently</p>
+                                                <p className="text-sm text-gray-600">You don't have to file at the same time - each person can choose their own optimal timing</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* How it affects the chart */}
+                            <div className="mb-6">
+                                <h3 className="text-xl font-semibold text-primary-600 mb-3">How This Impacts the Charts</h3>
+                                <p className="text-gray-700 mb-3">
+                                    The <strong className="text-blue-600">blue bar</strong> in the charts shows what happens with your chosen filing age(s).
+                                </p>
+                                <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+                                    <p className="text-sm text-gray-700 mb-2">
+                                        <strong>The calculation considers:</strong>
+                                    </p>
+                                    <ul className="space-y-1 text-sm text-gray-700">
+                                        <li>• Your PIA (monthly benefit at FRA)</li>
+                                        <li>• Your chosen filing age (year and month)</li>
+                                        <li>• Your current age and birth date</li>
+                                        {isMarried && <li>• Both spouses' individual choices (when married)</li>}
+                                        <li>• Inflation/COLA adjustments over time</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            {/* Why it matters */}
+                            <div className="mb-6">
+                                <h3 className="text-xl font-semibold text-primary-600 mb-3">Why This Matters</h3>
+                                <p className="text-gray-700">
+                                    Every month you delay filing (up to age 70) permanently increases your monthly benefit. The blue bar helps you see the long-term impact of your timing choice compared to filing at 62 (red) or 70 (green).
+                                </p>
+                            </div>
+
+                            <div className="flex justify-end mt-6">
+                                <Button onClick={() => setShowPreferredFilingModal(false)} variant="primary">
                                     Got It
                                 </Button>
                             </div>
