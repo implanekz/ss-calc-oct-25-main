@@ -10,7 +10,7 @@ A comprehensive Social Security optimization platform that helps pre-retirees ma
 
 ## Development Status
 
-This project is currently in initial development phase. See `docs/PRD.md` for complete product requirements.
+This project is currently in initial development phase. Deploying to production. See `docs/PRD.md` for complete product requirements.
 
 ## Setup Instructions
 
