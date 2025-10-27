@@ -80,26 +80,31 @@ const useBenefitCalculations = ({
   const calculateMonthlyBenefit = (ageYears) => {
     const fraYears = getFRAYears();
     
+    // Cap age at 70 - SSA delayed credits stop at age 70
+    const cappedAgeYears = Math.min(ageYears, 70);
+    
     // Calculate months from FRA
-    const monthsFromFra = Math.round((ageYears - fraYears) * 12);
+    const monthsFromFra = Math.round((cappedAgeYears - fraYears) * 12);
     
     // Back-calculate PIA from age 62 benefit
     // Age 62 benefit = PIA * earlyReductionFactor(months before FRA at 62)
     const monthsBeforeFraAt62 = Math.round((fraYears - 62) * 12);
     const piaFRA = baseBenefitAt62 / earlyReductionFactor(-monthsBeforeFraAt62);
     
-    // Now calculate benefit at the target age
+    // Now calculate benefit at the target age (capped at 70)
     let benefit;
     if (monthsFromFra >= 0) {
-      // At or after FRA - apply delayed credits
-      benefit = piaFRA * delayedRetirementCreditFactor(monthsFromFra);
+      // At or after FRA - apply delayed credits (capped at age 70)
+      const maxDelayedMonths = Math.round((70 - fraYears) * 12);
+      const cappedMonthsFromFra = Math.min(monthsFromFra, maxDelayedMonths);
+      benefit = piaFRA * delayedRetirementCreditFactor(cappedMonthsFromFra);
     } else {
       // Before FRA - apply early reduction
       benefit = piaFRA * earlyReductionFactor(monthsFromFra);
     }
     
-    // Apply inflation from age 62 to target age
-    const yearsFromAge62 = ageYears - 62;
+    // Apply inflation from age 62 to target age (capped at 70 for credit purposes)
+    const yearsFromAge62 = cappedAgeYears - 62;
     const inflationAdjustment = Math.pow(1 + inflationRate, yearsFromAge62);
     benefit = benefit * inflationAdjustment;
     
