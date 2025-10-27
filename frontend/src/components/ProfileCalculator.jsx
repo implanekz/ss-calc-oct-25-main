@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
 import { getTaxableMaximum } from '../utils/taxableMaximum';
+import { API_BASE_URL } from '../config/api';
 
 // Pre-loaded profiles from our documentation
 const PROFILES = {
@@ -176,7 +177,7 @@ const ProfileCalculator = () => {
                 is_projected: false
             }));
 
-            const response = await fetch('http://localhost:8000/calculate-pia-from-earnings', {
+            const response = await fetch(`${API_BASE_URL}/calculate-pia-from-earnings`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

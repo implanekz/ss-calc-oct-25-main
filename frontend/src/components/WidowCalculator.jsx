@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { StrategyTimelineToaster } from './ui';
 import { useCalculatorPersistence } from '../hooks/useCalculatorPersistence';
+import { API_BASE_URL } from '../config/api';
 
 const WidowCalculator = ({ onSwitchToMarried }) => {
     // Persistence hook for ALL user inputs
@@ -189,7 +190,7 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
         setError(null);
 
         try {
-            const response = await axios.post('http://localhost:8000/calculate-widow', {
+            const response = await axios.post(`${API_BASE_URL}/calculate-widow`, {
                 birth_date: birthDate,
                 own_pia: ownPia,
                 deceased_spouse_pia: deceasedSpousePia,

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { StrategyTimelineToaster } from './ui';
 import { useCalculatorPersistence } from '../hooks/useCalculatorPersistence';
+import { API_BASE_URL } from '../config/api';
 
 const DivorcedCalculator = ({ onSwitchToMarried }) => {
     // Persistence hook for ALL user inputs
@@ -171,7 +172,7 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
         setError(null);
 
         try {
-            const response = await axios.post('http://localhost:8000/calculate-divorced', {
+            const response = await axios.post(`${API_BASE_URL}/calculate-divorced`, {
                 birth_date: birthDate,
                 own_pia: ownPia,
                 ex_spouse_pia: exSpousePia,

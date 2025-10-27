@@ -4,6 +4,7 @@ import { tooltips } from '../utils/piaTooltips';
 import { useUser } from '../contexts/UserContext';
 import { useCalculatorPersistence } from '../hooks/useCalculatorPersistence';
 import { Tabs, TabList, Tab, TabPanel } from './ui/Tabs';
+import { API_BASE_URL } from '../config/api';
 
 const PIACalculator = () => {
     // Get user context for names and marital status
@@ -167,7 +168,7 @@ const PIACalculator = () => {
                 sample_earnings: relevantEarnings.slice(0, 3)
             });
 
-            const response = await fetch('http://localhost:8000/calculate-pia-from-earnings', {
+            const response = await fetch(`${API_BASE_URL}/calculate-pia-from-earnings`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -235,7 +236,7 @@ const PIACalculator = () => {
                 sample: relevantEarnings.slice(0, 3)
             });
 
-            const response = await fetch('http://localhost:8000/calculate-pia-from-earnings', {
+            const response = await fetch(`${API_BASE_URL}/calculate-pia-from-earnings`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -338,7 +339,7 @@ const PIACalculator = () => {
             const formData = new FormData();
             formData.append('file', file);
 
-            const response = await fetch('http://localhost:8000/upload-ssa-xml', {
+            const response = await fetch(`${API_BASE_URL}/upload-ssa-xml`, {
                 method: 'POST',
                 body: formData
             });
