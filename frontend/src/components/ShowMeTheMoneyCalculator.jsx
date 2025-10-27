@@ -3346,23 +3346,31 @@ const ShowMeTheMoneyCalculator = () => {
 
                     {/* Quick Access Tools */}
                     <div className="border border-gray-200 rounded-lg p-3 bg-gradient-to-br from-white to-gray-50 shadow-sm">
-                        <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Access Tools</h3>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-3">Core Features</h3>
                         <div className="space-y-2">
-                            {/* PIA Calculator */}
-                            <button
-                                onClick={() => navigate('/pia-calculator')}
-                                className="w-full text-left px-3 py-2 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border border-blue-200 rounded-lg transition-all hover:shadow-md group"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <div className="text-sm font-semibold text-blue-900">PIA Calculator</div>
-                                        <div className="text-xs text-blue-700 mt-0.5">Calculate your benefit amount</div>
+                            {/* Featured: PIA Calculator - UPGRADED */}
+                            <div className="p-4 bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 border-2 border-teal-300 rounded-xl shadow-lg">
+                                <div className="flex items-start gap-3 mb-3">
+                                    <div className="flex-shrink-0">
+                                        <div className="w-10 h-10 bg-teal-600 rounded-lg flex items-center justify-center">
+                                            <span className="text-white text-xl">🧮</span>
+                                        </div>
                                     </div>
-                                    <svg className="w-4 h-4 text-blue-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                    </svg>
+                                    <div className="flex-1">
+                                        <h4 className="text-base font-bold text-teal-900 mb-1">PIA Calculator</h4>
+                                        <p className="text-xs text-teal-700">Calculate your Primary Insurance Amount from your earnings record</p>
+                                    </div>
                                 </div>
-                            </button>
+                                <button
+                                    onClick={() => navigate('/pia-calculator')}
+                                    className="w-full py-3 px-4 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-bold rounded-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                                >
+                                    🔢 Calculate Your PIA
+                                </button>
+                                <p className="text-xs text-teal-600 mt-2 text-center italic">
+                                    ⚡ Essential: Get your exact benefit amount
+                                </p>
+                            </div>
 
                             {/* Featured: One Month at a Time - MOVED UP */}
                             <div className="p-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 border-2 border-indigo-300 rounded-xl shadow-lg">
@@ -3388,6 +3396,10 @@ const ShowMeTheMoneyCalculator = () => {
                                 </p>
                             </div>
 
+                        </div>
+                        
+                        <h3 className="text-sm font-semibold text-gray-900 mb-3 mt-4">Helper Apps</h3>
+                        <div className="space-y-2">
                             {/* Sequence of Returns */}
                             <button
                                 onClick={() => navigate('/sequence-risk')}
