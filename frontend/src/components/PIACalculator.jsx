@@ -670,12 +670,52 @@ const PIACalculator = () => {
                     </div>
                 )}
 
-                <div className="mt-3 text-xs text-gray-500">
-                    <strong>How to get your XML:</strong> Visit{' '}
-                    <a href="https://www.ssa.gov/myaccount/" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">
-                        SSA.gov/myaccount
-                    </a>
-                    , view your earnings record, and download the XML version.
+                {/* Detailed XML Download Instructions */}
+                <div className="mt-4 p-4 bg-white border border-purple-300 rounded-lg">
+                    <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <span className="text-lg">ℹ️</span>
+                        How to Download Your XML File from SSA.gov
+                    </h4>
+                    
+                    <div className="text-xs text-gray-700 space-y-3">
+                        <p>
+                            To find your personal XML file from SSA.gov, you must log in to your "my Social Security" account. 
+                            This file, which contains your earnings record and benefit estimates, can be downloaded securely through your account.
+                        </p>
+                        
+                        <div className="bg-purple-50 p-3 rounded-md">
+                            <p className="font-semibold text-gray-900 mb-2">How to download your XML file:</p>
+                            <ol className="list-decimal list-inside space-y-1.5 ml-2">
+                                <li>
+                                    <strong>Access your account:</strong> Go to the official Social Security Administration website,{' '}
+                                    <a href="https://www.ssa.gov/myaccount/" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline font-semibold">
+                                        ssa.gov
+                                    </a>, and click "Sign In" to your my Social Security account. If you do not have an account, you will need to create one first.
+                                </li>
+                                <li>
+                                    <strong>Find your statement:</strong> Once logged in, navigate to the section that contains your Social Security Statement.
+                                </li>
+                                <li>
+                                    <strong>Download the data:</strong> Look for a link to download your statement data as an XML file. The SSA converts your personal data into the XML format for download.
+                                </li>
+                                <li>
+                                    <strong>Save the file:</strong> The XML file will be downloaded to your device. Be sure to save it in a secure place, as it contains sensitive personal and financial information.
+                                </li>
+                            </ol>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 pt-2">
+                            <span className="text-purple-600">📹</span>
+                            <a 
+                                href="https://rssa.com/videos/rssa-roadmap-client-portal-tutorial/" 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="text-purple-600 hover:text-purple-800 hover:underline font-semibold"
+                            >
+                                Watch Video Tutorial →
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
