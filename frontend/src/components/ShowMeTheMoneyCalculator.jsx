@@ -3365,7 +3365,7 @@ const ShowMeTheMoneyCalculator = () => {
                                     onClick={() => navigate('/pia-calculator')}
                                     className="w-full py-3 px-4 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-bold rounded-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-200"
                                 >
-                                    🔢 Calculate Your PIA
+                                    Refine your PIA
                                 </button>
                                 <p className="text-xs text-teal-600 mt-2 text-center italic">
                                     ⚡ Essential: Get your exact benefit amount
