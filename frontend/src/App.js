@@ -44,7 +44,9 @@ function LoginScreen() {
         await login(email, password);
       }
     } catch (err) {
-      setError(err.message);
+      // Properly extract error message, handling various error formats
+      const errorMessage = err?.message || err?.error || String(err) || 'An error occurred during signup';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
