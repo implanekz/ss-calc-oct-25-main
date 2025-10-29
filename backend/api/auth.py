@@ -3,9 +3,10 @@ Authentication endpoints for Social Security K.I.N.D. Platform
 Handles: signup, login, logout, email verification, password reset
 """
 from fastapi import APIRouter, HTTPException, Header
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
 from supabase import Client
+from datetime import date
 import sys
 import os
 
@@ -28,8 +29,18 @@ class SignupRequest(BaseModel):
     password: str = Field(..., min_length=6)
     firstName: str
     lastName: str
-    dateOfBirth: str  # YYYY-MM-DD format
+    dateOfBirth: date  # Changed to date type for automatic validation
     relationshipStatus: str
+    
+    @field_validator('dateOfBirth')
+    @classmethod
+    def validate_date_of_birth(cls, v):
+        """Ensure date of birth is valid"""
+        if v > date.today():
+            raise ValueError('Date of birth cannot be in the future')
+        if v.year < 1900:
+            raise ValueError('Date of birth must be after 1900')
+        return v
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -78,7 +89,7 @@ async def signup(request: SignupRequest):
             'id': user_id,
             'first_name': request.firstName,
             'last_name': request.lastName,
-            'date_of_birth': request.dateOfBirth,
+            'date_of_birth': request.dateOfBirth.isoformat(),  # Convert date to string
             'relationship_status': request.relationshipStatus
         }).execute()
         

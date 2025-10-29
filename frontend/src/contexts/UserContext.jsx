@@ -4,6 +4,7 @@
  */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase, getAuthToken } from '../config/supabase';
+import { API_BASE_URL } from '../config/api';
 
 const UserContext = createContext(null);
 
@@ -58,7 +59,7 @@ export const UserProvider = ({ children }) => {
       const token = await getAuthToken();
       if (!token) return;
 
-      const profileRes = await fetch('/api/profiles/me/full', {
+      const profileRes = await fetch(`${API_BASE_URL}/api/profiles/me/full`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const profileData = await profileRes.json();
@@ -80,8 +81,7 @@ export const UserProvider = ({ children }) => {
   const signup = useCallback(async (userData) => {
     try {
       setError(null);
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${apiUrl}/api/auth/signup`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -93,6 +93,12 @@ export const UserProvider = ({ children }) => {
           relationshipStatus: userData.relationshipStatus
         })
       });
+
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Backend server is not responding correctly. Please ensure the API server is running at ' + API_BASE_URL);
+      }
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || data.error || 'Signup failed');
@@ -120,8 +126,7 @@ export const UserProvider = ({ children }) => {
   const login = useCallback(async (email, password) => {
     try {
       setError(null);
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${apiUrl}/api/auth/login`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -173,7 +178,7 @@ export const UserProvider = ({ children }) => {
       const token = await getAuthToken();
       if (!token) return;
 
-      const response = await fetch('/api/profiles/me/onboarding-complete', {
+      const response = await fetch(`${API_BASE_URL}/api/profiles/me/onboarding-complete`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -195,7 +200,7 @@ export const UserProvider = ({ children }) => {
       const token = await getAuthToken();
       if (!token) return;
 
-      const response = await fetch('/api/profiles/me', {
+      const response = await fetch(`${API_BASE_URL}/api/profiles/me`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -223,7 +228,7 @@ export const UserProvider = ({ children }) => {
       const token = await getAuthToken();
       if (!token) return;
 
-      const response = await fetch('/api/partners', {
+      const response = await fetch(`${API_BASE_URL}/api/partners`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -251,7 +256,7 @@ export const UserProvider = ({ children }) => {
       const token = await getAuthToken();
       if (!token) return;
 
-      const response = await fetch(`/api/partners/${partnerId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/partners/${partnerId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -279,7 +284,7 @@ export const UserProvider = ({ children }) => {
       const token = await getAuthToken();
       if (!token) return;
 
-      const response = await fetch(`/api/partners/${partnerId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/partners/${partnerId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -301,7 +306,7 @@ export const UserProvider = ({ children }) => {
       const token = await getAuthToken();
       if (!token) return;
 
-      const response = await fetch('/api/children', {
+      const response = await fetch(`${API_BASE_URL}/api/children`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -329,7 +334,7 @@ export const UserProvider = ({ children }) => {
       const token = await getAuthToken();
       if (!token) return;
 
-      const response = await fetch(`/api/children/${childId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/children/${childId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -351,7 +356,7 @@ export const UserProvider = ({ children }) => {
       const token = await getAuthToken();
       if (!token) return;
 
-      const response = await fetch('/api/preferences', {
+      const response = await fetch(`${API_BASE_URL}/api/preferences`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
