@@ -287,7 +287,7 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
         return <div className="h-full flex items-center justify-center text-gray-500">Loading...</div>;
     }
 
-    const { primaryProjections, spouseProjections, combinedProjections, birthYearPrimary, earlyLateProjection, preferredLateProjection, bothLateProjection } = scenarioData;
+    const { primaryProjections, spouseProjections, combinedProjections, birthYearPrimary, earlyLateProjection, preferredLateProjection, bothLateProjection, bothEarlyProjection } = scenarioData;
 
     const projections = activeRecordView === 'primary'
         ? primaryProjections
@@ -1053,7 +1053,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
         return <div className="h-full flex items-center justify-center text-gray-500">Loading...</div>;
     }
 
-    const { primaryProjections, spouseProjections, combinedProjections, birthYearPrimary, earlyLateProjection, preferredLateProjection, bothLateProjection } = scenarioData;
+    const { primaryProjections, spouseProjections, combinedProjections, birthYearPrimary, earlyLateProjection, preferredLateProjection, bothLateProjection, bothEarlyProjection } = scenarioData;
 
     // Determine which projections to use based on view
     const projections = activeRecordView === 'primary'
@@ -1999,6 +1999,7 @@ const ShowMeTheMoneyCalculator = () => {
         let earlyLateProjection = primaryProjections.age62;
         let preferredLateProjection = primaryProjections.preferred;
         let bothLateProjection = primaryProjections.age70;
+        let bothEarlyProjection = primaryProjections.age62;
 
         if (isMarried && spouseProjections) {
             // ALWAYS use optimal strategy: Lower PIA files at 62, Higher PIA files at 70
@@ -2015,6 +2016,7 @@ const ShowMeTheMoneyCalculator = () => {
                 preferredLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.preferred);
             }
             bothLateProjection = combineMonthlyProjection(primaryProjections.age70, spouseProjections.age70);
+            bothEarlyProjection = combineMonthlyProjection(primaryProjections.age62, spouseProjections.age62);
         }
 
         const birthYearPrimary = new Date(spouse1Dob).getFullYear();
@@ -2030,6 +2032,7 @@ const ShowMeTheMoneyCalculator = () => {
             earlyLateProjection,
             preferredLateProjection,
             bothLateProjection,
+            bothEarlyProjection,
             birthYearPrimary,
             birthYearSpouse,
             primaryYears,
@@ -2252,6 +2255,15 @@ const ShowMeTheMoneyCalculator = () => {
             newChartData = {
                 labels: cashflowLabels,
                 datasets: [
+                    {
+                        label: 'Both @62',
+                        data: valueMapper(bothEarlyProjection),
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.12)',
+                        fill: false,
+                        tension: 0.35,
+                        pointRadius: 3
+                    },
                     {
                         label: 'Lower PIA @62, Higher PIA @70',
                         data: valueMapper(earlyLateProjection),
