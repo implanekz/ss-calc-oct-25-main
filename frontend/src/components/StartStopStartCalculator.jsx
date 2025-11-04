@@ -2,39 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Line, Bar } from 'react-chartjs-2';
 import { useCalculatorPersistence } from '../hooks/useCalculatorPersistence';
 import { Button } from './ui';
-
-const FRA_LOOKUP = {
-    1937: { years: 65, months: 0 },
-    1938: { years: 65, months: 2 },
-    1939: { years: 65, months: 4 },
-    1940: { years: 65, months: 6 },
-    1941: { years: 65, months: 8 },
-    1942: { years: 65, months: 10 },
-    1943: { years: 66, months: 0 },
-    1944: { years: 66, months: 0 },
-    1945: { years: 66, months: 0 },
-    1946: { years: 66, months: 0 },
-    1947: { years: 66, months: 0 },
-    1948: { years: 66, months: 0 },
-    1949: { years: 66, months: 0 },
-    1950: { years: 66, months: 0 },
-    1951: { years: 66, months: 0 },
-    1952: { years: 66, months: 0 },
-    1953: { years: 66, months: 0 },
-    1954: { years: 66, months: 0 },
-    1955: { years: 66, months: 2 },
-    1956: { years: 66, months: 4 },
-    1957: { years: 66, months: 6 },
-    1958: { years: 66, months: 8 },
-    1959: { years: 66, months: 10 },
-    1960: { years: 67, months: 0 }
-};
-
-const getFra = (birthYear) => {
-    if (birthYear <= 1937) return { years: 65, months: 0 };
-    if (birthYear >= 1960) return { years: 67, months: 0 };
-    return FRA_LOOKUP[birthYear] || { years: 67, months: 0 };
-};
+import { getFra, earlyReductionFromAges, drcIncreaseFromAges, adjustPIAForPreClaim } from '../utils/benefitFormulas';
 
 const StartStopStartCalculator = () => {
     // Persistence hook for ALL user inputs
@@ -103,29 +71,8 @@ const StartStopStartCalculator = () => {
         const fra = getFra(birthYear);
         const fraAge = fra.years + (fra.months / 12);
 
-        // Helper function to calculate early filing reduction
-        const getEarlyReduction = (filingAge, fraAge) => {
-            const monthsEarly = Math.round((fraAge - filingAge) * 12);
-            if (monthsEarly <= 0) return 1.0;
-            
-            const first36 = Math.min(36, monthsEarly);
-            const remaining = Math.max(0, monthsEarly - 36);
-            
-            const reduction = (first36 * (5/9) / 100) + (remaining * (5/12) / 100);
-            return 1 - reduction;
-        };
-
-        // Helper function to calculate delayed retirement credits
-        const getDelayedCredits = (restartAge, fraAge) => {
-            const monthsDelayed = Math.max(0, Math.round((restartAge - fraAge) * 12));
-            return monthsDelayed * (2/3) / 100; // 8% per year = 2/3% per month
-        };
-
-        // Calculate COLA-adjusted PIA at each age
-        const getAdjustedPIA = (age) => {
-            const years = Math.max(0, age - birthYear);
-            return pia * Math.pow(1 + colaRate, years);
-        };
+        // Pre-claim PIA adjustment: treat input PIA as at FRA; only grow if claim after FRA
+        const getAdjustedPIA = (claimAge) => adjustPIAForPreClaim(pia, claimAge, fraAge, colaRate);
 
         // Scenario 1: Start-Stop-Start Strategy
         const startStopStart = {
@@ -141,7 +88,7 @@ const StartStopStartCalculator = () => {
         };
 
         // Early filing reduction
-        const earlyReduction = getEarlyReduction(earlyFilingAge, fraAge);
+        const earlyReduction = earlyReductionFromAges(earlyFilingAge, fraAge);
         const adjustedPIAAtEarly = getAdjustedPIA(earlyFilingAge);
         startStopStart.earlyBenefit = adjustedPIAAtEarly * earlyReduction;
 
@@ -154,7 +101,7 @@ const StartStopStartCalculator = () => {
         // Restart benefit calculation
         // Key: DRCs are additive to the early reduction percentage, not multiplicative
         const adjustedPIAAtRestart = getAdjustedPIA(restartAge);
-        const drcIncrease = getDelayedCredits(restartAge, fraAge);
+        const drcIncrease = drcIncreaseFromAges(restartAge, fraAge);
         const finalPercentage = earlyReduction + drcIncrease; // Additive!
         startStopStart.restartBenefit = adjustedPIAAtRestart * finalPercentage;
 
@@ -189,7 +136,7 @@ const StartStopStartCalculator = () => {
             monthlyByAge: {}
         };
 
-        const drc70 = getDelayedCredits(70, fraAge);
+        const drc70 = drcIncreaseFromAges(70, fraAge);
         const adjustedPIAAt70 = getAdjustedPIA(70);
         waitUntil70.monthlyBenefit = adjustedPIAAt70 * (1 + drc70);
 
@@ -213,7 +160,7 @@ const StartStopStartCalculator = () => {
             monthlyByAge: {}
         };
 
-        const reduction62 = getEarlyReduction(62, fraAge);
+        const reduction62 = earlyReductionFromAges(62, fraAge);
         const adjustedPIAAt62 = getAdjustedPIA(62);
         fileAt62.monthlyBenefit = adjustedPIAAt62 * reduction62;
 
