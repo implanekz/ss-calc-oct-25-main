@@ -3267,7 +3267,7 @@ const ShowMeTheMoneyCalculator = () => {
                                             
                                             let label;
                                             if (isMarried && spouseBirthYear) {
-                                                const spouseAge = age - (primaryBirthYear - spouseBirthYear);
+                                                const spouseAge = age + (primaryBirthYear - spouseBirthYear);
                                                 label = formatCoupleAges(primaryAge, spouseAge);
                                             } else {
                                                 label = `${primaryAge}`;
@@ -4197,7 +4197,7 @@ const ShowMeTheMoneyCalculator = () => {
                                             const primaryBirthYear = new Date(spouse1Dob).getFullYear();
                                             
                                             if (isMarried && spouseBirthYear) {
-                                                const spouseAge = selectedYearAge - (primaryBirthYear - spouseBirthYear);
+                                                const spouseAge = selectedYearAge + (primaryBirthYear - spouseBirthYear);
                                                 if (primaryAge === spouseAge) {
                                                     return `${primaryAge}`;
                                                 } else {
