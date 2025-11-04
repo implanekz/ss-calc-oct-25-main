@@ -4246,8 +4246,9 @@ const ShowMeTheMoneyCalculator = () => {
                                             gradient: 'from-green-500 to-green-600',
                                             monthly: projections.age70.monthly[calendarYear] || 0,
                                             cumulative: cumulativeSince70(projections.age70),
+                                            projection: projections.age70,
                                             filingAge: 70,
-                                            started: selectedYearAge >= 70
+                                            started: false
                                         },
                                         {
                                             name: 'File at 67',
@@ -4255,8 +4256,9 @@ const ShowMeTheMoneyCalculator = () => {
                                             gradient: 'from-blue-500 to-blue-600',
                                             monthly: projections.preferred.monthly[calendarYear] || 0,
                                             cumulative: cumulativeSince70(projections.preferred),
+                                            projection: projections.preferred,
                                             filingAge: 67,
-                                            started: selectedYearAge >= 67
+                                            started: false
                                         },
                                         {
                                             name: 'File at 62',
@@ -4264,8 +4266,9 @@ const ShowMeTheMoneyCalculator = () => {
                                             gradient: 'from-red-500 to-red-600',
                                             monthly: projections.age62.monthly[calendarYear] || 0,
                                             cumulative: cumulativeSince70(projections.age62),
+                                            projection: projections.age62,
                                             filingAge: 62,
-                                            started: selectedYearAge >= 62
+                                            started: false
                                         }
                                     ];
 
@@ -4275,7 +4278,13 @@ const ShowMeTheMoneyCalculator = () => {
                                     , strategies[0]);
 
                                     return strategies.map((strategy, idx) => {
-                                        const annual = strategy.monthly * 12;
+                                        // Annual received in this calendar year = delta of cumulative between this year and prior year
+                                        const prevYear = calendarYear - 1;
+                                        const cumulativeThis = strategy.projection?.cumulative?.[calendarYear] || 0;
+                                        const cumulativePrev = strategy.projection?.cumulative?.[prevYear] || 0;
+                                        const annual = Math.max(0, cumulativeThis - cumulativePrev);
+                                        // Started if any income is paid in this calendar year (or monthly shown)
+                                        strategy.started = (strategy.monthly > 0) || (annual > 0);
                                         const isBest = strategy === bestStrategy && strategy.monthly > 0;
 
                                         return (
@@ -4358,7 +4367,13 @@ const ShowMeTheMoneyCalculator = () => {
                                                     {strategy.started && (
                                                         <div className="pt-3 border-t border-gray-200">
                                                             <p className="text-xs text-gray-600">
-                                                                <span className="font-semibold">Receiving for:</span> {selectedYearAge - strategy.filingAge} years
+                                                                <span className="font-semibold">Receiving for:</span> {(() => {
+                                                                    // Find first calendar year with income in this projection
+                                                                    const years = Object.keys(strategy.projection?.monthly || {}).map(Number).sort((a,b)=>a-b);
+                                                                    const firstPaidYear = years.find(y => (strategy.projection?.monthly?.[y] || 0) > 0);
+                                                                    if (!firstPaidYear) return 0;
+                                                                    return Math.max(0, calendarYear - firstPaidYear);
+                                                                })()} years
                                                             </p>
                                                         </div>
                                                     )}
