@@ -4285,6 +4285,10 @@ const ShowMeTheMoneyCalculator = () => {
                                         const annual = Math.max(0, cumulativeThis - cumulativePrev);
                                         // Started if any income is paid in this calendar year (or monthly shown)
                                         strategy.started = (strategy.monthly > 0) || (annual > 0);
+                                        // Estimate months paid in this year from annual divided by monthly amount
+                                        const monthsPaid = (strategy.monthly > 0)
+                                            ? Math.min(12, Math.max(0, Math.round(annual / strategy.monthly)))
+                                            : 0;
                                         const isBest = strategy === bestStrategy && strategy.monthly > 0;
 
                                         return (
@@ -4349,6 +4353,16 @@ const ShowMeTheMoneyCalculator = () => {
                                                         <p className={`text-xl font-bold ${strategy.started ? `text-${strategy.color}-600` : 'text-gray-400'}`}>
                                                             {strategy.started ? currencyFormatter.format(Math.round(annual)) : '$0'}
                                                         </p>
+                                                        {strategy.started && monthsPaid > 0 && (
+                                                            <p className="text-xs text-gray-500 mt-1">
+                                                                {monthsPaid === 12 ? '12 months paid this year' : `${monthsPaid} months paid this year`}
+                                                            </p>
+                                                        )}
+                                                        {strategy.started && monthsPaid > 0 && monthsPaid < 12 && (
+                                                            <p className="text-[11px] text-gray-500 mt-1 italic">
+                                                                Includes partial-year payments due to mid-year filing.
+                                                            </p>
+                                                        )}
                                                     </div>
 
                                                     {/* Cumulative Since Age 70 */}
