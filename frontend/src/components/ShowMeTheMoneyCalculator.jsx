@@ -2257,7 +2257,7 @@ const ShowMeTheMoneyCalculator = () => {
                 datasets: [
                     {
                         label: 'Both @62',
-                        data: valueMapper(bothEarlyProjection),
+                        data: valueMapper((isMarried && combinedProjections?.age62) ? combinedProjections.age62 : primaryProjections.age62),
                         borderColor: 'rgba(255, 159, 64, 1)',
                         backgroundColor: 'rgba(255, 159, 64, 0.12)',
                         fill: false,
