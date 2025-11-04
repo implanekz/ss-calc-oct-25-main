@@ -3415,6 +3415,30 @@ const ShowMeTheMoneyCalculator = () => {
                                 </p>
                             </div>
 
+                            {/* Start-Stop-Start Strategy */}
+                            <div className="p-4 bg-gradient-to-br from-purple-50 via-fuchsia-50 to-rose-50 border-2 border-purple-300 rounded-xl shadow-lg">
+                                <div className="flex items-start gap-3 mb-3">
+                                    <div className="flex-shrink-0">
+                                        <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                                            <span className="text-white text-xl">🔄</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="text-base font-bold text-purple-900 mb-1">Start-Stop-Start Strategy</h4>
+                                        <p className="text-xs text-purple-700">File early, suspend at FRA, restart at 70 to maximize credits</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => navigate('/start-stop-start')}
+                                    className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                                >
+                                    🔄 Explore Start-Stop-Start
+                                </button>
+                                <p className="text-xs text-purple-600 mt-2 text-center italic">
+                                    Compare early vs delayed claiming with suspension
+                                </p>
+                            </div>
+
                         </div>
                         
                         <h3 className="text-sm font-semibold text-gray-900 mb-3 mt-4">Helper Apps</h3>
