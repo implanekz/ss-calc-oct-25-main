@@ -2245,7 +2245,7 @@ const ShowMeTheMoneyCalculator = () => {
             // Create title with toggle switch
             const earlyLateTitle = {
                 display: true,
-                text: 'Early vs Late Filing Cash Flow',
+                text: 'Early/Late Filing Cash Flow',
                 padding: { bottom: 20 }
             };
 
@@ -3439,7 +3439,7 @@ const ShowMeTheMoneyCalculator = () => {
                                 </p>
                             </div>
 
-                            {/* Early vs Late */}
+                            {/* Early/Late */}
                             <div className="p-4 bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 border-2 border-amber-300 rounded-xl shadow-lg">
                                 <div className="flex items-start gap-3 mb-3">
                                     <div className="flex-shrink-0">
@@ -3448,7 +3448,7 @@ const ShowMeTheMoneyCalculator = () => {
                                         </div>
                                     </div>
                                     <div className="flex-1">
-                                        <h4 className="text-base font-bold text-amber-900 mb-1">Early vs Late</h4>
+                                        <h4 className="text-base font-bold text-amber-900 mb-1">Early/Late</h4>
                                         <p className="text-xs text-amber-700">Compare claiming at 62, FRA, and 70</p>
                                     </div>
                                 </div>
@@ -3456,7 +3456,7 @@ const ShowMeTheMoneyCalculator = () => {
                                     onClick={() => setChartView('earlyLate')}
                                     className="w-full py-3 px-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-200"
                                 >
-                                    ⏳ Open Early vs Late View
+                                    ⏳ Open Early/Late View
                                 </button>
                                 <p className="text-xs text-amber-700 mt-2 text-center italic">
                                     Quick visual comparison inside the main chart
