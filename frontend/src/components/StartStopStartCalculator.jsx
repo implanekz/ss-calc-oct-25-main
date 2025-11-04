@@ -389,7 +389,7 @@ const StartStopStartCalculator = () => {
                                     value={suspensionAge}
                                     onChange={(e) => setSuspensionAge(Number(e.target.value))}
                                     min={earlyFilingAge + 1}
-                                    max={restartAge - 1}
+                                    max={restartAge}
                                     className="w-full"
                                 />
                                 <p className="text-xs text-gray-500 mt-1">Typically your FRA ({calculations.fraAge.toFixed(1)})</p>
@@ -404,7 +404,7 @@ const StartStopStartCalculator = () => {
                                     type="range"
                                     value={restartAge}
                                     onChange={(e) => setRestartAge(Number(e.target.value))}
-                                    min={suspensionAge + 1}
+                                    min={Math.max(suspensionAge, 67)}
                                     max="70"
                                     className="w-full"
                                 />
