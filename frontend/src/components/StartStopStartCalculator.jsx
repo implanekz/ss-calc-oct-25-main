@@ -57,6 +57,20 @@ const StartStopStartCalculator = () => {
         }
     }, [pia, birthYear, earlyFilingAge, suspensionAge, restartAge, colaRate, longevityAge, isLoaded, setPersistedState]);
 
+    // Enforce SSA rules: Suspension only allowed at 67+, and must be after early filing
+    // Restart must be >= max(67, suspensionAge) and <= 70
+    useEffect(() => {
+        const minSuspension = Math.max(67, earlyFilingAge + 1);
+        const maxSuspension = Math.min(restartAge, 70);
+        if (suspensionAge < minSuspension) setSuspensionAge(minSuspension);
+        else if (suspensionAge > maxSuspension) setSuspensionAge(maxSuspension);
+
+        const minRestart = Math.max(67, suspensionAge);
+        const maxRestart = 70;
+        if (restartAge < minRestart) setRestartAge(minRestart);
+        else if (restartAge > maxRestart) setRestartAge(maxRestart);
+    }, [earlyFilingAge, suspensionAge, restartAge]);
+
     const formatCurrency = (value) => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
@@ -388,7 +402,7 @@ const StartStopStartCalculator = () => {
                                     type="range"
                                     value={suspensionAge}
                                     onChange={(e) => setSuspensionAge(Number(e.target.value))}
-                                    min={earlyFilingAge + 1}
+                                    min={Math.max(67, earlyFilingAge + 1)}
                                     max={restartAge}
                                     className="w-full"
                                 />
