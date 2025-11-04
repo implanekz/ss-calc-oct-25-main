@@ -3439,6 +3439,30 @@ const ShowMeTheMoneyCalculator = () => {
                                 </p>
                             </div>
 
+                            {/* Early vs Late */}
+                            <div className="p-4 bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 border-2 border-amber-300 rounded-xl shadow-lg">
+                                <div className="flex items-start gap-3 mb-3">
+                                    <div className="flex-shrink-0">
+                                        <div className="w-10 h-10 bg-amber-600 rounded-lg flex items-center justify-center">
+                                            <span className="text-white text-xl">⏳</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="text-base font-bold text-amber-900 mb-1">Early vs Late</h4>
+                                        <p className="text-xs text-amber-700">Compare claiming at 62, FRA, and 70</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setChartView('earlyLate')}
+                                    className="w-full py-3 px-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                                >
+                                    ⏳ Open Early vs Late View
+                                </button>
+                                <p className="text-xs text-amber-700 mt-2 text-center italic">
+                                    Quick visual comparison inside the main chart
+                                </p>
+                            </div>
+
                         </div>
                         
                         <h3 className="text-sm font-semibold text-gray-900 mb-3 mt-4">Helper Apps</h3>

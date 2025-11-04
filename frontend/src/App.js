@@ -1395,7 +1395,6 @@ function CalculatorApp() {
 
   const navItems = [
     { id: 'ss', label: 'Social Security Planner', icon: '💰' },
-    { id: 'start-stop-start', label: 'Start-Stop-Start Strategy', icon: '🔄' },
   ];
 
   return (
