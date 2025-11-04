@@ -9,8 +9,10 @@ import RetirementSpendingApp from './components/helperApps/RetirementSpendingApp
 import RetirementIncomeNeedsApp from './components/helperApps/RetirementIncomeNeedsApp.jsx';
 import SequenceOfReturnsApp from './components/helperApps/SequenceOfReturnsApp.jsx';
 import RetirementBudgetWorksheet from './components/helperApps/RetirementBudgetWorksheet.jsx';
+import StartStopStartCalculator from './components/StartStopStartCalculator.jsx';
 import { UserProvider, useUser } from './contexts/UserContext.jsx';
 import { DevModeProvider, useDevMode } from './contexts/DevModeContext.jsx';
+import { API_BASE_URL } from './config/api';
 
 // Auth screens
 function LoginScreen() {
@@ -380,7 +382,7 @@ function OnboardingScreen({ devMode = null }) {
         if (devMode && devMode.addPartner) {
           devMode.addPartner(partnerData);
         } else {
-          const response = await fetch(`${process.env.REACT_APP_API_URL}/api/partners`, {
+          const response = await fetch(`${API_BASE_URL}/api/partners`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(partnerData)
@@ -398,7 +400,7 @@ function OnboardingScreen({ devMode = null }) {
             if (devMode && devMode.addChild) {
               devMode.addChild({ date_of_birth: child.dateOfBirth });
             } else {
-              const response = await fetch(`${process.env.REACT_APP_API_URL}/api/children`, {
+              const response = await fetch(`${API_BASE_URL}/api/children`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ date_of_birth: child.dateOfBirth })
@@ -1393,6 +1395,7 @@ function CalculatorApp() {
 
   const navItems = [
     { id: 'ss', label: 'Social Security Planner', icon: '💰' },
+    { id: 'start-stop-start', label: 'Start-Stop-Start Strategy', icon: '🔄' },
   ];
 
   return (
@@ -1519,6 +1522,30 @@ function CalculatorApp() {
             </main>
           </div>
         } />
+        <Route path="/start-stop-start" element={
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+            <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center h-16">
+                  <div className="flex items-center gap-3">
+                    <h1 className="text-xl font-bold text-white whitespace-nowrap">
+                      Start-Stop-Start Strategy
+                    </h1>
+                    <a
+                      href="/"
+                      className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
+                    >
+                      💰 Social Security Calculator
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </nav>
+            <main className="animate-fade-in">
+              <StartStopStartCalculator />
+            </main>
+          </div>
+        } />
         <Route path="/*" element={
           <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
             {/* Navigation Bar */}
@@ -1634,6 +1661,7 @@ function CalculatorApp() {
             {calculatorType === 'widowed' && <WidowCalculator />}
           </>
         )}
+        {activeApp === 'start-stop-start' && <StartStopStartCalculator />}
         {activeApp === 'pia' && <PIACalculator />}
         {activeApp === 'helper-spending' && <RetirementSpendingApp />}
         {activeApp === 'helper-income' && <RetirementIncomeNeedsApp />}

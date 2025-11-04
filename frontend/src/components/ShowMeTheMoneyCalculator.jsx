@@ -1925,7 +1925,7 @@ const ShowMeTheMoneyCalculator = () => {
             cumulativeProjection[year] = cumulative;
         }
 
-        return { monthly: monthlyProjection, cumulative: cumulativeProjection };
+        return { monthly: monthlyProjection, cumulative: cumulativeProjection, birthYear };
     };
 
 
@@ -4187,7 +4187,7 @@ const ShowMeTheMoneyCalculator = () => {
                                             monthly: projections.age70.monthly[calendarYear] || 0,
                                             cumulative: cumulativeSince70(projections.age70),
                                             filingAge: 70,
-                                            started: (projections.age70.monthly[calendarYear] || 0) > 0
+                                            started: selectedYearAge >= 70
                                         },
                                         {
                                             name: 'File at 67',
@@ -4196,7 +4196,7 @@ const ShowMeTheMoneyCalculator = () => {
                                             monthly: projections.preferred.monthly[calendarYear] || 0,
                                             cumulative: cumulativeSince70(projections.preferred),
                                             filingAge: 67,
-                                            started: (projections.preferred.monthly[calendarYear] || 0) > 0
+                                            started: selectedYearAge >= 67
                                         },
                                         {
                                             name: 'File at 62',
@@ -4205,7 +4205,7 @@ const ShowMeTheMoneyCalculator = () => {
                                             monthly: projections.age62.monthly[calendarYear] || 0,
                                             cumulative: cumulativeSince70(projections.age62),
                                             filingAge: 62,
-                                            started: (projections.age62.monthly[calendarYear] || 0) > 0
+                                            started: selectedYearAge >= 62
                                         }
                                     ];
 

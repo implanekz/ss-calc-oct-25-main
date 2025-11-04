@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv()
 
 """
 Integrated Social Security API
@@ -17,6 +19,7 @@ from dataclasses import dataclass
 import json
 import os
 
+
 # Import our core classes
 from .ss_core_calculator import (
     SocialSecurityConstants,
@@ -32,6 +35,9 @@ from .ssa_xml_processor import SSAXMLProcessor, EarningsRecord
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from api.auth import router as auth_router
+
+# Load environment variables early
+load_dotenv()
 
 # Enhanced API Models
 class PersonInput(BaseModel):
@@ -217,9 +223,16 @@ app = FastAPI(
     version="2.0.0"
 )
 
+# Configure CORS from ALLOWED_ORIGINS env (comma-separated), default to "*"
+_origins_env = os.getenv("ALLOWED_ORIGINS")
+_allowed_origins = (
+    [o.strip() for o in _origins_env.split(",") if o.strip()]
+    if _origins_env else ["*"]
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure for production
+    allow_origins=_allowed_origins,  # Configure for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -231,6 +244,7 @@ app.include_router(auth_router)
 # Logging setup
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+logger.info(f"CORS allowed_origins={_allowed_origins}")
 
 # Global session storage (use proper session management in production)
 user_sessions = {}
@@ -239,6 +253,16 @@ user_sessions = {}
 async def root():
     """Health check endpoint"""
     return {"message": "The RISE and SHINE Method™ API", "status": "healthy", "version": "2.0.0"}
+
+@app.get("/healthz")
+async def healthz():
+    """Lightweight health check with config status"""
+    supabase_configured = bool(os.getenv("SUPABASE_URL") and os.getenv("SUPABASE_KEY"))
+    return {
+        "status": "ok",
+        "version": "2.0.0",
+        "supabase_configured": supabase_configured,
+    }
 
 @app.post("/generate-bcr")
 async def generate_bcr_endpoint(request: BCRRequest):
