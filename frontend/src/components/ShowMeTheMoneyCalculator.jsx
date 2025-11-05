@@ -526,7 +526,7 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
                     Impact of Filing Strategy at Age {age}
                 </div>
                 <div className="text-lg text-gray-600">
-                    Monthly Expense Needs: {currencyFormatter.format(Math.round(inflatedMonthlyNeeds))}
+                    Monthly Expense Needs This Year: {currencyFormatter.format(Math.round(inflatedMonthlyNeeds))}
                     {yearsFromNow > 0 && (
                         <span className="text-sm text-gray-500 ml-2">
                             ({currencyFormatter.format(Math.round(monthlyNeeds))} today + {(inflationRate * 100).toFixed(1)}% inflation)
@@ -913,7 +913,7 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
                                 Target
                             </text>
                             <text x={rightX + barWidth / 2} y={labelY2} textAnchor="middle" fontSize={Math.round(13 * labelScale)} fontWeight="600" fill="#6B7280">
-                                Monthly Expense Needs
+                                Monthly Expense Needs This Year
                             </text>
                             <text x={rightX + barWidth / 2} y={labelY3} textAnchor="middle" fontSize={Math.round(18 * labelScale)} fontWeight="700" fill="#374151">
                                 {currencyFormatter.format(Math.round(inflatedMonthlyNeeds))}
@@ -3006,7 +3006,6 @@ const ShowMeTheMoneyCalculator = () => {
         { key: 'post70', label: 'Post-70' },
         { key: 'sscuts', label: 'SS Cuts' },
         { key: 'flow', label: 'Flow' },
-        { key: 'bubble', label: 'Bubbles', tooltip: '4% Rule Equivalent' },
         { key: 'race', label: 'Race' },
     ];
 
@@ -3479,6 +3478,21 @@ const ShowMeTheMoneyCalculator = () => {
                         
                         <h3 className="text-sm font-semibold text-gray-900 mb-3 mt-4">Helper Apps</h3>
                         <div className="space-y-2">
+                            {/* Bubbles (4% Rule Equivalent) */}
+                            <button
+                                onClick={() => setChartView('bubble')}
+                                className="w-full text-left px-3 py-2 bg-gradient-to-r from-cyan-50 to-sky-100 hover:from-cyan-100 hover:to-sky-200 border border-cyan-200 rounded-lg transition-all hover:shadow-md group"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <div className="text-sm font-semibold text-cyan-900">Bubbles</div>
+                                        <div className="text-xs text-cyan-700 mt-0.5">4% Rule Equivalent</div>
+                                    </div>
+                                    <svg className="w-4 h-4 text-cyan-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </div>
+                            </button>
                             {/* Sequence of Returns */}
                             <button
                                 onClick={() => navigate('/sequence-risk')}
@@ -3695,7 +3709,7 @@ const ShowMeTheMoneyCalculator = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <label className="text-sm font-medium text-gray-700">Monthly Expense Needs:</label>
+                                    <label className="text-sm font-medium text-gray-700">Monthly Expense Needs This Year:</label>
                                     <input
                                         type="number"
                                         value={monthlyNeeds}
