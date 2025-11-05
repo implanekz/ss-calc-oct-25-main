@@ -64,8 +64,24 @@ export const UserProvider = ({ children }) => {
       });
       const profileData = await profileRes.json();
       if (profileRes.ok) {
-        setProfile(profileData.profile);
-        setPartners(profileData.partners || []);
+        // Normalize keys for front-end (camelCase) while preserving originals
+        const p = profileData.profile || {};
+        const normalizedProfile = {
+          ...p,
+          firstName: p.firstName ?? p.first_name,
+          lastName: p.lastName ?? p.last_name,
+          dateOfBirth: p.dateOfBirth ?? p.date_of_birth,
+          relationshipStatus: p.relationshipStatus ?? p.relationship_status,
+        };
+        setProfile(normalizedProfile);
+
+        const partnerList = (profileData.partners || []).map((pt) => ({
+          ...pt,
+          firstName: pt.firstName ?? pt.first_name,
+          lastName: pt.lastName ?? pt.last_name,
+          dateOfBirth: pt.dateOfBirth ?? pt.date_of_birth,
+        }));
+        setPartners(partnerList);
         setUserChildren(profileData.children || []);
         setPreferences(profileData.preferences);
       }

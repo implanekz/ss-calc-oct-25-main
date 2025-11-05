@@ -138,6 +138,12 @@ const Settings = () => {
         try {
             const displayName = `${firstName} ${lastName}`.trim();
             const profileUpdate = {
+                // API expects camelCase; keep snake_case fields for backward compatibility where used
+                firstName: firstName,
+                lastName: lastName,
+                relationshipStatus: relationshipStatus,
+                dateOfBirth: dateOfBirth,
+                // legacy keys (ignored by API but kept to avoid breaking dev-mode paths)
                 display_name: displayName,
                 first_name: firstName,
                 last_name: lastName,
@@ -273,13 +279,11 @@ const Settings = () => {
                                 <input
                                     type="date"
                                     value={dateOfBirth}
-                                    disabled
-                                    className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-600 cursor-not-allowed"
+                                    onChange={(e) => setDateOfBirth(e.target.value)}
+                                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent"
                                 />
                                 {userAge && <div className="mt-1 text-sm text-gray-500">Age: {userAge} years | FRA: {userFRA}</div>}
-                                <p className="mt-2 text-xs text-gray-500">
-                                    🔒 Date of birth is locked. To change, email <a href="mailto:help@Ret1re.com" className="text-blue-600 hover:underline">help@Ret1re.com</a>
-                                </p>
+                                <p className="mt-2 text-xs text-gray-500">You can update your DOB here. We use it to calculate FRA and age in all views.</p>
                             </div>
                         </div>
                     </div>

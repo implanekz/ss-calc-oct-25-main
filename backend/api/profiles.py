@@ -146,9 +146,9 @@ def update_profile():
         if 'preferredClaimingAgeMonths' in data:
             update_data['preferred_claiming_age_months'] = data['preferredClaimingAgeMonths']
         
-        # Prevent DOB from being changed
+        # Allow DOB updates (requested by product requirements)
         if 'dateOfBirth' in data:
-            return jsonify({'error': 'Date of birth cannot be changed'}), 400
+            update_data['date_of_birth'] = data['dateOfBirth']
         
         if not update_data:
             return jsonify({'error': 'No valid fields to update'}), 400

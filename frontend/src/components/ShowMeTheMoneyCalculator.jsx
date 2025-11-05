@@ -2988,7 +2988,14 @@ const ShowMeTheMoneyCalculator = () => {
                     <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
                         <div className="mb-2 flex items-start justify-between">
                             <div>
-                                <h3 className="text-sm font-semibold text-gray-900">Primary Filer</h3>
+                                <h3 className="text-sm font-semibold text-gray-900">{(() => {
+                                    const name = (profile?.firstName && profile?.lastName)
+                                        ? `${profile.firstName} ${profile.lastName}`
+                                        : (profile?.first_name && profile?.last_name)
+                                            ? `${profile.first_name} ${profile.last_name}`
+                                            : 'Primary Filer';
+                                    return name;
+                                })()}</h3>
                                 <p className="text-xs text-gray-600">DOB: {spouse1Dob} • Age: {formatAge(spouse1Dob)}</p>
                             </div>
                             <div className="flex flex-col gap-1">
@@ -3087,7 +3094,15 @@ const ShowMeTheMoneyCalculator = () => {
                     {isMarried && (
                         <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
                             <div className="mb-2">
-                                <h3 className="text-sm font-semibold text-gray-900">Spouse Filer</h3>
+                                <h3 className="text-sm font-semibold text-gray-900">{(() => {
+                                    const sp = partners && partners.length > 0 ? partners[0] : null;
+                                    const name = sp && (sp.firstName && sp.lastName)
+                                        ? `${sp.firstName} ${sp.lastName}`
+                                        : sp && (sp.first_name && sp.last_name)
+                                            ? `${sp.first_name} ${sp.last_name}`
+                                            : 'Spouse Filer';
+                                    return name;
+                                })()}</h3>
                                 <p className="text-xs text-gray-600">DOB: {spouse2Dob} • Age: {formatAge(spouse2Dob)}</p>
                             </div>
                             <div className="space-y-2">
