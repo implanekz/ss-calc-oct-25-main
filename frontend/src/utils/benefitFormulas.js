@@ -39,6 +39,18 @@ export const getFraYears = (birthYear) => {
   return fra.years + (fra.months || 0) / 12;
 };
 
+// Pre-claim COLA application used by Early/Late view.
+// If the claim age is in the future, apply COLA to the PIA before reduction/credits.
+// Matches the behavior previously embedded in ShowMeTheMoneyCalculator.
+export const preclaimColaFactor = (claimAgeYears, currentAgeYears, rate) => {
+  if (claimAgeYears <= currentAgeYears) return 1;
+  const pre60Years = Math.max(0, Math.min(60, claimAgeYears) - currentAgeYears);
+  const colaYearsFrom62 = Math.max(0, Math.floor(claimAgeYears) - 62);
+  return Math.pow(1 + rate, pre60Years + colaYearsFrom62);
+};
+
+export const monthsFromFra = (claimAgeYears, fraYears) => Math.round((claimAgeYears - fraYears) * 12);
+
 // Standard SSA early filing reduction factors
 // Input: monthsBeforeFra should be negative when before FRA
 export const earlyReductionFactor = (monthsBeforeFra) => {
@@ -69,6 +81,20 @@ export const drcIncreaseFromAges = (claimAgeYears, fraYears) => {
   return Math.max(0, base - 1);
 };
 
+// Monthly benefit at claim age using pre-claim COLA and SSA factors
+export const monthlyBenefitAtClaim = ({ piaFRA, claimAgeYears, currentAgeYears, rate, fraYears }) => {
+  const base = piaFRA * preclaimColaFactor(claimAgeYears, currentAgeYears, rate);
+  const offset = monthsFromFra(claimAgeYears, fraYears);
+  if (offset >= 0) return base * delayedRetirementCreditFactor(offset);
+  return base * earlyReductionFactor(offset);
+};
+
+// Apply post-claim COLA for years after claim
+export const benefitAfterClaim = (baseMonthlyAtClaim, yearsAfterClaim, rate) => {
+  const years = Math.max(0, yearsAfterClaim);
+  return baseMonthlyAtClaim * Math.pow(1 + rate, years);
+};
+
 // Pre-claim COLA adjustment: treat provided PIA as at FRA.
 // If claim is after FRA, apply COLA from FRA→claim; if at/before FRA, no pre-claim COLA.
 export const adjustPIAForPreClaim = (piaAtFRA, claimAgeYears, fraYears, colaRate) => {
@@ -80,10 +106,13 @@ export const adjustPIAForPreClaim = (piaAtFRA, claimAgeYears, fraYears, colaRate
 export default {
   getFra,
   getFraYears,
+  preclaimColaFactor,
+  monthsFromFra,
   earlyReductionFactor,
   delayedRetirementCreditFactor,
   earlyReductionFromAges,
   drcIncreaseFromAges,
+  monthlyBenefitAtClaim,
+  benefitAfterClaim,
   adjustPIAForPreClaim
 };
-

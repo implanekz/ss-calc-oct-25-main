@@ -10,45 +10,10 @@ import { useDevMode } from '../contexts/DevModeContext.jsx';
 import { useCalculatorPersistence } from '../hooks/useCalculatorPersistence';
 import { useNavigate } from 'react-router-dom';
 import { OneMonthAtATimeModal } from './OneMonthAtATime';
+import { getFra, delayedRetirementCreditFactor, earlyReductionFactor, preclaimColaFactor, monthsFromFra, monthlyBenefitAtClaim, benefitAfterClaim } from '../utils/benefitFormulas';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, annotationPlugin, SankeyController, Flow, BubbleController);
 
-const FRA_LOOKUP = {
-    1937: { years: 65, months: 0 },
-    1938: { years: 65, months: 2 },
-    1939: { years: 65, months: 4 },
-    1940: { years: 65, months: 6 },
-    1941: { years: 65, months: 8 },
-    1942: { years: 65, months: 10 },
-    1943: { years: 66, months: 0 },
-    1944: { years: 66, months: 0 },
-    1945: { years: 66, months: 0 },
-    1946: { years: 66, months: 0 },
-    1947: { years: 66, months: 0 },
-    1948: { years: 66, months: 0 },
-    1949: { years: 66, months: 0 },
-    1950: { years: 66, months: 0 },
-    1951: { years: 66, months: 0 },
-    1952: { years: 66, months: 0 },
-    1953: { years: 66, months: 0 },
-    1954: { years: 66, months: 0 },
-    1955: { years: 66, months: 2 },
-    1956: { years: 66, months: 4 },
-    1957: { years: 66, months: 6 },
-    1958: { years: 66, months: 8 },
-    1959: { years: 66, months: 10 },
-    1960: { years: 67, months: 0 }
-};
-
-const getFra = (birthYear) => {
-    if (birthYear <= 1937) {
-        return { years: 65, months: 0 };
-    }
-    if (birthYear >= 1960) {
-        return { years: 67, months: 0 };
-    }
-    return FRA_LOOKUP[birthYear] || { years: 67, months: 0 };
-};
 
 const ageInMonths = (birthDate, targetDate) => {
     let years = targetDate.getFullYear() - birthDate.getFullYear();
@@ -62,45 +27,7 @@ const ageInMonths = (birthDate, targetDate) => {
     return totalMonths;
 };
 
-const preclaimColaFactor = (claimAgeYears, currentAgeYears, rate) => {
-    if (claimAgeYears <= currentAgeYears) {
-        return 1;
-    }
-
-    const pre60Years = Math.max(0, Math.min(60, claimAgeYears) - currentAgeYears);
-    const colaYearsFrom62 = Math.max(0, Math.floor(claimAgeYears) - 62);
-
-    return Math.pow(1 + rate, pre60Years + colaYearsFrom62);
-};
-
-const monthsFromFra = (claimAgeYears, fraYears) => Math.round((claimAgeYears - fraYears) * 12);
-
-const delayedRetirementCreditFactor = (monthsAfterFra) => {
-    const months = Math.max(0, monthsAfterFra);
-    return 1 + ((2 / 3) / 100) * months;
-};
-
-const earlyReductionFactor = (monthsBeforeFra) => {
-    const months = Math.abs(Math.min(0, monthsBeforeFra));
-    const first36 = Math.min(36, months);
-    const extra = Math.max(0, months - 36);
-    const reduction = first36 * (5 / 9) / 100 + extra * (5 / 12) / 100;
-    return Math.max(0, 1 - reduction);
-};
-
-const monthlyBenefitAtClaim = ({ piaFRA, claimAgeYears, currentAgeYears, rate, fraYears }) => {
-    const base = piaFRA * preclaimColaFactor(claimAgeYears, currentAgeYears, rate);
-    const monthsOffset = monthsFromFra(claimAgeYears, fraYears);
-    if (monthsOffset >= 0) {
-        return base * delayedRetirementCreditFactor(monthsOffset);
-    }
-    return base * earlyReductionFactor(monthsOffset);
-};
-
-const benefitAfterClaim = (baseMonthlyAtClaim, yearsAfterClaim, rate) => {
-    const years = Math.max(0, yearsAfterClaim);
-    return baseMonthlyAtClaim * Math.pow(1 + rate, years);
-};
+// FRA + reduction/DRC + pre/post-claim COLA are imported from shared benefitFormulas
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
