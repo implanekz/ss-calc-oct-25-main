@@ -84,6 +84,8 @@ def create_partner():
             'user_id': user_id,
             'relationship_type': relationship_type,
             'date_of_birth': data.get('dateOfBirth'),
+            'first_name': data.get('firstName'),
+            'last_name': data.get('lastName'),
             'pia_at_fra': data.get('piaAtFra'),
             'already_receiving_benefits': data.get('alreadyReceivingBenefits', False),
             'current_monthly_benefit': data.get('currentMonthlyBenefit'),
@@ -132,6 +134,10 @@ def update_partner(partner_id):
             update_data['relationship_type'] = data['relationshipType']
         if 'dateOfBirth' in data:
             update_data['date_of_birth'] = data['dateOfBirth']
+        if 'firstName' in data:
+            update_data['first_name'] = data['firstName']
+        if 'lastName' in data:
+            update_data['last_name'] = data['lastName']
         if 'piaAtFra' in data:
             update_data['pia_at_fra'] = data['piaAtFra']
         if 'alreadyReceivingBenefits' in data:

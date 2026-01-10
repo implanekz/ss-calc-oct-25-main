@@ -46,9 +46,20 @@ function LoginScreen() {
         await login(email, password);
       }
     } catch (err) {
-      // Properly extract error message, handling various error formats
-      const errorMessage = err?.message || err?.error || String(err) || 'An error occurred during signup';
-      setError(errorMessage);
+      // Extract a readable error message from varying shapes
+      let msg = 'An error occurred';
+      if (typeof err === 'string') {
+        msg = err;
+      } else if (err?.message && typeof err.message === 'string') {
+        msg = err.message;
+      } else if (err?.error && typeof err.error === 'string') {
+        msg = err.error;
+      } else if (err?.detail) {
+        msg = typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail);
+      } else if (err) {
+        try { msg = JSON.stringify(err); } catch (_) { msg = String(err); }
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -203,7 +214,8 @@ function OnboardingScreen({ devMode = null }) {
   
   // Use dev mode handlers if provided, otherwise use real User context
   const realUserContext = useUser();
-  const { profile, completeOnboarding, updateProfile } = devMode || realUserContext;
+  // Alias context addChild to avoid clashing with local UI helper addChild()
+  const { profile, completeOnboarding, updateProfile, addPartner, addChild: addChildApi } = devMode || realUserContext;
 
   const addChild = () => {
     setFormData({
@@ -334,10 +346,16 @@ function OnboardingScreen({ devMode = null }) {
 
     try {
       // Update profile with DOB, relationship status, benefits, and history flags
+      // Normalize dates to YYYY-MM-DD
+      const norm = (d) => {
+        if (!d) return d;
+        const dt = new Date(d);
+        return isNaN(dt.getTime()) ? d : dt.toISOString().slice(0,10);
+      };
       const profileData = {
-        date_of_birth: formData.dateOfBirth,
-        relationship_status: formData.relationshipStatus,
-        already_receiving_benefits: formData.receivingBenefits === true,
+        dateOfBirth: norm(formData.dateOfBirth),
+        relationshipStatus: formData.relationshipStatus,
+        alreadyReceivingBenefits: formData.receivingBenefits === true,
         ever_divorced: formData.everDivorced === true,
         ever_widowed: formData.everWidowed === true,
         divorce_count: formData.divorceHistory.length,
@@ -346,9 +364,9 @@ function OnboardingScreen({ devMode = null }) {
 
       // Add benefit details if receiving benefits
       if (formData.receivingBenefits === true) {
-        if (formData.benefitAmount) profileData.current_benefit_amount = parseFloat(formData.benefitAmount);
-        if (formData.benefitFilingDate) profileData.benefit_filing_date = formData.benefitFilingDate;
-        if (formData.benefitFilingAge) profileData.benefit_filing_age = parseInt(formData.benefitFilingAge);
+        if (formData.benefitAmount) profileData.currentMonthlyBenefit = parseFloat(formData.benefitAmount);
+        if (formData.benefitFilingDate) profileData.benefitFilingDate = norm(formData.benefitFilingDate);
+        if (formData.benefitFilingAge) profileData.benefitFilingAge = parseInt(formData.benefitFilingAge);
       }
 
       await updateProfile(profileData);
@@ -356,39 +374,34 @@ function OnboardingScreen({ devMode = null }) {
           // Save partner info if applicable (not required, but save if provided)
           if (['married', 'divorced', 'widowed'].includes(formData.relationshipStatus) && formData.partnerDob) {
           const partnerData = {
-          relationship_type: formData.relationshipStatus === 'married' ? 'spouse' : 
-                            formData.relationshipStatus === 'divorced' ? 'ex_spouse' : 'deceased_spouse',
-          date_of_birth: formData.partnerDob,
-          already_receiving_benefits: formData.partnerReceivingBenefits === true
-        };
+            relationshipType: formData.relationshipStatus === 'married' ? 'spouse' : 
+                              formData.relationshipStatus === 'divorced' ? 'ex_spouse' : 'deceased_spouse',
+            firstName: formData.partnerFirstName || undefined,
+            lastName: formData.partnerLastName || undefined,
+            dateOfBirth: norm(formData.partnerDob),
+            alreadyReceivingBenefits: formData.partnerReceivingBenefits === true
+          };
 
         // Add partner benefit details if receiving benefits
         if (formData.partnerReceivingBenefits === true) {
-          if (formData.partnerBenefitAmount) partnerData.current_benefit_amount = parseFloat(formData.partnerBenefitAmount);
-          if (formData.partnerBenefitFilingDate) partnerData.benefit_filing_date = formData.partnerBenefitFilingDate;
-          if (formData.partnerBenefitFilingAge) partnerData.benefit_filing_age = parseInt(formData.partnerBenefitFilingAge);
+          if (formData.partnerBenefitAmount) partnerData.currentMonthlyBenefit = parseFloat(formData.partnerBenefitAmount);
+          if (formData.partnerBenefitFilingDate) partnerData.filedAgeYears = parseInt(formData.partnerBenefitFilingAge || 0);
         }
 
         if (formData.relationshipStatus === 'divorced') {
-          partnerData.divorce_date = formData.divorceDate;
-          partnerData.marriage_length_years = parseInt(formData.marriageLength);
+          partnerData.divorceDate = norm(formData.divorceDate);
+          partnerData.marriageLengthYears = parseInt(formData.marriageLength || 0);
         }
 
         if (formData.relationshipStatus === 'widowed') {
-          partnerData.date_of_death = formData.dateOfDeath;
+          partnerData.dateOfDeath = norm(formData.dateOfDeath);
         }
 
-        // In dev mode, use the provided method, otherwise call API
+        // Use context (handles auth token) or dev mode handler
         if (devMode && devMode.addPartner) {
           devMode.addPartner(partnerData);
         } else {
-          const response = await fetch(`${API_BASE_URL}/api/partners`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(partnerData)
-          });
-
-          if (!response.ok) throw new Error('Failed to save partner info');
+          await addPartner(partnerData);
         }
       }
 
@@ -400,13 +413,7 @@ function OnboardingScreen({ devMode = null }) {
             if (devMode && devMode.addChild) {
               devMode.addChild({ date_of_birth: child.dateOfBirth });
             } else {
-              const response = await fetch(`${API_BASE_URL}/api/children`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date_of_birth: child.dateOfBirth })
-              });
-              
-              if (!response.ok) throw new Error('Failed to save child info');
+              await addChildApi({ dateOfBirth: norm(child.dateOfBirth) });
             }
           }
         }

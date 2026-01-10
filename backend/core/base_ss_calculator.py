@@ -13,6 +13,7 @@ from enum import Enum
 from .benefit_math import (
     monthly_benefit_at_claim,
     benefit_after_claim,
+    preclaim_cola_factor,
 )
 
 
@@ -181,25 +182,20 @@ class BaseSSCalculator:
     def _calculate_inflated_pia(self, claiming_age_years: int, inflation_rate: float) -> float:
         """
         Calculates the PIA adjusted for COLA from age 62 to the claiming age.
-        SSA applies COLAs starting in the year an individual turns 62. These COLAs
-        compound annually on the PIA. This method calculates the total growth
-        of the PIA from age 62 to the year of claiming.
+        Delegates to benefit_math.preclaim_cola_factor to ensure correct handling
+        of the age 60-61 COLA freeze.
         """
-        # The year the individual turns 62, when COLA adjustments begin.
-        year_age_62 = self.birth_year + 62
-
-        # The year the individual files for benefits.
-        claiming_year = self.birth_year + claiming_age_years
-
-        # The number of years to apply the compounded COLA.
-        # We apply it for each year from 62 up to, but not including, the claiming year.
-        # The benefit received in claiming_year is based on the PIA at the end of the prior year.
-        # So, if claiming at 63, you get one COLA (for age 62).
-        inflation_years = max(0, claiming_year - year_age_62)
-
-        # Apply compound inflation to the base PIA.
-        inflated_pia = self.pia * ((1 + inflation_rate) ** inflation_years)
-        return inflated_pia
+        # Calculate current age for the freeze window logic
+        current_age = self._age_at_date(date.today())
+        
+        # Calculate factor using the shared math module
+        cola_factor = preclaim_cola_factor(
+            claim_age_years=float(claiming_age_years),
+            current_age_years=current_age,
+            r=inflation_rate
+        )
+        
+        return self.pia * cola_factor
 
     def calculate_reduction_factor(self, claiming_date: date) -> float:
         """

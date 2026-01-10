@@ -284,10 +284,10 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
             gap: Math.max(0, inflatedMonthlyNeeds - age62Monthly),
             color: '#EF4444'
         },
-                    {
-                        label: `File at ${preferredFilingYear}${preferredFilingMonth > 0 ? `y ${preferredFilingMonth}m` : ''}`,
-                        age: preferredFilingYear,
-                        income: age67Monthly,
+        {
+            label: `File at ${preferredFilingYear}${preferredFilingMonth > 0 ? `y ${preferredFilingMonth}m` : ''}`,
+            age: preferredFilingYear,
+            income: age67Monthly,
             covered: Math.min(age67Monthly, inflatedMonthlyNeeds),
             gap: Math.max(0, inflatedMonthlyNeeds - age67Monthly),
             color: '#3B82F6'
@@ -330,7 +330,7 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
             covered: Math.min(hybridTotalIncome, inflatedMonthlyNeeds),
             gap: Math.max(0, inflatedMonthlyNeeds - hybridTotalIncome),
             color: '#9333EA'
-          }
+        }
         : scenarios[selectedStrategy];
 
     const selectedBarX = selectedStrategy === 3
@@ -906,9 +906,9 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
     // Calculate fixed max value - MUST be at top level before any conditional logic
     const maxValue = useMemo(() => {
         if (!scenarioData) return 1000000;
-        
+
         const allAges = Array.from({ length: 95 - 62 + 1 }, (_, i) => 62 + i);
-        
+
         const allValues = allAges.flatMap(age => {
             const calendarYear = scenarioData.birthYearPrimary + age;
             const projections = activeRecordView === 'primary'
@@ -939,7 +939,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                 return values;
             }
         });
-        
+
         return Math.max(...allValues) * 1.1;
     }, [raceViewMode, scenarioData, activeRecordView]);
 
@@ -1012,7 +1012,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                     color: '#14B8A6'
                 }
             ];
-            
+
             // Sort by value descending (highest at top)
             return scenarios.sort((a, b) => b.value - a.value);
         }
@@ -1024,14 +1024,14 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
         const age62Value = projections.age62.cumulative[calendarYear] || 0;
         // Use age 69 as baseline so age 70 includes the first year of benefits
         const age62Since70 = age >= 70 ? age62Value - (projections.age62.cumulative[birthYearPrimary + 69] || 0) : 0;
-        
+
         scenarios.push({
             name: 'File at 62 - Total',
             value: age62Value,
             color: '#EF4444',
             isSince70: false
         });
-        
+
         if (age >= 70) {
             scenarios.push({
                 name: 'File at 62 - Since 70',
@@ -1045,14 +1045,14 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
         const age67Value = projections.preferred.cumulative[calendarYear] || 0;
         // Use age 69 as baseline so age 70 includes the first year of benefits
         const age67Since70 = age >= 70 ? age67Value - (projections.preferred.cumulative[birthYearPrimary + 69] || 0) : 0;
-        
+
         scenarios.push({
             name: 'File at 67 - Total',
             value: age67Value,
             color: '#3B82F6',
             isSince70: false
         });
-        
+
         if (age >= 70) {
             scenarios.push({
                 name: 'File at 67 - Since 70',
@@ -1066,14 +1066,14 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
         const age70Value = projections.age70.cumulative[calendarYear] || 0;
         // Use age 69 as baseline so age 70 includes the first year of benefits
         const age70Since70 = age >= 70 ? age70Value - (projections.age70.cumulative[birthYearPrimary + 69] || 0) : 0;
-        
+
         scenarios.push({
             name: 'File at 70 - Total',
             value: age70Value,
             color: '#14B8A6',
             isSince70: false
         });
-        
+
         if (age >= 70) {
             scenarios.push({
                 name: 'File at 70 - Since 70',
@@ -1117,11 +1117,10 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                             setIsPlaying(false);
                             setCurrentRaceAge(prev => Math.max(62, prev - 1));
                         }}
-                        className={`text-xl transition-colors ${
-                            currentRaceAge <= 62 
-                                ? 'text-gray-300 cursor-not-allowed' 
-                                : 'text-gray-500 hover:text-gray-700 cursor-pointer'
-                        }`}
+                        className={`text-xl transition-colors ${currentRaceAge <= 62
+                            ? 'text-gray-300 cursor-not-allowed'
+                            : 'text-gray-500 hover:text-gray-700 cursor-pointer'
+                            }`}
                         title="Go back one year"
                         disabled={currentRaceAge <= 62}
                     >
@@ -1132,11 +1131,10 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                             setIsPlaying(false);
                             setCurrentRaceAge(prev => Math.min(95, prev + 1));
                         }}
-                        className={`text-xl transition-colors ${
-                            currentRaceAge >= 95 
-                                ? 'text-gray-300 cursor-not-allowed' 
-                                : 'text-gray-500 hover:text-gray-700 cursor-pointer'
-                        }`}
+                        className={`text-xl transition-colors ${currentRaceAge >= 95
+                            ? 'text-gray-300 cursor-not-allowed'
+                            : 'text-gray-500 hover:text-gray-700 cursor-pointer'
+                            }`}
                         title="Go forward one year"
                         disabled={currentRaceAge >= 95}
                     >
@@ -1156,7 +1154,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                             const primaryAge = currentRaceAge;
                             const spouseBirthYear = isMarried && scenarioData.birthYearSpouse ? scenarioData.birthYearSpouse : null;
                             const primaryBirthYear = scenarioData.birthYearPrimary;
-                            
+
                             if (isMarried && spouseBirthYear) {
                                 const spouseAge = currentRaceAge - (primaryBirthYear - spouseBirthYear);
                                 return formatCoupleAges(primaryAge, spouseAge);
@@ -1169,21 +1167,19 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                 <div className="flex items-center gap-2 bg-white rounded-lg shadow-md border border-gray-300 p-1">
                     <button
                         onClick={() => setRaceViewMode('cumulative')}
-                        className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-all ${
-                            raceViewMode === 'cumulative'
-                                ? 'bg-primary-600 text-white shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900'
-                        }`}
+                        className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-all ${raceViewMode === 'cumulative'
+                            ? 'bg-primary-600 text-white shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900'
+                            }`}
                     >
                         Cumulative
                     </button>
                     <button
                         onClick={() => setRaceViewMode('monthly')}
-                        className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-all ${
-                            raceViewMode === 'monthly'
-                                ? 'bg-primary-600 text-white shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900'
-                        }`}
+                        className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-all ${raceViewMode === 'monthly'
+                            ? 'bg-primary-600 text-white shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900'
+                            }`}
                     >
                         Monthly
                     </button>
@@ -1230,11 +1226,11 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                             const barSpacing = (availableWidth - (3 * barWidth)) / 4; // Equal spacing
                             const baseY = height - 140; // More space at bottom for title
                             const maxBarHeight = height - topMargin - 160; // Constrain to fit within SVG bounds
-                            
+
                             const result = raceData.map((scenario, index) => {
                                 const barX = leftMargin + barSpacing + (index * (barWidth + barSpacing));
                                 const barHeightValue = (scenario.value / maxValue) * maxBarHeight;
-                                
+
                                 return (
                                     <g key={scenario.name}>
                                         {/* Vertical bar growing from bottom */}
@@ -1249,7 +1245,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                         >
                                             <title>{`${scenario.name}: ${currencyFormatter.format(Math.round(scenario.value))}`}</title>
                                         </rect>
-                                        
+
                                         {/* Strategy label (bottom) */}
                                         <text
                                             x={barX + barWidth / 2}
@@ -1261,7 +1257,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                         >
                                             {scenario.name}
                                         </text>
-                                        
+
                                         {/* Value label (top of bar) */}
                                         <text
                                             x={barX + barWidth / 2}
@@ -1276,7 +1272,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                     </g>
                                 );
                             });
-                            
+
                             // Add title at bottom
                             return (
                                 <>
@@ -1359,13 +1355,13 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                         const difference = topValue - bottomValue;
                         const topName = raceData[0]?.name || '';
                         const bottomName = raceData[raceData.length - 1]?.name || '';
-                        
+
                         // Position for the difference box - adapt to container width
                         const boxWidth = Math.min(340, Math.max(240, width * 0.22));
                         const boxX = width - boxWidth - 30;
                         const boxY = height / 2 - 200;
                         const boxHeight = 400;
-                        
+
                         return (
                             <g>
                                 {/* Background box */}
@@ -1379,7 +1375,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                     strokeWidth="3"
                                     rx="12"
                                 />
-                                
+
                                 {/* Title */}
                                 <text
                                     x={boxX + boxWidth / 2}
@@ -1391,7 +1387,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                 >
                                     Gap Tracker
                                 </text>
-                                
+
                                 {/* Top vs Bottom label */}
                                 <text
                                     x={boxX + boxWidth / 2}
@@ -1402,7 +1398,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                 >
                                     1st - Last
                                 </text>
-                                
+
                                 {/* Difference amount */}
                                 <text
                                     x={boxX + boxWidth / 2}
@@ -1414,7 +1410,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                 >
                                     {difference >= 0 ? '+' : ''}{currencyFormatter.format(Math.round(difference))}
                                 </text>
-                                
+
                                 {/* Leader info */}
                                 <text
                                     x={boxX + boxWidth / 2}
@@ -1426,7 +1422,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                 >
                                     🏆 {topName.replace(' - Total', '')}
                                 </text>
-                                
+
                                 <text
                                     x={boxX + boxWidth / 2}
                                     y={boxY + 215}
@@ -1437,7 +1433,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                 >
                                     {currencyFormatter.format(Math.round(topValue))}
                                 </text>
-                                
+
                                 {/* Last place info */}
                                 <text
                                     x={boxX + boxWidth / 2}
@@ -1449,7 +1445,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                 >
                                     {bottomName.replace(' - Total', '')}
                                 </text>
-                                
+
                                 <text
                                     x={boxX + boxWidth / 2}
                                     y={boxY + 285}
@@ -1460,7 +1456,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                 >
                                     {currencyFormatter.format(Math.round(bottomValue))}
                                 </text>
-                                
+
                                 {/* Separator line */}
                                 <line
                                     x1={boxX + 20}
@@ -1471,7 +1467,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                     strokeWidth="2"
                                     strokeDasharray="5,5"
                                 />
-                                
+
                                 {/* Difference calculation at bottom */}
                                 <text
                                     x={boxX + boxWidth / 2}
@@ -1483,7 +1479,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                 >
                                     {raceViewMode === 'monthly' ? 'Annual Difference: 1st to Last' : 'Difference: 1st to Last'}
                                 </text>
-                                
+
                                 <text
                                     x={boxX + boxWidth / 2}
                                     y={boxY + 375}
@@ -1603,26 +1599,26 @@ const formatCoupleAges = (primaryAge, spouseAge) => {
 
 const ShowMeTheMoneyCalculator = () => {
     const navigate = useNavigate();
-    
+
     // Get user context data
     const { profile: realProfile, partners: realPartners } = useUser();
     const { isDevMode, devProfile, devPartners } = useDevMode();
-    
+
     // Use dev or real data based on mode
     const profile = isDevMode ? devProfile : realProfile;
     const partners = isDevMode ? devPartners : realPartners;
-    
+
     // Initialize state from profile data
     const getInitialMarriedState = () => {
         if (!profile) return false;
         return ['married', 'divorced', 'widowed'].includes(profile.relationship_status);
     };
-    
+
     const getInitialSpouse1Dob = () => {
         if (profile?.date_of_birth) return profile.date_of_birth;
         return '1965-02-03';
     };
-    
+
     const getInitialSpouse2Dob = () => {
         if (partners && partners.length > 0 && partners[0].date_of_birth) {
             return partners[0].date_of_birth;
@@ -1660,19 +1656,19 @@ const ShowMeTheMoneyCalculator = () => {
     const [spouse2PreferredYear, setSpouse2PreferredYear] = useState(65);
     const [spouse2PreferredMonth, setSpouse2PreferredMonth] = useState(0);
     const [inflation, setInflation] = useState(0.025);
-    
+
     // Retirement stages slider state (purely visual)
     const [goGoEndAge, setGoGoEndAge] = useState(75);
     const [slowGoEndAge, setSlowGoEndAge] = useState(85);
-    
+
     // Additional state variables that need to be declared before the persistence effect
     const [monthlyNeeds, setMonthlyNeeds] = useState(7000);
     const [flowAge, setFlowAge] = useState(70);
     const [bubbleAge, setBubbleAge] = useState(70);
-    
+
     // Track if we've loaded initial persisted state to prevent infinite loop
     const hasLoadedPersistedState = useRef(false);
-    
+
     // Load persisted state when it becomes available (only once on mount)
     useEffect(() => {
         if (isLoaded && persistedState && !hasLoadedPersistedState.current) {
@@ -1694,7 +1690,7 @@ const ShowMeTheMoneyCalculator = () => {
             if (persistedState.bubbleAge !== undefined) setBubbleAge(persistedState.bubbleAge);
         }
     }, [isLoaded, persistedState]);
-    
+
     // Persist ALL state changes
     useEffect(() => {
         if (isLoaded) {
@@ -1717,7 +1713,7 @@ const ShowMeTheMoneyCalculator = () => {
             });
         }
     }, [isMarried, spouse1Dob, spouse1Pia, spouse1PreferredYear, spouse1PreferredMonth, spouse2Dob, spouse2Pia, spouse2PreferredYear, spouse2PreferredMonth, inflation, goGoEndAge, slowGoEndAge, monthlyNeeds, flowAge, bubbleAge, isLoaded, setPersistedState]);
-    
+
     const [chartView, setChartView] = useState('monthly'); // monthly, cumulative, combined, earlyLate, post70, sscuts
     const [chartData, setChartData] = useState({ labels: [], datasets: [] });
     const [chartOptions, setChartOptions] = useState({});
@@ -1753,10 +1749,11 @@ const ShowMeTheMoneyCalculator = () => {
     const [spouse2FiledAge, setSpouse2FiledAge] = useState(65);
     const [showAlreadyFiledModal, setShowAlreadyFiledModal] = useState(false);
     // bubbleAge already declared above with other persistent state
-    
+
     // "Show me just this year" feature
     const [showYearView, setShowYearView] = useState(false);
     const [selectedYearAge, setSelectedYearAge] = useState(70);
+    const [animationKey, setAnimationKey] = useState(0);
     const [showYearModal, setShowYearModal] = useState(false);
 
     // Update state when profile data changes
@@ -1764,7 +1761,7 @@ const ShowMeTheMoneyCalculator = () => {
         if (profile) {
             const shouldBeMarried = ['married', 'divorced', 'widowed'].includes(profile.relationship_status);
             setIsMarried(shouldBeMarried);
-            
+
             if (profile.date_of_birth) {
                 setSpouse1Dob(profile.date_of_birth);
             }
@@ -1839,7 +1836,7 @@ const ShowMeTheMoneyCalculator = () => {
             if (year >= claimingCalendarYear) {
                 const yearsAfterClaim = year - claimingCalendarYear;
                 monthlyBenefit = benefitAfterClaim(baseMonthlyAtClaim, yearsAfterClaim, inflationRate);
-                
+
                 // In the claiming year, only count months after birthday month
                 if (year === claimingCalendarYear) {
                     monthsInYear = 12 - birthMonthIndex; // e.g., if born in June (month 5), get 7 months
@@ -1932,7 +1929,7 @@ const ShowMeTheMoneyCalculator = () => {
             // ALWAYS use optimal strategy: Lower PIA files at 62, Higher PIA files at 70
             // This maximizes delayed retirement credits on the higher benefit while providing
             // immediate income from the lower benefit
-            
+
             if (primaryIsLowerPia) {
                 // Primary has lower PIA - Primary files at 62, Spouse files at 70
                 earlyLateProjection = combineMonthlyProjection(primaryProjections.age62, spouseProjections.age70);
@@ -2134,6 +2131,33 @@ const ShowMeTheMoneyCalculator = () => {
                         title: { text: 'Monthly Benefit ($)' },
                         ticks: { callback: formatCurrencyTick }
                     }
+                },
+                animation: {
+                    delay: (context) => {
+                        let delay = 0;
+                        if (context.type === 'data' && context.mode === 'default') {
+                            // Configuration for PARALLEL animation (all colors at once)
+                            const sequenceDuration = 2000; // 2 seconds for the full bar sequence
+
+                            const dataSize = context.chart.data.labels.length;
+                            // const datasetIndex = context.datasetIndex; // Unused for parallel
+                            const dataIndex = context.dataIndex;
+
+                            // Calculate delay per bar to fit within sequenceDuration
+                            const delayPerBar = dataSize > 0 ? sequenceDuration / dataSize : 0;
+
+                            // No delay between datasets - they all start at time 0
+                            const datasetStartDelay = 0;
+
+                            // Delay only depends on position in the sequence (left-to-right)
+                            const barDelay = dataIndex * delayPerBar;
+
+                            delay = datasetStartDelay + barDelay;
+                        }
+                        return delay;
+                    },
+                    duration: 500, // Duration of the individual bar growth animation
+                    easing: 'easeOutQuart'
                 }
             };
         } else if (chartView === 'cumulative') {
@@ -2939,570 +2963,575 @@ const ShowMeTheMoneyCalculator = () => {
     return (
         <div className="flex flex-col lg:flex-row h-[calc(100vh-4rem)] overflow-hidden">
             {/* Compact Sidebar */}
-            <div className={`relative bg-white border-r border-gray-200 transition-all duration-300 ${
-                sidebarCollapsed ? 'w-0 lg:w-12' : 'lg:w-80 xl:w-96'
-            }`}>
+            <div className={`relative bg-white border-r border-gray-200 transition-all duration-300 ${sidebarCollapsed ? 'w-0 lg:w-12' : 'lg:w-80 xl:w-96'
+                }`}>
                 <div className={`h-full ${sidebarCollapsed ? 'overflow-hidden' : 'overflow-y-auto'}`}>
-                {!sidebarCollapsed && (
-                    <div>
-                        <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-blue-50 flex justify-between items-start">
-                            <div>
-                                <h2 className="text-lg font-bold text-gray-900">Controls</h2>
-                                <p className="text-xs text-gray-600">Adjust your inputs</p>
-                            </div>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => navigate('/settings')}
-                                    className="p-1.5 bg-gray-600 text-white rounded-lg shadow-md hover:bg-gray-700 transition-all hover:scale-110"
-                                    title="Settings"
-                                >
-                                    <svg
-                                        className="w-4 h-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                </button>
-                                <button
-                                    onClick={() => setSidebarCollapsed(true)}
-                                    className="hidden lg:flex p-1.5 bg-primary-600 text-white rounded-lg shadow-md hover:bg-primary-700 transition-all hover:scale-110"
-                                    title="Collapse controls"
-                                >
-                                    <svg
-                                        className="w-4 h-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="p-4 space-y-4">
-                    {/* Primary Filer - Compact */}
-                    <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                        <div className="mb-2 flex items-start justify-between">
-                            <div>
-                                <h3 className="text-sm font-semibold text-gray-900">{(() => {
-                                    const name = (profile?.firstName && profile?.lastName)
-                                        ? `${profile.firstName} ${profile.lastName}`
-                                        : (profile?.first_name && profile?.last_name)
-                                            ? `${profile.first_name} ${profile.last_name}`
-                                            : 'Primary Filer';
-                                    return name;
-                                })()}</h3>
-                                <p className="text-xs text-gray-600">DOB: {spouse1Dob} • Age: {formatAge(spouse1Dob)}</p>
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                <label className="flex items-center gap-1 cursor-pointer" title="This setting can also be changed in the Settings/gear icon">
-                                    <input
-                                        type="checkbox"
-                                        checked={!isMarried}
-                                        onChange={(e) => setIsMarried(!e.target.checked)}
-                                        className="w-3 h-3 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                                    />
-                                    <span className="text-xs text-gray-700">Single?</span>
-                                </label>
-                                {isMarried && (
-                                    <label className="flex items-center gap-1 cursor-pointer" title="This setting can also be changed in the Settings/gear icon">
-                                        <input
-                                            type="checkbox"
-                                            checked={isMarried}
-                                            onChange={(e) => setIsMarried(e.target.checked)}
-                                            className="w-3 h-3 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                                        />
-                                        <span className="text-xs text-gray-700">Married?</span>
-                                    </label>
-                                )}
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <div>
-                                <label className="block text-xs text-gray-600 mb-1 flex items-center gap-1">
-                                    Enter Your PIA ($)
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPiaFraModal(true)}
-                                        className="text-primary-600 hover:text-primary-700 underline text-xs"
-                                    >
-                                        What's This?
-                                    </button>
-                                </label>
-                                <input
-                                    type="number"
-                                    value={spouse1Pia}
-                                    onChange={e => setSpouse1Pia(e.target.value ? Number(e.target.value) : '')}
-                                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                                    placeholder="Insert PIA here"
-                                />
-                            </div>
-
-                            <div className="bg-primary-100 rounded p-2">
-                                <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
-                                    Preferred Filing Age
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPreferredFilingModal(true)}
-                                        className="text-primary-600 hover:text-primary-700 underline text-xs"
-                                    >
-                                        What's This?
-                                    </button>
-                                </label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <input
-                                            type="number"
-                                            value={spouse1PreferredYear}
-                                            onChange={e => setSpouse1PreferredYear(Number(e.target.value))}
-                                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
-                                            placeholder="Yr"
-                                        />
-                                    </div>
-                                    <div>
-                                        <input
-                                            type="number"
-                                            value={spouse1PreferredMonth}
-                                            onChange={e => setSpouse1PreferredMonth(Number(e.target.value))}
-                                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
-                                            placeholder="Mo"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* View Only Checkbox - At Bottom */}
-                            <div className="pt-3 mt-3 border-t border-gray-200">
-                                <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-600 hover:text-gray-800">
-                                    <input
-                                        type="checkbox"
-                                        checked={activeRecordView === 'primary'}
-                                        onChange={handlePrimaryOnlyToggle}
-                                        className="w-3.5 h-3.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                                    />
-                                    <span title="This setting can also be changed in the Settings section">Show only this person</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Spouse - Compact - Always visible when married */}
-                    {isMarried && (
-                        <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                            <div className="mb-2">
-                                <h3 className="text-sm font-semibold text-gray-900">{(() => {
-                                    const sp = partners && partners.length > 0 ? partners[0] : null;
-                                    const name = sp && (sp.firstName && sp.lastName)
-                                        ? `${sp.firstName} ${sp.lastName}`
-                                        : sp && (sp.first_name && sp.last_name)
-                                            ? `${sp.first_name} ${sp.last_name}`
-                                            : 'Spouse Filer';
-                                    return name;
-                                })()}</h3>
-                                <p className="text-xs text-gray-600">DOB: {spouse2Dob} • Age: {formatAge(spouse2Dob)}</p>
-                            </div>
-                            <div className="space-y-2">
+                    {!sidebarCollapsed && (
+                        <div>
+                            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-blue-50 flex justify-between items-start">
                                 <div>
-                                    <label className="block text-xs text-gray-600 mb-1 flex items-center gap-1">
-                                        Enter Your PIA ($)
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPiaFraModal(true)}
-                                            className="text-primary-600 hover:text-primary-700 underline text-xs"
-                                        >
-                                            What's This?
-                                        </button>
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={spouse2Pia}
-                                        onChange={e => setSpouse2Pia(e.target.value ? Number(e.target.value) : '')}
-                                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                                        placeholder="Insert PIA here"
-                                    />
+                                    <h2 className="text-lg font-bold text-gray-900">Controls</h2>
+                                    <p className="text-xs text-gray-600">Adjust your inputs</p>
                                 </div>
-
-                                <div className="bg-primary-100 rounded p-2">
-                                    <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
-                                        Preferred Filing Age
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPreferredFilingModal(true)}
-                                            className="text-primary-600 hover:text-primary-700 underline text-xs"
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => navigate('/settings')}
+                                        className="p-1.5 bg-gray-600 text-white rounded-lg shadow-md hover:bg-gray-700 transition-all hover:scale-110"
+                                        title="Settings"
+                                    >
+                                        <svg
+                                            className="w-4 h-4"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
                                         >
-                                            What's This?
-                                        </button>
-                                    </label>
-                                    <div className="grid grid-cols-2 gap-2">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                    </button>
+                                    <button
+                                        onClick={() => setSidebarCollapsed(true)}
+                                        className="hidden lg:flex p-1.5 bg-primary-600 text-white rounded-lg shadow-md hover:bg-primary-700 transition-all hover:scale-110"
+                                        title="Collapse controls"
+                                    >
+                                        <svg
+                                            className="w-4 h-4"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="p-4 space-y-4">
+                                {/* Primary Filer - Compact */}
+                                <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                    <div className="mb-2 flex items-start justify-between">
                                         <div>
+                                            <h3 className="text-sm font-semibold text-gray-900">{(() => {
+                                                const name = (profile?.firstName && profile?.lastName)
+                                                    ? `${profile.firstName} ${profile.lastName}`
+                                                    : (profile?.first_name && profile?.last_name)
+                                                        ? `${profile.first_name} ${profile.last_name}`
+                                                        : 'Primary Filer';
+                                                return name;
+                                            })()}</h3>
+                                            <p className="text-xs text-gray-600">DOB: {spouse1Dob} • Age: {formatAge(spouse1Dob)}</p>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <label className="flex items-center gap-1 cursor-pointer" title="This setting can also be changed in the Settings/gear icon">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!isMarried}
+                                                    onChange={(e) => setIsMarried(!e.target.checked)}
+                                                    className="w-3 h-3 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                                />
+                                                <span className="text-xs text-gray-700">Single?</span>
+                                            </label>
+                                            {isMarried && (
+                                                <label className="flex items-center gap-1 cursor-pointer" title="This setting can also be changed in the Settings/gear icon">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isMarried}
+                                                        onChange={(e) => setIsMarried(e.target.checked)}
+                                                        className="w-3 h-3 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                                    />
+                                                    <span className="text-xs text-gray-700">Married?</span>
+                                                </label>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div>
+                                            <label className="block text-xs text-gray-600 mb-1 flex items-center gap-1">
+                                                Enter Your PIA ($)
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPiaFraModal(true)}
+                                                    className="text-primary-600 hover:text-primary-700 underline text-xs"
+                                                >
+                                                    What's This?
+                                                </button>
+                                            </label>
                                             <input
                                                 type="number"
-                                                value={spouse2PreferredYear}
-                                                onChange={e => setSpouse2PreferredYear(Number(e.target.value))}
-                                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
-                                                placeholder="Yr"
+                                                value={spouse1Pia}
+                                                onChange={e => setSpouse1Pia(e.target.value ? Number(e.target.value) : '')}
+                                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                                                placeholder="Insert PIA here"
                                             />
                                         </div>
-                                        <div>
+
+                                        <div className="bg-primary-100 rounded p-2">
+                                            <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
+                                                Preferred Filing Age
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPreferredFilingModal(true)}
+                                                    className="text-primary-600 hover:text-primary-700 underline text-xs"
+                                                >
+                                                    What's This?
+                                                </button>
+                                            </label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <input
+                                                        type="number"
+                                                        value={spouse1PreferredYear}
+                                                        onChange={e => setSpouse1PreferredYear(Number(e.target.value))}
+                                                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
+                                                        placeholder="Yr"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <input
+                                                        type="number"
+                                                        value={spouse1PreferredMonth}
+                                                        onChange={e => setSpouse1PreferredMonth(Number(e.target.value))}
+                                                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
+                                                        placeholder="Mo"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* View Only Checkbox - At Bottom */}
+                                        <div className="pt-3 mt-3 border-t border-gray-200">
+                                            <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-600 hover:text-gray-800">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={activeRecordView === 'primary'}
+                                                    onChange={handlePrimaryOnlyToggle}
+                                                    className="w-3.5 h-3.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                                />
+                                                <span title="This setting can also be changed in the Settings section">Show only this person</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Spouse - Compact - Always visible when married */}
+                                {isMarried && (
+                                    <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                        <div className="mb-2">
+                                            <h3 className="text-sm font-semibold text-gray-900">{(() => {
+                                                const sp = partners && partners.length > 0 ? partners[0] : null;
+                                                const name = sp && (sp.firstName && sp.lastName)
+                                                    ? `${sp.firstName} ${sp.lastName}`
+                                                    : sp && (sp.first_name && sp.last_name)
+                                                        ? `${sp.first_name} ${sp.last_name}`
+                                                        : 'Spouse Filer';
+                                                return name;
+                                            })()}</h3>
+                                            <p className="text-xs text-gray-600">DOB: {spouse2Dob} • Age: {formatAge(spouse2Dob)}</p>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <div>
+                                                <label className="block text-xs text-gray-600 mb-1 flex items-center gap-1">
+                                                    Enter Your PIA ($)
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPiaFraModal(true)}
+                                                        className="text-primary-600 hover:text-primary-700 underline text-xs"
+                                                    >
+                                                        What's This?
+                                                    </button>
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    value={spouse2Pia}
+                                                    onChange={e => setSpouse2Pia(e.target.value ? Number(e.target.value) : '')}
+                                                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                                                    placeholder="Insert PIA here"
+                                                />
+                                            </div>
+
+                                            <div className="bg-primary-100 rounded p-2">
+                                                <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
+                                                    Preferred Filing Age
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPreferredFilingModal(true)}
+                                                        className="text-primary-600 hover:text-primary-700 underline text-xs"
+                                                    >
+                                                        What's This?
+                                                    </button>
+                                                </label>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                        <input
+                                                            type="number"
+                                                            value={spouse2PreferredYear}
+                                                            onChange={e => setSpouse2PreferredYear(Number(e.target.value))}
+                                                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
+                                                            placeholder="Yr"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <input
+                                                            type="number"
+                                                            value={spouse2PreferredMonth}
+                                                            onChange={e => setSpouse2PreferredMonth(Number(e.target.value))}
+                                                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
+                                                            placeholder="Mo"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* View Only Checkbox - At Bottom */}
+                                        <div className="pt-3 mt-3 border-t border-gray-200">
+                                            <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-600 hover:text-gray-800">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={activeRecordView === 'spouse'}
+                                                    onChange={handleSpouseOnlyToggle}
+                                                    className="w-3.5 h-3.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                                />
+                                                <span title="This setting can also be changed in the Settings section">Show only this person</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Show Me Just This Single Year - Between Spouse and Options */}
+                                <div className="border border-gray-200 rounded-lg p-3 bg-white">
+                                    <h3 className="text-sm font-semibold text-gray-900 mb-2">Show Me Just This Single Year</h3>
+                                    <div className="space-y-2">
+                                        <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-700">
                                             <input
-                                                type="number"
-                                                value={spouse2PreferredMonth}
-                                                onChange={e => setSpouse2PreferredMonth(Number(e.target.value))}
-                                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
-                                                placeholder="Mo"
+                                                type="checkbox"
+                                                checked={showYearView}
+                                                onChange={(e) => {
+                                                    const isChecked = e.target.checked;
+                                                    setShowYearView(isChecked);
+                                                    if (isChecked) {
+                                                        setShowYearModal(true);
+                                                    }
+                                                }}
+                                                className="w-3.5 h-3.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                            />
+                                            <span>Enable year view</span>
+                                        </label>
+
+                                        {showYearView && (
+                                            <div>
+                                                <label className="block text-xs text-gray-600 mb-1">Select age:</label>
+                                                <select
+                                                    value={selectedYearAge}
+                                                    onChange={(e) => {
+                                                        setSelectedYearAge(Number(e.target.value));
+                                                        setShowYearModal(true);
+                                                    }}
+                                                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
+                                                >
+                                                    {Array.from({ length: 95 - 62 + 1 }, (_, i) => 62 + i).map(age => {
+                                                        // Calculate ages for both spouses if married
+                                                        const primaryAge = age;
+                                                        const spouseBirthYear = isMarried ? new Date(spouse2Dob).getFullYear() : null;
+                                                        const primaryBirthYear = new Date(spouse1Dob).getFullYear();
+
+                                                        let label;
+                                                        if (isMarried && spouseBirthYear) {
+                                                            const spouseAge = age + (primaryBirthYear - spouseBirthYear);
+                                                            label = formatCoupleAges(primaryAge, spouseAge);
+                                                        } else {
+                                                            label = `${primaryAge}`;
+                                                        }
+
+                                                        return (
+                                                            <option key={age} value={age}>{label}</option>
+                                                        );
+                                                    })}
+                                                </select>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Options - Compact */}
+                                <div className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm">
+                                    <h3 className="text-sm font-semibold text-gray-900 mb-2">Options</h3>
+                                    <div className="space-y-2">
+                                        {isMarried && (
+                                            <div className="space-y-2">
+                                                <Checkbox
+                                                    label={<span className="text-xs">Potential Premature Death</span>}
+                                                    checked={prematureDeath}
+                                                    onChange={e => setPrematureDeath(e.target.checked)}
+                                                />
+                                                {prematureDeath && (
+                                                    <div>
+                                                        <label className="block text-xs text-gray-600 mb-1">
+                                                            {isMarried ? 'Death at ages:' : 'Death at age:'}
+                                                        </label>
+                                                        <select
+                                                            value={deathAge}
+                                                            onChange={e => setDeathAge(Number(e.target.value))}
+                                                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
+                                                        >
+                                                            {Array.from({ length: 100 - 62 + 1 }, (_, idx) => 62 + idx).map(age => {
+                                                                const primaryAge = age;
+                                                                const spouseBirthYear = isMarried ? new Date(spouse2Dob).getFullYear() : null;
+                                                                const primaryBirthYear = new Date(spouse1Dob).getFullYear();
+
+                                                                let label;
+                                                                if (isMarried && spouseBirthYear) {
+                                                                    const spouseAge = age - (primaryBirthYear - spouseBirthYear);
+                                                                    label = formatCoupleAges(primaryAge, spouseAge);
+                                                                } else {
+                                                                    label = `${primaryAge}`;
+                                                                }
+
+                                                                return (
+                                                                    <option key={age} value={age}>{label}</option>
+                                                                );
+                                                            })}
+                                                        </select>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        <div className="pt-2">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <div className="flex items-center gap-1">
+                                                    <label className="text-xs font-medium text-gray-700">Inflation (COLA)</label>
+                                                    <div className="group relative">
+                                                        <svg className="w-3.5 h-3.5 text-gray-400 cursor-help" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                                        </svg>
+                                                        <div className="hidden group-hover:block absolute left-0 bottom-full mb-2 w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-50">
+                                                            <div className="font-semibold mb-1">How COLA is Applied:</div>
+                                                            <ul className="space-y-1 text-xs">
+                                                                <li>• <span className="font-medium">Before age 60:</span> Applied annually</li>
+                                                                <li>• <span className="font-medium">Ages 60-61:</span> Frozen at 0%</li>
+                                                                <li>• <span className="font-medium">Age 62 onward:</span> Your rate applies annually</li>
+                                                                <li>• <span className="font-medium">After claiming:</span> Continues annually</li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <span className="text-xs font-semibold text-primary-600">
+                                                    {(inflation * 100).toFixed(1)}%
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                value={inflation}
+                                                onChange={e => setInflation(Number(e.target.value))}
+                                                min="0"
+                                                max="0.1"
+                                                step="0.001"
+                                                className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
                                             />
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* View Only Checkbox - At Bottom */}
-                            <div className="pt-3 mt-3 border-t border-gray-200">
-                                <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-600 hover:text-gray-800">
-                                    <input
-                                        type="checkbox"
-                                        checked={activeRecordView === 'spouse'}
-                                        onChange={handleSpouseOnlyToggle}
-                                        className="w-3.5 h-3.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                                    />
-                                    <span title="This setting can also be changed in the Settings section">Show only this person</span>
-                                </label>
+                                {/* Separator */}
+                                <div className="relative py-4">
+                                    <div className="absolute inset-0 flex items-center">
+                                        <div className="w-full border-t-2 border-gray-300"></div>
+                                    </div>
+                                    <div className="relative flex justify-center">
+                                        <span className="px-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                            Tools & Resources
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Quick Access Tools */}
+                                <div className="border border-gray-200 rounded-lg p-3 bg-gradient-to-br from-white to-gray-50 shadow-sm">
+                                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Core Features</h3>
+                                    <div className="space-y-2">
+                                        {/* Featured: PIA Calculator - UPGRADED */}
+                                        <div className="p-4 bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 border-2 border-teal-300 rounded-xl shadow-lg">
+                                            <div className="flex items-start gap-3 mb-3">
+                                                <div className="flex-shrink-0">
+                                                    <div className="w-10 h-10 bg-teal-600 rounded-lg flex items-center justify-center">
+                                                        <span className="text-white text-xl">🧮</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <h4 className="text-base font-bold text-teal-900 mb-1">PIA Calculator</h4>
+                                                    <p className="text-xs text-teal-700">Calculate your Primary Insurance Amount from your earnings record</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => navigate('/pia-calculator')}
+                                                className="w-full py-3 px-4 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-bold rounded-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                                            >
+                                                Refine your PIA
+                                            </button>
+                                            <p className="text-xs text-teal-600 mt-2 text-center italic">
+                                                ⚡ Essential: Get your exact benefit amount
+                                            </p>
+                                        </div>
+
+                                        {/* Featured: One Month at a Time - MOVED UP */}
+                                        <div className="p-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 border-2 border-indigo-300 rounded-xl shadow-lg">
+                                            <div className="flex items-start gap-3 mb-3">
+                                                <div className="flex-shrink-0">
+                                                    <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
+                                                        <span className="text-white text-xl">🎯</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <h4 className="text-base font-bold text-indigo-900 mb-1">One Month at a Time</h4>
+                                                    <p className="text-xs text-indigo-700">See how each month of waiting builds guaranteed retirement income</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => setShowOneMonthModal(true)}
+                                                className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                                            >
+                                                📊 Explore Month-by-Month Value
+                                            </button>
+                                            <p className="text-xs text-indigo-600 mt-2 text-center italic">
+                                                ✨ NEW: Interactive bridge-building tool
+                                            </p>
+                                        </div>
+
+                                        {/* Start-Stop-Start Strategy */}
+                                        <div className="p-4 bg-gradient-to-br from-purple-50 via-fuchsia-50 to-rose-50 border-2 border-purple-300 rounded-xl shadow-lg">
+                                            <div className="flex items-start gap-3 mb-3">
+                                                <div className="flex-shrink-0">
+                                                    <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                                                        <span className="text-white text-xl">🔄</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <h4 className="text-base font-bold text-purple-900 mb-1">Start-Stop-Start Strategy</h4>
+                                                    <p className="text-xs text-purple-700">File early, suspend at FRA, restart at 70 to maximize credits</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => navigate('/start-stop-start')}
+                                                className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                                            >
+                                                🔄 Explore Start-Stop-Start
+                                            </button>
+                                            <p className="text-xs text-purple-600 mt-2 text-center italic">
+                                                Compare early vs delayed claiming with suspension
+                                            </p>
+                                        </div>
+
+                                        {/* Early/Late */}
+                                        <div className="p-4 bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 border-2 border-amber-300 rounded-xl shadow-lg">
+                                            <div className="flex items-start gap-3 mb-3">
+                                                <div className="flex-shrink-0">
+                                                    <div className="w-10 h-10 bg-amber-600 rounded-lg flex items-center justify-center">
+                                                        <span className="text-white text-xl">⏳</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <h4 className="text-base font-bold text-amber-900 mb-1">Early/Late</h4>
+                                                    <p className="text-xs text-amber-700">Compare claiming at 62, FRA, and 70</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => setChartView('earlyLate')}
+                                                className="w-full py-3 px-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                                            >
+                                                ⏳ Open Early/Late View
+                                            </button>
+                                            <p className="text-xs text-amber-700 mt-2 text-center italic">
+                                                Quick visual comparison inside the main chart
+                                            </p>
+                                        </div>
+
+                                    </div>
+
+                                    <h3 className="text-sm font-semibold text-gray-900 mb-3 mt-4">Helper Apps</h3>
+                                    <div className="space-y-2">
+                                        {/* Bubbles (4% Rule Equivalent) */}
+                                        <button
+                                            onClick={() => setChartView('bubble')}
+                                            className="w-full text-left px-3 py-2 bg-gradient-to-r from-cyan-50 to-sky-100 hover:from-cyan-100 hover:to-sky-200 border border-cyan-200 rounded-lg transition-all hover:shadow-md group"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <div className="text-sm font-semibold text-cyan-900">Bubbles</div>
+                                                    <div className="text-xs text-cyan-700 mt-0.5">4% Rule Equivalent</div>
+                                                </div>
+                                                <svg className="w-4 h-4 text-cyan-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </div>
+                                        </button>
+                                        {/* Sequence of Returns */}
+                                        <button
+                                            onClick={() => navigate('/sequence-risk')}
+                                            className="w-full text-left px-3 py-2 bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border border-purple-200 rounded-lg transition-all hover:shadow-md group"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <div className="text-sm font-semibold text-purple-900">Sequence of Returns</div>
+                                                    <div className="text-xs text-purple-700 mt-0.5">Market timing impact</div>
+                                                </div>
+                                                <svg className="w-4 h-4 text-purple-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </div>
+                                        </button>
+
+                                        {/* Longevity Spending */}
+                                        <button
+                                            onClick={() => navigate('/longevity-spending')}
+                                            className="w-full text-left px-3 py-2 bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border border-green-200 rounded-lg transition-all hover:shadow-md group"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <div className="text-sm font-semibold text-green-900">Longevity Spending</div>
+                                                    <div className="text-xs text-green-700 mt-0.5">Plan retirement phases</div>
+                                                </div>
+                                                <svg className="w-4 h-4 text-green-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </div>
+                                        </button>
+
+                                        {/* Income Target */}
+                                        <button
+                                            onClick={() => navigate('/income-target')}
+                                            className="w-full text-left px-3 py-2 bg-gradient-to-r from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 border border-orange-200 rounded-lg transition-all hover:shadow-md group"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <div className="text-sm font-semibold text-orange-900">Income Target</div>
+                                                    <div className="text-xs text-orange-700 mt-0.5">Set retirement goals</div>
+                                                </div>
+                                                <svg className="w-4 h-4 text-orange-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </div>
+                                        </button>
+
+                                        {/* Budget Worksheet */}
+                                        <button
+                                            onClick={() => navigate('/budget-worksheet')}
+                                            className="w-full text-left px-3 py-2 bg-gradient-to-r from-pink-50 to-pink-100 hover:from-pink-100 hover:to-pink-200 border border-pink-200 rounded-lg transition-all hover:shadow-md group"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <div className="text-sm font-semibold text-pink-900">Budget Worksheet</div>
+                                                    <div className="text-xs text-pink-700 mt-0.5">Track monthly expenses</div>
+                                                </div>
+                                                <svg className="w-4 h-4 text-pink-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
-
-                    {/* Show Me Just This Single Year - Between Spouse and Options */}
-                    <div className="border border-gray-200 rounded-lg p-3 bg-white">
-                        <h3 className="text-sm font-semibold text-gray-900 mb-2">Show Me Just This Single Year</h3>
-                        <div className="space-y-2">
-                            <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-700">
-                                <input
-                                    type="checkbox"
-                                    checked={showYearView}
-                                    onChange={(e) => setShowYearView(e.target.checked)}
-                                    className="w-3.5 h-3.5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                                />
-                                <span>Enable year view</span>
-                            </label>
-                            
-                            {showYearView && (
-                                <div>
-                                    <label className="block text-xs text-gray-600 mb-1">Select age:</label>
-                                    <select
-                                        value={selectedYearAge}
-                                        onChange={(e) => {
-                                            setSelectedYearAge(Number(e.target.value));
-                                            setShowYearModal(true);
-                                        }}
-                                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
-                                    >
-                                        {Array.from({ length: 95 - 62 + 1 }, (_, i) => 62 + i).map(age => {
-                                            // Calculate ages for both spouses if married
-                                            const primaryAge = age;
-                                            const spouseBirthYear = isMarried ? new Date(spouse2Dob).getFullYear() : null;
-                                            const primaryBirthYear = new Date(spouse1Dob).getFullYear();
-                                            
-                                            let label;
-                                            if (isMarried && spouseBirthYear) {
-                                                const spouseAge = age + (primaryBirthYear - spouseBirthYear);
-                                                label = formatCoupleAges(primaryAge, spouseAge);
-                                            } else {
-                                                label = `${primaryAge}`;
-                                            }
-                                            
-                                            return (
-                                                <option key={age} value={age}>{label}</option>
-                                            );
-                                        })}
-                                    </select>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Options - Compact */}
-                    <div className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm">
-                        <h3 className="text-sm font-semibold text-gray-900 mb-2">Options</h3>
-                        <div className="space-y-2">
-                            {isMarried && (
-                                <div className="space-y-2">
-                                    <Checkbox
-                                        label={<span className="text-xs">Potential Premature Death</span>}
-                                        checked={prematureDeath}
-                                        onChange={e => setPrematureDeath(e.target.checked)}
-                                    />
-                                    {prematureDeath && (
-                                        <div>
-                                            <label className="block text-xs text-gray-600 mb-1">
-                                                {isMarried ? 'Death at ages:' : 'Death at age:'}
-                                            </label>
-                                            <select
-                                                value={deathAge}
-                                                onChange={e => setDeathAge(Number(e.target.value))}
-                                                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
-                                            >
-                                                {Array.from({ length: 100 - 62 + 1 }, (_, idx) => 62 + idx).map(age => {
-                                                    const primaryAge = age;
-                                                    const spouseBirthYear = isMarried ? new Date(spouse2Dob).getFullYear() : null;
-                                                    const primaryBirthYear = new Date(spouse1Dob).getFullYear();
-                                                    
-                                                    let label;
-                                                    if (isMarried && spouseBirthYear) {
-                                                        const spouseAge = age - (primaryBirthYear - spouseBirthYear);
-                                                        label = formatCoupleAges(primaryAge, spouseAge);
-                                                    } else {
-                                                        label = `${primaryAge}`;
-                                                    }
-                                                    
-                                                    return (
-                                                        <option key={age} value={age}>{label}</option>
-                                                    );
-                                                })}
-                                            </select>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            <div className="pt-2">
-                                <div className="flex justify-between items-center mb-1">
-                                    <div className="flex items-center gap-1">
-                                        <label className="text-xs font-medium text-gray-700">Inflation (COLA)</label>
-                                        <div className="group relative">
-                                            <svg className="w-3.5 h-3.5 text-gray-400 cursor-help" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                                            </svg>
-                                            <div className="hidden group-hover:block absolute left-0 bottom-full mb-2 w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-50">
-                                                <div className="font-semibold mb-1">How COLA is Applied:</div>
-                                                <ul className="space-y-1 text-xs">
-                                                    <li>• <span className="font-medium">Before age 60:</span> Applied annually</li>
-                                                    <li>• <span className="font-medium">Ages 60-61:</span> Frozen at 0%</li>
-                                                    <li>• <span className="font-medium">Age 62 onward:</span> Your rate applies annually</li>
-                                                    <li>• <span className="font-medium">After claiming:</span> Continues annually</li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <span className="text-xs font-semibold text-primary-600">
-                                        {(inflation * 100).toFixed(1)}%
-                                    </span>
-                                </div>
-                                <input
-                                    type="range"
-                                    value={inflation}
-                                    onChange={e => setInflation(Number(e.target.value))}
-                                    min="0"
-                                    max="0.1"
-                                    step="0.001"
-                                    className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Separator */}
-                    <div className="relative py-4">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t-2 border-gray-300"></div>
-                        </div>
-                        <div className="relative flex justify-center">
-                            <span className="px-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                Tools & Resources
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Quick Access Tools */}
-                    <div className="border border-gray-200 rounded-lg p-3 bg-gradient-to-br from-white to-gray-50 shadow-sm">
-                        <h3 className="text-sm font-semibold text-gray-900 mb-3">Core Features</h3>
-                        <div className="space-y-2">
-                            {/* Featured: PIA Calculator - UPGRADED */}
-                            <div className="p-4 bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 border-2 border-teal-300 rounded-xl shadow-lg">
-                                <div className="flex items-start gap-3 mb-3">
-                                    <div className="flex-shrink-0">
-                                        <div className="w-10 h-10 bg-teal-600 rounded-lg flex items-center justify-center">
-                                            <span className="text-white text-xl">🧮</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="text-base font-bold text-teal-900 mb-1">PIA Calculator</h4>
-                                        <p className="text-xs text-teal-700">Calculate your Primary Insurance Amount from your earnings record</p>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => navigate('/pia-calculator')}
-                                    className="w-full py-3 px-4 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-bold rounded-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-                                >
-                                    Refine your PIA
-                                </button>
-                                <p className="text-xs text-teal-600 mt-2 text-center italic">
-                                    ⚡ Essential: Get your exact benefit amount
-                                </p>
-                            </div>
-
-                            {/* Featured: One Month at a Time - MOVED UP */}
-                            <div className="p-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 border-2 border-indigo-300 rounded-xl shadow-lg">
-                                <div className="flex items-start gap-3 mb-3">
-                                    <div className="flex-shrink-0">
-                                        <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
-                                            <span className="text-white text-xl">🎯</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="text-base font-bold text-indigo-900 mb-1">One Month at a Time</h4>
-                                        <p className="text-xs text-indigo-700">See how each month of waiting builds guaranteed retirement income</p>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => setShowOneMonthModal(true)}
-                                    className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-                                >
-                                    📊 Explore Month-by-Month Value
-                                </button>
-                                <p className="text-xs text-indigo-600 mt-2 text-center italic">
-                                    ✨ NEW: Interactive bridge-building tool
-                                </p>
-                            </div>
-
-                            {/* Start-Stop-Start Strategy */}
-                            <div className="p-4 bg-gradient-to-br from-purple-50 via-fuchsia-50 to-rose-50 border-2 border-purple-300 rounded-xl shadow-lg">
-                                <div className="flex items-start gap-3 mb-3">
-                                    <div className="flex-shrink-0">
-                                        <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-                                            <span className="text-white text-xl">🔄</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="text-base font-bold text-purple-900 mb-1">Start-Stop-Start Strategy</h4>
-                                        <p className="text-xs text-purple-700">File early, suspend at FRA, restart at 70 to maximize credits</p>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => navigate('/start-stop-start')}
-                                    className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-                                >
-                                    🔄 Explore Start-Stop-Start
-                                </button>
-                                <p className="text-xs text-purple-600 mt-2 text-center italic">
-                                    Compare early vs delayed claiming with suspension
-                                </p>
-                            </div>
-
-                            {/* Early/Late */}
-                            <div className="p-4 bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 border-2 border-amber-300 rounded-xl shadow-lg">
-                                <div className="flex items-start gap-3 mb-3">
-                                    <div className="flex-shrink-0">
-                                        <div className="w-10 h-10 bg-amber-600 rounded-lg flex items-center justify-center">
-                                            <span className="text-white text-xl">⏳</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="text-base font-bold text-amber-900 mb-1">Early/Late</h4>
-                                        <p className="text-xs text-amber-700">Compare claiming at 62, FRA, and 70</p>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => setChartView('earlyLate')}
-                                    className="w-full py-3 px-4 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-                                >
-                                    ⏳ Open Early/Late View
-                                </button>
-                                <p className="text-xs text-amber-700 mt-2 text-center italic">
-                                    Quick visual comparison inside the main chart
-                                </p>
-                            </div>
-
-                        </div>
-                        
-                        <h3 className="text-sm font-semibold text-gray-900 mb-3 mt-4">Helper Apps</h3>
-                        <div className="space-y-2">
-                            {/* Bubbles (4% Rule Equivalent) */}
-                            <button
-                                onClick={() => setChartView('bubble')}
-                                className="w-full text-left px-3 py-2 bg-gradient-to-r from-cyan-50 to-sky-100 hover:from-cyan-100 hover:to-sky-200 border border-cyan-200 rounded-lg transition-all hover:shadow-md group"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <div className="text-sm font-semibold text-cyan-900">Bubbles</div>
-                                        <div className="text-xs text-cyan-700 mt-0.5">4% Rule Equivalent</div>
-                                    </div>
-                                    <svg className="w-4 h-4 text-cyan-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </div>
-                            </button>
-                            {/* Sequence of Returns */}
-                            <button
-                                onClick={() => navigate('/sequence-risk')}
-                                className="w-full text-left px-3 py-2 bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border border-purple-200 rounded-lg transition-all hover:shadow-md group"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <div className="text-sm font-semibold text-purple-900">Sequence of Returns</div>
-                                        <div className="text-xs text-purple-700 mt-0.5">Market timing impact</div>
-                                    </div>
-                                    <svg className="w-4 h-4 text-purple-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </div>
-                            </button>
-
-                            {/* Longevity Spending */}
-                            <button
-                                onClick={() => navigate('/longevity-spending')}
-                                className="w-full text-left px-3 py-2 bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border border-green-200 rounded-lg transition-all hover:shadow-md group"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <div className="text-sm font-semibold text-green-900">Longevity Spending</div>
-                                        <div className="text-xs text-green-700 mt-0.5">Plan retirement phases</div>
-                                    </div>
-                                    <svg className="w-4 h-4 text-green-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </div>
-                            </button>
-
-                            {/* Income Target */}
-                            <button
-                                onClick={() => navigate('/income-target')}
-                                className="w-full text-left px-3 py-2 bg-gradient-to-r from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 border border-orange-200 rounded-lg transition-all hover:shadow-md group"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <div className="text-sm font-semibold text-orange-900">Income Target</div>
-                                        <div className="text-xs text-orange-700 mt-0.5">Set retirement goals</div>
-                                    </div>
-                                    <svg className="w-4 h-4 text-orange-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </div>
-                            </button>
-
-                            {/* Budget Worksheet */}
-                            <button
-                                onClick={() => navigate('/budget-worksheet')}
-                                className="w-full text-left px-3 py-2 bg-gradient-to-r from-pink-50 to-pink-100 hover:from-pink-100 hover:to-pink-200 border border-pink-200 rounded-lg transition-all hover:shadow-md group"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <div className="text-sm font-semibold text-pink-900">Budget Worksheet</div>
-                                        <div className="text-xs text-pink-700 mt-0.5">Track monthly expenses</div>
-                                    </div>
-                                    <svg className="w-4 h-4 text-pink-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-                        </div>
-                    </div>
-                )}
                 </div>
 
                 {/* Expand Button - Only shown when collapsed */}
@@ -3571,11 +3600,10 @@ const ShowMeTheMoneyCalculator = () => {
                             </div>
                             <button
                                 onClick={ssCutsActive ? handleShowBaseline : handleProjectCuts}
-                                className={`px-6 py-2 text-sm font-bold rounded-lg transition-all shadow-md hover:shadow-lg transform hover:scale-105 ${
-                                    ssCutsActive
-                                        ? 'bg-gray-600 text-white hover:bg-gray-700'
-                                        : 'bg-gradient-to-r from-primary-600 to-primary-700 text-white hover:from-primary-700 hover:to-primary-800'
-                                }`}
+                                className={`px-6 py-2 text-sm font-bold rounded-lg transition-all shadow-md hover:shadow-lg transform hover:scale-105 ${ssCutsActive
+                                    ? 'bg-gray-600 text-white hover:bg-gray-700'
+                                    : 'bg-gradient-to-r from-primary-600 to-primary-700 text-white hover:from-primary-700 hover:to-primary-800'
+                                    }`}
                             >
                                 {ssCutsActive ? 'Show Baseline' : 'Project Cuts'}
                             </button>
@@ -3602,16 +3630,14 @@ const ShowMeTheMoneyCalculator = () => {
                                 </span>
                                 <button
                                     onClick={() => setShowMonthlyCashflow(!showMonthlyCashflow)}
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                                        showMonthlyCashflow ? 'bg-primary-600' : 'bg-gray-300'
-                                    }`}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${showMonthlyCashflow ? 'bg-primary-600' : 'bg-gray-300'
+                                        }`}
                                     role="switch"
                                     aria-checked={showMonthlyCashflow}
                                 >
                                     <span
-                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                            showMonthlyCashflow ? 'translate-x-6' : 'translate-x-1'
-                                        }`}
+                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showMonthlyCashflow ? 'translate-x-6' : 'translate-x-1'
+                                            }`}
                                     />
                                 </button>
                                 <span className={`text-sm font-medium transition-colors ${showMonthlyCashflow ? 'text-primary-600' : 'text-gray-500'}`}>
@@ -3663,7 +3689,19 @@ const ShowMeTheMoneyCalculator = () => {
                         </div>
                     )}
 
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4" style={{ height: ['monthly', 'cumulative', 'combined', 'earlyLate', 'post70'].includes(chartView) ? 'calc(100% - 80px)' : '100%' }}>
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 relative" style={{ height: ['monthly', 'cumulative', 'combined', 'earlyLate', 'post70'].includes(chartView) ? 'calc(100% - 80px)' : '100%' }}>
+                        {/* Animation Replay Button */}
+                        {chartView === 'monthly' && (
+                            <button
+                                onClick={() => setAnimationKey(prev => prev + 1)}
+                                className="absolute top-2 left-2 z-10 p-1.5 text-gray-400 hover:text-primary-600 hover:bg-gray-50 rounded-full transition-all duration-200 border border-transparent hover:border-gray-200 shadow-sm hover:shadow"
+                                title="Replay Animation"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                                </svg>
+                            </button>
+                        )}
                         {
                             chartView === 'flow' ? (
                                 <FlowVisualization
@@ -3718,220 +3756,220 @@ const ShowMeTheMoneyCalculator = () => {
                                             </p>
                                         </div>
                                     ))
-                                : chartView === 'monthly' ? <Bar data={chartData} options={{...chartOptions, maintainAspectRatio: false}} /> :
-                                  chartView === 'cumulative' ? <Line data={chartData} options={{...chartOptions, maintainAspectRatio: false}} /> :
-                                  chartView === 'combined' ? <Bar data={chartData} options={{...chartOptions, maintainAspectRatio: false}} /> :
-                                  chartView === 'earlyLate' ? <Line data={chartData} options={{...chartOptions, maintainAspectRatio: false}} /> :
-                                  chartView === 'bubble' ? (
-                                      <div className="h-full flex flex-col p-6 bg-white overflow-auto">
-                                          {/* Age Slider */}
-                                          <div className="mb-8">
-                                              <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Age to View</h3>
-                                              <div className="flex items-center gap-4">
-                                                  <div className="flex-1 relative">
-                                                      {(() => {
-                                                          const keyAges = [62, 67, 70, 75, 80, 85, 90, 95, 100];
-                                                          const currentIndex = keyAges.indexOf(bubbleAge);
-                                                          const sliderIndex = currentIndex !== -1 ? currentIndex : keyAges.indexOf(70);
-                                                          
-                                                          return (
-                                                              <>
-                                                                  <input
-                                                                      type="range"
-                                                                      min="0"
-                                                                      max="8"
-                                                                      step="1"
-                                                                      value={sliderIndex}
-                                                                      onChange={(e) => setBubbleAge(keyAges[Number(e.target.value)])}
-                                                                      className="w-full"
-                                                                  />
-                                                                  {/* Age markers */}
-                                                                  <div className="flex justify-between text-xs text-gray-500 mt-2">
-                                                                      {keyAges.map(age => (
-                                                                          <button
-                                                                              key={age}
-                                                                              onClick={() => setBubbleAge(age)}
-                                                                              className={`hover:text-primary-600 hover:font-semibold transition-colors ${bubbleAge === age ? 'text-primary-600 font-semibold' : ''}`}
-                                                                          >
-                                                                              {age}
-                                                                          </button>
-                                                                      ))}
-                                                                  </div>
-                                                              </>
-                                                          );
-                                                      })()}
-                                                  </div>
-                                                  <div className="text-2xl font-bold text-primary-600 min-w-[80px] text-center">
-                                                      Age {bubbleAge}
-                                                  </div>
-                                              </div>
-                                          </div>
+                                : chartView === 'monthly' ? <Bar key={`monthly-${animationKey}`} data={chartData} options={{ ...chartOptions, maintainAspectRatio: false }} /> :
+                                    chartView === 'cumulative' ? <Line data={chartData} options={{ ...chartOptions, maintainAspectRatio: false }} /> :
+                                        chartView === 'combined' ? <Bar data={chartData} options={{ ...chartOptions, maintainAspectRatio: false }} /> :
+                                            chartView === 'earlyLate' ? <Line data={chartData} options={{ ...chartOptions, maintainAspectRatio: false }} /> :
+                                                chartView === 'bubble' ? (
+                                                    <div className="h-full flex flex-col p-6 bg-white overflow-auto">
+                                                        {/* Age Slider */}
+                                                        <div className="mb-8">
+                                                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Age to View</h3>
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="flex-1 relative">
+                                                                    {(() => {
+                                                                        const keyAges = [62, 67, 70, 75, 80, 85, 90, 95, 100];
+                                                                        const currentIndex = keyAges.indexOf(bubbleAge);
+                                                                        const sliderIndex = currentIndex !== -1 ? currentIndex : keyAges.indexOf(70);
 
-                                          {/* Bubble Visualization - Stacked Vertically */}
-                                          <div className="flex-1 flex flex-col justify-center gap-16 py-8">
-                                              {bubbleChartData && (() => {
-                                                  // Dramatic bubble sizes - Moon → Earth → Sun effect
-                                                  const monthlySize = 80;   // Moon
-                                                  const annualSize = 200;   // Earth (2.5x)
-                                                  const assetSize = 400;    // Sun (5x)
+                                                                        return (
+                                                                            <>
+                                                                                <input
+                                                                                    type="range"
+                                                                                    min="0"
+                                                                                    max="8"
+                                                                                    step="1"
+                                                                                    value={sliderIndex}
+                                                                                    onChange={(e) => setBubbleAge(keyAges[Number(e.target.value)])}
+                                                                                    className="w-full"
+                                                                                />
+                                                                                {/* Age markers */}
+                                                                                <div className="flex justify-between text-xs text-gray-500 mt-2">
+                                                                                    {keyAges.map(age => (
+                                                                                        <button
+                                                                                            key={age}
+                                                                                            onClick={() => setBubbleAge(age)}
+                                                                                            className={`hover:text-primary-600 hover:font-semibold transition-colors ${bubbleAge === age ? 'text-primary-600 font-semibold' : ''}`}
+                                                                                        >
+                                                                                            {age}
+                                                                                        </button>
+                                                                                    ))}
+                                                                                </div>
+                                                                            </>
+                                                                        );
+                                                                    })()}
+                                                                </div>
+                                                                <div className="text-2xl font-bold text-primary-600 min-w-[80px] text-center">
+                                                                    Age {bubbleAge}
+                                                                </div>
+                                                            </div>
+                                                        </div>
 
-                                                  // Filing at 70 sizes
-                                                  const size70Monthly = monthlySize;
-                                                  const size70Annual = annualSize;
-                                                  const size70Asset = assetSize;
+                                                        {/* Bubble Visualization - Stacked Vertically */}
+                                                        <div className="flex-1 flex flex-col justify-center gap-16 py-8">
+                                                            {bubbleChartData && (() => {
+                                                                // Dramatic bubble sizes - Moon → Earth → Sun effect
+                                                                const monthlySize = 80;   // Moon
+                                                                const annualSize = 200;   // Earth (2.5x)
+                                                                const assetSize = 400;    // Sun (5x)
 
-                                                  // Filing at 62 sizes
-                                                  const size62Monthly = monthlySize;
-                                                  const size62Annual = annualSize;
-                                                  const size62Asset = assetSize;
+                                                                // Filing at 70 sizes
+                                                                const size70Monthly = monthlySize;
+                                                                const size70Annual = annualSize;
+                                                                const size70Asset = assetSize;
 
-                                                  return (
-                                                      <>
-                                                          {/* Filing at 70 - Top */}
-                                                          <div className="flex flex-col items-center">
-                                                              <h4 className="text-xl font-semibold text-green-600 mb-6">Filing at Age 70</h4>
-                                                              <div className="relative w-full h-80 flex items-center justify-center">
-                                                                  {/* Monthly bubble - Left */}
-                                                                  <div
-                                                                      className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
-                                                                      style={{
-                                                                          width: `${size70Monthly}px`,
-                                                                          height: `${size70Monthly}px`,
-                                                                          left: '20%',
-                                                                          top: '50%',
-                                                                          transform: 'translate(-50%, -50%)',
-                                                                          background: 'radial-gradient(circle at 30% 30%, rgba(74, 222, 128, 0.9), rgba(34, 197, 94, 0.7))',
-                                                                          boxShadow: '0 8px 32px rgba(34, 197, 94, 0.4)',
-                                                                          opacity: 0.9
-                                                                      }}
-                                                                  >
-                                                                      <div className="text-center px-1">
-                                                                          <div className="text-xs">Monthly</div>
-                                                                          <div className="text-sm font-bold">{currencyFormatter.format(bubbleChartData.age70.monthly)}</div>
-                                                                      </div>
-                                                                  </div>
-                                                                  {/* Annual bubble - Center */}
-                                                                  <div
-                                                                      className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
-                                                                      style={{
-                                                                          width: `${size70Annual}px`,
-                                                                          height: `${size70Annual}px`,
-                                                                          left: '50%',
-                                                                          top: '50%',
-                                                                          transform: 'translate(-50%, -50%)',
-                                                                          background: 'radial-gradient(circle at 30% 30%, rgba(134, 239, 172, 0.85), rgba(74, 222, 128, 0.65))',
-                                                                          boxShadow: '0 8px 32px rgba(74, 222, 128, 0.4)',
-                                                                          opacity: 0.9
-                                                                      }}
-                                                                  >
-                                                                      <div className="text-center px-1">
-                                                                          <div className="text-xs">Annual</div>
-                                                                          <div className="text-lg font-bold">{currencyFormatter.format(bubbleChartData.age70.annual)}</div>
-                                                                      </div>
-                                                                  </div>
-                                                                  {/* Asset equivalent bubble - Right */}
-                                                                  <div
-                                                                      className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
-                                                                      style={{
-                                                                          width: `${size70Asset}px`,
-                                                                          height: `${size70Asset}px`,
-                                                                          left: '80%',
-                                                                          top: '50%',
-                                                                          transform: 'translate(-50%, -50%)',
-                                                                          background: 'radial-gradient(circle at 30% 30%, rgba(187, 247, 208, 0.8), rgba(134, 239, 172, 0.6))',
-                                                                          boxShadow: '0 8px 32px rgba(134, 239, 172, 0.4)',
-                                                                          opacity: 0.9
-                                                                      }}
-                                                                  >
-                                                                      <div className="text-center px-2">
-                                                                          <div className="text-xs">4% Asset</div>
-                                                                          <div className="text-base font-bold">{currencyFormatter.format(bubbleChartData.age70.assetEquiv)}</div>
-                                                                      </div>
-                                                                  </div>
-                                                              </div>
-                                                              <div className="text-xs text-gray-600 mt-4 text-center space-y-1">
-                                                                  <p>Monthly: {currencyFormatter.format(bubbleChartData.age70.monthly)}</p>
-                                                                  <p>Annual: {currencyFormatter.format(bubbleChartData.age70.annual)}</p>
-                                                                  <p>Asset Equivalent: {currencyFormatter.format(bubbleChartData.age70.assetEquiv)}</p>
-                                                              </div>
-                                                          </div>
+                                                                // Filing at 62 sizes
+                                                                const size62Monthly = monthlySize;
+                                                                const size62Annual = annualSize;
+                                                                const size62Asset = assetSize;
 
-                                                          {/* Filing at 62 - Bottom */}
-                                                          <div className="flex flex-col items-center">
-                                                              <h4 className="text-xl font-semibold text-red-600 mb-6">Filing at Age 62</h4>
-                                                              <div className="relative w-full h-80 flex items-center justify-center">
-                                                                  {/* Monthly bubble - Left */}
-                                                                  <div
-                                                                      className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
-                                                                      style={{
-                                                                          width: `${size62Monthly}px`,
-                                                                          height: `${size62Monthly}px`,
-                                                                          left: '20%',
-                                                                          top: '50%',
-                                                                          transform: 'translate(-50%, -50%)',
-                                                                          background: 'radial-gradient(circle at 30% 30%, rgba(248, 113, 113, 0.9), rgba(239, 68, 68, 0.7))',
-                                                                          boxShadow: '0 8px 32px rgba(239, 68, 68, 0.4)',
-                                                                          opacity: 0.9
-                                                                      }}
-                                                                  >
-                                                                      <div className="text-center px-1">
-                                                                          <div className="text-xs">Monthly</div>
-                                                                          <div className="text-sm font-bold">{currencyFormatter.format(bubbleChartData.age62.monthly)}</div>
-                                                                      </div>
-                                                                  </div>
-                                                                  {/* Annual bubble - Center */}
-                                                                  <div
-                                                                      className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
-                                                                      style={{
-                                                                          width: `${size62Annual}px`,
-                                                                          height: `${size62Annual}px`,
-                                                                          left: '50%',
-                                                                          top: '50%',
-                                                                          transform: 'translate(-50%, -50%)',
-                                                                          background: 'radial-gradient(circle at 30% 30%, rgba(252, 165, 165, 0.85), rgba(248, 113, 113, 0.65))',
-                                                                          boxShadow: '0 8px 32px rgba(248, 113, 113, 0.4)',
-                                                                          opacity: 0.9
-                                                                      }}
-                                                                  >
-                                                                      <div className="text-center px-1">
-                                                                          <div className="text-xs">Annual</div>
-                                                                          <div className="text-lg font-bold">{currencyFormatter.format(bubbleChartData.age62.annual)}</div>
-                                                                      </div>
-                                                                  </div>
-                                                                  {/* Asset equivalent bubble - Right */}
-                                                                  <div
-                                                                      className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
-                                                                      style={{
-                                                                          width: `${size62Asset}px`,
-                                                                          height: `${size62Asset}px`,
-                                                                          left: '80%',
-                                                                          top: '50%',
-                                                                          transform: 'translate(-50%, -50%)',
-                                                                          background: 'radial-gradient(circle at 30% 30%, rgba(254, 202, 202, 0.8), rgba(252, 165, 165, 0.6))',
-                                                                          boxShadow: '0 8px 32px rgba(252, 165, 165, 0.4)',
-                                                                          opacity: 0.9
-                                                                      }}
-                                                                  >
-                                                                      <div className="text-center px-2">
-                                                                          <div className="text-xs">4% Asset</div>
-                                                                          <div className="text-base font-bold">{currencyFormatter.format(bubbleChartData.age62.assetEquiv)}</div>
-                                                                      </div>
-                                                                  </div>
-                                                              </div>
-                                                              <div className="text-xs text-gray-600 mt-4 text-center space-y-1">
-                                                                  <p>Monthly: {currencyFormatter.format(bubbleChartData.age62.monthly)}</p>
-                                                                  <p>Annual: {currencyFormatter.format(bubbleChartData.age62.annual)}</p>
-                                                                  <p>Asset Equivalent: {currencyFormatter.format(bubbleChartData.age62.assetEquiv)}</p>
-                                                              </div>
-                                                          </div>
-                                                      </>
-                                                  );
-                                              })()}
-                                          </div>
-                                      </div>
-                                  ) :
-                                  post70View === 'combined' ? <Bar data={chartData} options={{...chartOptions, maintainAspectRatio: false}} /> :
-                                  <Line data={chartData} options={{...chartOptions, maintainAspectRatio: false}} />
+                                                                return (
+                                                                    <>
+                                                                        {/* Filing at 70 - Top */}
+                                                                        <div className="flex flex-col items-center">
+                                                                            <h4 className="text-xl font-semibold text-green-600 mb-6">Filing at Age 70</h4>
+                                                                            <div className="relative w-full h-80 flex items-center justify-center">
+                                                                                {/* Monthly bubble - Left */}
+                                                                                <div
+                                                                                    className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
+                                                                                    style={{
+                                                                                        width: `${size70Monthly}px`,
+                                                                                        height: `${size70Monthly}px`,
+                                                                                        left: '20%',
+                                                                                        top: '50%',
+                                                                                        transform: 'translate(-50%, -50%)',
+                                                                                        background: 'radial-gradient(circle at 30% 30%, rgba(74, 222, 128, 0.9), rgba(34, 197, 94, 0.7))',
+                                                                                        boxShadow: '0 8px 32px rgba(34, 197, 94, 0.4)',
+                                                                                        opacity: 0.9
+                                                                                    }}
+                                                                                >
+                                                                                    <div className="text-center px-1">
+                                                                                        <div className="text-xs">Monthly</div>
+                                                                                        <div className="text-sm font-bold">{currencyFormatter.format(bubbleChartData.age70.monthly)}</div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                {/* Annual bubble - Center */}
+                                                                                <div
+                                                                                    className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
+                                                                                    style={{
+                                                                                        width: `${size70Annual}px`,
+                                                                                        height: `${size70Annual}px`,
+                                                                                        left: '50%',
+                                                                                        top: '50%',
+                                                                                        transform: 'translate(-50%, -50%)',
+                                                                                        background: 'radial-gradient(circle at 30% 30%, rgba(134, 239, 172, 0.85), rgba(74, 222, 128, 0.65))',
+                                                                                        boxShadow: '0 8px 32px rgba(74, 222, 128, 0.4)',
+                                                                                        opacity: 0.9
+                                                                                    }}
+                                                                                >
+                                                                                    <div className="text-center px-1">
+                                                                                        <div className="text-xs">Annual</div>
+                                                                                        <div className="text-lg font-bold">{currencyFormatter.format(bubbleChartData.age70.annual)}</div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                {/* Asset equivalent bubble - Right */}
+                                                                                <div
+                                                                                    className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
+                                                                                    style={{
+                                                                                        width: `${size70Asset}px`,
+                                                                                        height: `${size70Asset}px`,
+                                                                                        left: '80%',
+                                                                                        top: '50%',
+                                                                                        transform: 'translate(-50%, -50%)',
+                                                                                        background: 'radial-gradient(circle at 30% 30%, rgba(187, 247, 208, 0.8), rgba(134, 239, 172, 0.6))',
+                                                                                        boxShadow: '0 8px 32px rgba(134, 239, 172, 0.4)',
+                                                                                        opacity: 0.9
+                                                                                    }}
+                                                                                >
+                                                                                    <div className="text-center px-2">
+                                                                                        <div className="text-xs">4% Asset</div>
+                                                                                        <div className="text-base font-bold">{currencyFormatter.format(bubbleChartData.age70.assetEquiv)}</div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="text-xs text-gray-600 mt-4 text-center space-y-1">
+                                                                                <p>Monthly: {currencyFormatter.format(bubbleChartData.age70.monthly)}</p>
+                                                                                <p>Annual: {currencyFormatter.format(bubbleChartData.age70.annual)}</p>
+                                                                                <p>Asset Equivalent: {currencyFormatter.format(bubbleChartData.age70.assetEquiv)}</p>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        {/* Filing at 62 - Bottom */}
+                                                                        <div className="flex flex-col items-center">
+                                                                            <h4 className="text-xl font-semibold text-red-600 mb-6">Filing at Age 62</h4>
+                                                                            <div className="relative w-full h-80 flex items-center justify-center">
+                                                                                {/* Monthly bubble - Left */}
+                                                                                <div
+                                                                                    className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
+                                                                                    style={{
+                                                                                        width: `${size62Monthly}px`,
+                                                                                        height: `${size62Monthly}px`,
+                                                                                        left: '20%',
+                                                                                        top: '50%',
+                                                                                        transform: 'translate(-50%, -50%)',
+                                                                                        background: 'radial-gradient(circle at 30% 30%, rgba(248, 113, 113, 0.9), rgba(239, 68, 68, 0.7))',
+                                                                                        boxShadow: '0 8px 32px rgba(239, 68, 68, 0.4)',
+                                                                                        opacity: 0.9
+                                                                                    }}
+                                                                                >
+                                                                                    <div className="text-center px-1">
+                                                                                        <div className="text-xs">Monthly</div>
+                                                                                        <div className="text-sm font-bold">{currencyFormatter.format(bubbleChartData.age62.monthly)}</div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                {/* Annual bubble - Center */}
+                                                                                <div
+                                                                                    className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
+                                                                                    style={{
+                                                                                        width: `${size62Annual}px`,
+                                                                                        height: `${size62Annual}px`,
+                                                                                        left: '50%',
+                                                                                        top: '50%',
+                                                                                        transform: 'translate(-50%, -50%)',
+                                                                                        background: 'radial-gradient(circle at 30% 30%, rgba(252, 165, 165, 0.85), rgba(248, 113, 113, 0.65))',
+                                                                                        boxShadow: '0 8px 32px rgba(248, 113, 113, 0.4)',
+                                                                                        opacity: 0.9
+                                                                                    }}
+                                                                                >
+                                                                                    <div className="text-center px-1">
+                                                                                        <div className="text-xs">Annual</div>
+                                                                                        <div className="text-lg font-bold">{currencyFormatter.format(bubbleChartData.age62.annual)}</div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                {/* Asset equivalent bubble - Right */}
+                                                                                <div
+                                                                                    className="absolute rounded-full flex items-center justify-center text-gray-900 font-bold transition-all duration-500 ease-in-out"
+                                                                                    style={{
+                                                                                        width: `${size62Asset}px`,
+                                                                                        height: `${size62Asset}px`,
+                                                                                        left: '80%',
+                                                                                        top: '50%',
+                                                                                        transform: 'translate(-50%, -50%)',
+                                                                                        background: 'radial-gradient(circle at 30% 30%, rgba(254, 202, 202, 0.8), rgba(252, 165, 165, 0.6))',
+                                                                                        boxShadow: '0 8px 32px rgba(252, 165, 165, 0.4)',
+                                                                                        opacity: 0.9
+                                                                                    }}
+                                                                                >
+                                                                                    <div className="text-center px-2">
+                                                                                        <div className="text-xs">4% Asset</div>
+                                                                                        <div className="text-base font-bold">{currencyFormatter.format(bubbleChartData.age62.assetEquiv)}</div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="text-xs text-gray-600 mt-4 text-center space-y-1">
+                                                                                <p>Monthly: {currencyFormatter.format(bubbleChartData.age62.monthly)}</p>
+                                                                                <p>Annual: {currencyFormatter.format(bubbleChartData.age62.annual)}</p>
+                                                                                <p>Asset Equivalent: {currencyFormatter.format(bubbleChartData.age62.assetEquiv)}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </>
+                                                                );
+                                                            })()}
+                                                        </div>
+                                                    </div>
+                                                ) :
+                                                    post70View === 'combined' ? <Bar data={chartData} options={{ ...chartOptions, maintainAspectRatio: false }} /> :
+                                                        <Line data={chartData} options={{ ...chartOptions, maintainAspectRatio: false }} />
                         }
                     </div>
 
@@ -4151,7 +4189,7 @@ const ShowMeTheMoneyCalculator = () => {
                                             const primaryAge = selectedYearAge;
                                             const spouseBirthYear = isMarried ? new Date(spouse2Dob).getFullYear() : null;
                                             const primaryBirthYear = new Date(spouse1Dob).getFullYear();
-                                            
+
                                             if (isMarried && spouseBirthYear) {
                                                 const spouseAge = selectedYearAge + (primaryBirthYear - spouseBirthYear);
                                                 if (primaryAge === spouseAge) {
@@ -4178,7 +4216,7 @@ const ShowMeTheMoneyCalculator = () => {
                                 {(() => {
                                     const primaryBirthYear = new Date(spouse1Dob).getFullYear();
                                     const calendarYear = primaryBirthYear + selectedYearAge;
-                                    
+
                                     const projections = activeRecordView === 'primary'
                                         ? scenarioData.primaryProjections
                                         : activeRecordView === 'spouse' && scenarioData.spouseProjections
@@ -4229,9 +4267,9 @@ const ShowMeTheMoneyCalculator = () => {
                                     ];
 
                                     // Find the best strategy
-                                    const bestStrategy = strategies.reduce((best, current) => 
+                                    const bestStrategy = strategies.reduce((best, current) =>
                                         current.monthly > best.monthly ? current : best
-                                    , strategies[0]);
+                                        , strategies[0]);
 
                                     return strategies.map((strategy, idx) => {
                                         // Annual received in this calendar year = delta of cumulative between this year and prior year
@@ -4250,13 +4288,12 @@ const ShowMeTheMoneyCalculator = () => {
                                         return (
                                             <div
                                                 key={idx}
-                                                className={`relative border-2 rounded-xl p-6 transition-all ${
-                                                    isBest
-                                                        ? 'border-green-500 bg-green-50 shadow-lg ring-2 ring-green-200'
-                                                        : strategy.started
-                                                            ? 'border-gray-200 bg-white hover:shadow-md'
-                                                            : 'border-gray-200 bg-gray-50 opacity-75'
-                                                }`}
+                                                className={`relative border-2 rounded-xl p-6 transition-all ${isBest
+                                                    ? 'border-green-500 bg-green-50 shadow-lg ring-2 ring-green-200'
+                                                    : strategy.started
+                                                        ? 'border-gray-200 bg-white hover:shadow-md'
+                                                        : 'border-gray-200 bg-gray-50 opacity-75'
+                                                    }`}
                                             >
                                                 {/* Best badge */}
                                                 {isBest && (
@@ -4339,7 +4376,7 @@ const ShowMeTheMoneyCalculator = () => {
                                                             <p className="text-xs text-gray-600">
                                                                 <span className="font-semibold">Receiving for:</span> {(() => {
                                                                     // Find first calendar year with income in this projection
-                                                                    const years = Object.keys(strategy.projection?.monthly || {}).map(Number).sort((a,b)=>a-b);
+                                                                    const years = Object.keys(strategy.projection?.monthly || {}).map(Number).sort((a, b) => a - b);
                                                                     const firstPaidYear = years.find(y => (strategy.projection?.monthly?.[y] || 0) > 0);
                                                                     if (!firstPaidYear) return 0;
                                                                     return Math.max(0, calendarYear - firstPaidYear);
@@ -4363,7 +4400,7 @@ const ShowMeTheMoneyCalculator = () => {
                                     {(() => {
                                         const primaryBirthYear = new Date(spouse1Dob).getFullYear();
                                         const calendarYear = primaryBirthYear + selectedYearAge;
-                                        
+
                                         const projections = activeRecordView === 'primary'
                                             ? scenarioData.primaryProjections
                                             : activeRecordView === 'spouse' && scenarioData.spouseProjections

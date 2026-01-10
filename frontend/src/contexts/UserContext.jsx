@@ -97,6 +97,17 @@ export const UserProvider = ({ children }) => {
   const signup = useCallback(async (userData) => {
     try {
       setError(null);
+      // Normalize dateOfBirth to YYYY-MM-DD for FastAPI/Pydantic
+      const dobRaw = userData.dateOfBirth;
+      let dobIso = dobRaw;
+      try {
+        // Accept MM/DD/YYYY or YYYY-MM-DD
+        const parsed = new Date(dobRaw);
+        if (!isNaN(parsed.getTime())) {
+          dobIso = parsed.toISOString().slice(0, 10);
+        }
+      } catch (_) { /* keep original if parsing fails */ }
+
       const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -105,7 +116,7 @@ export const UserProvider = ({ children }) => {
           password: userData.password,
           firstName: userData.firstName,
           lastName: userData.lastName,
-          dateOfBirth: userData.dateOfBirth,
+          dateOfBirth: dobIso,
           relationshipStatus: userData.relationshipStatus
         })
       });
@@ -117,7 +128,11 @@ export const UserProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.detail || data.error || 'Signup failed');
+      if (!response.ok) {
+        const detail = (data && (data.detail ?? data.error ?? data.message)) ?? 'Signup failed';
+        const msg = typeof detail === 'string' ? detail : JSON.stringify(detail);
+        throw new Error(msg);
+      }
 
       // Establish a Supabase session so the UI knows the user is signed in
       const { error: supabaseError } = await supabase.auth.signInWithPassword({
@@ -149,7 +164,11 @@ export const UserProvider = ({ children }) => {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.detail || data.error || 'Login failed');
+      if (!response.ok) {
+        const detail = (data && (data.detail ?? data.error ?? data.message)) ?? 'Login failed';
+        const msg = typeof detail === 'string' ? detail : JSON.stringify(detail);
+        throw new Error(msg);
+      }
 
       // Ensure the Supabase JS client has a session for downstream requests
       const { error: supabaseError } = await supabase.auth.signInWithPassword({
