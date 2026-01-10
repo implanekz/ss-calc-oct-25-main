@@ -50,9 +50,17 @@ class DivorcedSSCalculator(BaseSSCalculator):
         self.has_child_under_16 = has_child_under_16
         self.child_birth_date = child_birth_date
 
-    def is_eligible_for_ex_spouse_benefit(self, current_date: Optional[date] = None) -> Tuple[bool, str]:
+    def is_eligible_for_ex_spouse_benefit(
+        self,
+        current_date: Optional[date] = None,
+        ignore_age_check: bool = False
+    ) -> Tuple[bool, str]:
         """
         Check if eligible for ex-spouse benefits
+        
+        Args:
+            current_date: Date to check eligibility against (defaults to today)
+            ignore_age_check: If True, skips the age >= 62 check (useful for future planning)
 
         Returns:
             Tuple of (is_eligible, reason)
@@ -69,9 +77,10 @@ class DivorcedSSCalculator(BaseSSCalculator):
             return False, "Cannot claim ex-spouse benefits while remarried"
 
         # Must be at least age 62 (unless child-in-care)
-        current_age_years = (current_date - self.birth_date).days / 365.25
-        if current_age_years < 62 and not self.has_child_under_16:
-            return False, f"Must be age 62+ to claim (currently {int(current_age_years)})"
+        if not ignore_age_check:
+            current_age_years = (current_date - self.birth_date).days / 365.25
+            if current_age_years < 62 and not self.has_child_under_16:
+                return False, f"Must be age 62+ to claim (currently {int(current_age_years)})"
 
         return True, "Eligible for ex-spouse benefits"
 
@@ -191,103 +200,136 @@ class DivorcedSSCalculator(BaseSSCalculator):
     ) -> Dict:
         """
         Calculate optimal claiming strategy comparing:
-        1. Own benefit only (age 62-70)
-        2. Ex-spouse benefit only (age 62-70)
-        3. Switching strategy (ex-spouse early, switch to own later)
-        4. Child-in-care benefits (if applicable)
+        1. Combined Benefit (Deemed Filing rules)
+        2. Switching strategy (Restricted Application, born < 1954)
+        3. Child-in-care benefits (if applicable)
 
         Returns:
             Dictionary with all strategies and recommendation
         """
-        eligible, reason = self.is_eligible_for_ex_spouse_benefit()
+        # Check basic non-age eligibility (marriage length, etc.)
+        eligible, reason = self.is_eligible_for_ex_spouse_benefit(ignore_age_check=True)
 
         strategies = []
         restricted_application_available = self.birth_date < date(1954, 1, 2)
-
-        # Strategy 1: Own benefit at various ages
+        
+        # Standard Filing Strategies (Used for Deemed Filing OR simple comparisons)
+        # For each age, we calculate what you'd get if you filed for everything available.
         for claiming_age in [62, self.fra_years, 70]:
             if claiming_age <= longevity_age:
+                # 1. Calculate Own Benefit
                 own_benefits = self.calculate_lifetime_benefits(
                     claiming_age, longevity_age, inflation_rate
                 )
+                own_monthly = own_benefits['initial_monthly_benefit']
+                own_lifetime = own_benefits['total_lifetime_benefits']
+                
+                # 2. Calculate Ex-Spouse Benefit (if eligible)
+                ex_spouse_monthly = 0
+                if eligible:
+                    ex_spouse_monthly = self.calculate_ex_spouse_benefit(claiming_age, inflation_rate)
+                
+                # 3. Determine actual benefit under Deemed Filing logic
+                # You get the higher of the two (technically Own + (Spousal - Own))
+                # If ineligible for spousal, you strictly get Own.
+                
+                final_monthly = max(own_monthly, ex_spouse_monthly)
+                
+                # Identify the dominant benefit type strictly for labeling
+                strategy_type = 'own'
+                if eligible and ex_spouse_monthly > own_monthly:
+                    strategy_type = 'ex_spouse'
+                
+                # Build the timeline for the "Max" strategy
+                claiming_date = self.get_claiming_date(claiming_age)
+                death_date = self.birth_date + relativedelta(years=longevity_age)
+                
+                timeline = self._build_benefit_timeline(
+                    claiming_date,
+                    death_date,
+                    final_monthly,
+                    inflation_rate,
+                    strategy_type
+                )
+                
+                label = f"File at {claiming_age}"
+                if strategy_type == 'own':
+                    label += " (Own Benefit)"
+                else: 
+                    label += " (Includes Spousal Top-up)"
+
                 strategies.append({
-                    'strategy': f"Own benefit at {claiming_age}",
+                    'strategy': label,
                     'claiming_age': claiming_age,
-                    'type': 'own',
-                    'initial_monthly': own_benefits['initial_monthly_benefit'],
-                    'lifetime_total': own_benefits['total_lifetime_benefits'],
-                    'benefit_timeline': own_benefits['annual_breakdown']
+                    'type': strategy_type,
+                    'initial_monthly': round(final_monthly, 2),
+                    'lifetime_total': timeline['total'],
+                    'benefit_timeline': timeline['timeline']
                 })
 
-        # Strategy 2: Ex-spouse benefit at various ages (if eligible)
-        if eligible:
-            for claiming_age in [62, self.fra_years, 70]:
-                if claiming_age <= longevity_age:
-                    ex_spouse_monthly = self.calculate_ex_spouse_benefit(claiming_age, inflation_rate)
+        # Restricted Application Strategy (Born before 1954 only)
+        # Take ex-spouse early, switch to own later.
+        # This is ONLY valid if Restricted Application is available AND eligible for spousal.
+        if restricted_application_available and eligible:
+            for ex_spouse_age in [62]:
+                for switch_age in [self.fra_years, 70]:
+                    if switch_age > ex_spouse_age and switch_age <= longevity_age:
+                        # Calculate ex-spouse benefits from ex_spouse_age to switch_age
+                        # Note: Under restricted application, you file Restricted at FRA (66/67).
+                        # But typically the strategy is: Claim Spousal at FRA, Switch to Own at 70.
+                        # You CANNOT file Restricted Application before FRA.
+                        # If you file before FRA, Deemed Filing applies regardless of birth year.
+                        
+                        # Correct Logic for Restricted App:
+                        # 1. Must wait until FRA to file Restricted Application.
+                        # 2. Claim Spousal Benefit ONLY at FRA.
+                        # 3. Switch to Own Benefit at 70 (maximized).
+                        
+                        # We only model the classic FRA -> 70 path here for simplicity of the 'loop'
+                        # but user can claim own anytime after FRA.
+                        
+                        current_ex_claim_age = max(ex_spouse_age, self.fra_years) # Force FRA for restricted app validity
+                        
+                        if current_ex_claim_age >= switch_age:
+                            continue
 
-                    claiming_date = self.get_claiming_date(claiming_age)
-                    death_date = self.birth_date + relativedelta(years=longevity_age)
+                        # Spousal benefit at FRA (no reduction)
+                        ex_spouse_monthly = self.calculate_ex_spouse_benefit(current_ex_claim_age, inflation_rate)
 
-                    timeline = self._build_benefit_timeline(
-                        claiming_date,
-                        death_date,
-                        ex_spouse_monthly,
-                        inflation_rate,
-                        'ex_spouse'
-                    )
+                        switch_date = self.get_claiming_date(switch_age)
+                        death_date = self.birth_date + relativedelta(years=longevity_age)
 
-                    strategies.append({
-                        'strategy': f"Ex-spouse benefit at {claiming_age}",
-                        'claiming_age': claiming_age,
-                        'type': 'ex_spouse',
-                        'initial_monthly': round(ex_spouse_monthly, 2),
-                        'lifetime_total': timeline['total'],
-                        'benefit_timeline': timeline['timeline']
-                    })
+                        ex_phase = self._build_benefit_timeline(
+                            self.get_claiming_date(current_ex_claim_age),
+                            switch_date,
+                            ex_spouse_monthly,
+                            inflation_rate,
+                            'ex_spouse'
+                        )
 
-            # Strategy 3: Switching strategies (if eligible)
-            # Take ex-spouse early, switch to own later
-            if restricted_application_available:
-                for ex_spouse_age in [62]:
-                    for switch_age in [self.fra_years, 70]:
-                        if switch_age > ex_spouse_age and switch_age <= longevity_age:
-                            # Calculate ex-spouse benefits from ex_spouse_age to switch_age
-                            ex_spouse_monthly = self.calculate_ex_spouse_benefit(ex_spouse_age, inflation_rate)
+                        own_monthly = self.calculate_monthly_benefit(switch_age, 0, inflation_rate)
+                        own_phase = self._build_benefit_timeline(
+                            switch_date,
+                            death_date,
+                            own_monthly,
+                            inflation_rate,
+                            'own'
+                        )
 
-                            switch_date = self.get_claiming_date(switch_age)
-                            death_date = self.birth_date + relativedelta(years=longevity_age)
+                        total_benefits = ex_phase['total'] + own_phase['total']
+                        timeline = ex_phase['timeline'] + own_phase['timeline']
 
-                            ex_phase = self._build_benefit_timeline(
-                                self.get_claiming_date(ex_spouse_age),
-                                switch_date,
-                                ex_spouse_monthly,
-                                inflation_rate,
-                                'ex_spouse'
-                            )
-
-                            own_monthly = self.calculate_monthly_benefit(switch_age, 0, inflation_rate)
-                            own_phase = self._build_benefit_timeline(
-                                switch_date,
-                                death_date,
-                                own_monthly,
-                                inflation_rate,
-                                'own'
-                            )
-
-                            total_benefits = ex_phase['total'] + own_phase['total']
-                            timeline = ex_phase['timeline'] + own_phase['timeline']
-
-                            strategies.append({
-                                'strategy': f"Ex-spouse at {ex_spouse_age}, switch to own at {switch_age}",
-                                'claiming_age': ex_spouse_age,
-                                'switch_age': switch_age,
-                                'type': 'switching',
-                                'initial_monthly': round(ex_spouse_monthly, 2),
-                                'switched_monthly': round(own_monthly, 2),
-                                'lifetime_total': round(total_benefits, 2),
-                                'benefit_timeline': timeline,
-                                'note': 'Restricted application available (born before Jan 2, 1954)'
-                            })
+                        strategies.append({
+                            'strategy': f"Restricted App: Spousal at {current_ex_claim_age}, Own at {switch_age}",
+                            'claiming_age': current_ex_claim_age,
+                            'switch_age': switch_age,
+                            'type': 'switching',
+                            'initial_monthly': round(ex_spouse_monthly, 2),
+                            'switched_monthly': round(own_monthly, 2),
+                            'lifetime_total': round(total_benefits, 2),
+                            'benefit_timeline': timeline,
+                            'note': 'Available due to birth before 1954'
+                        })
 
         # Strategy 4: Child-in-care benefits
         child_in_care = self.calculate_child_in_care_benefit(inflation_rate)
@@ -301,6 +343,8 @@ class DivorcedSSCalculator(BaseSSCalculator):
                 inflation_rate,
                 'child_in_care'
             )
+            # Add to the "Best" strategy or present standalone? 
+            # Usually this is "Money Now". We add it as a strategy option.
             child_in_care['total_lifetime_value'] = timeline['total']
             child_in_care['benefit_timeline'] = timeline['timeline']
 
@@ -328,11 +372,11 @@ class DivorcedSSCalculator(BaseSSCalculator):
                 'child_in_care_details': child_in_care if child_in_care['eligible'] else None
             }
         else:
-            return {
-                'eligible_for_ex_spouse': False,
+             return {
+                'eligible_for_ex_spouse': eligible,
                 'eligibility_reason': reason,
                 'all_strategies': [],
                 'optimal_strategy': None,
                 'deemed_filing_applies': not restricted_application_available,
-                'error': 'Not eligible for ex-spouse benefits'
+                'error': 'No valid strategies found'
             }

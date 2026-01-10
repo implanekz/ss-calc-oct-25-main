@@ -45,9 +45,17 @@ class WidowSSCalculator(BaseSSCalculator):
         self.is_remarried = is_remarried
         self.remarriage_date = remarriage_date
 
-    def is_eligible_for_survivor_benefits(self, current_date: Optional[date] = None) -> Tuple[bool, str]:
+    def is_eligible_for_survivor_benefits(
+        self,
+        current_date: Optional[date] = None,
+        ignore_age_check: bool = False
+    ) -> Tuple[bool, str]:
         """
         Check if eligible for survivor benefits
+
+        Args:
+            current_date: Date to check eligibility against (defaults to today)
+            ignore_age_check: If True, skips the age >= 60 check (useful for future planning)
 
         Returns:
             Tuple of (is_eligible, reason)
@@ -69,8 +77,9 @@ class WidowSSCalculator(BaseSSCalculator):
                 pass
 
         # Must be at least age 60 for survivor benefits (age 50 if disabled, but we're not handling that)
-        if current_age_years < 60:
-            return False, f"Must be age 60+ for survivor benefits (currently {int(current_age_years)})"
+        if not ignore_age_check:
+            if current_age_years < 60:
+                return False, f"Must be age 60+ for survivor benefits (currently {int(current_age_years)})"
 
         return True, "Eligible for survivor benefits"
 
@@ -200,7 +209,7 @@ class WidowSSCalculator(BaseSSCalculator):
         Returns:
             Dictionary with all strategies and recommendation
         """
-        eligible, reason = self.is_eligible_for_survivor_benefits()
+        eligible, reason = self.is_eligible_for_survivor_benefits(ignore_age_check=True)
 
         strategies = []
 
