@@ -41,7 +41,7 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
     const [showDeceasedSpousePiaModal, setShowDeceasedSpousePiaModal] = useState(false);
     const [hoveredStrategyIndex, setHoveredStrategyIndex] = useState(null);
     const [detailPanelOffset, setDetailPanelOffset] = useState(0);
-    
+
     // Scenario comparison state
     const [selectedScenarios, setSelectedScenarios] = useState([]);
     const [showComparisonModal, setShowComparisonModal] = useState(false);
@@ -120,14 +120,14 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
 
     const updateDetailPanelPosition = (cardIndex) => {
         if (cardIndex === null) return;
-        
+
         const cardElement = document.getElementById(`strategy-card-${cardIndex}`);
         const detailElement = document.getElementById('inline-detail-chart');
-        
+
         if (cardElement && detailElement) {
             const cardRect = cardElement.getBoundingClientRect();
             const detailRect = detailElement.getBoundingClientRect();
-            
+
             // Calculate how far the detail panel should move to align with the card
             const offset = cardRect.top - detailRect.top;
             setDetailPanelOffset(offset);
@@ -136,15 +136,15 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
 
     useEffect(() => {
         if (hoveredStrategyIndex === null) return;
-        
+
         // Update position on scroll
         const handleScroll = () => {
             updateDetailPanelPosition(hoveredStrategyIndex);
         };
-        
+
         // Add scroll listener
         window.addEventListener('scroll', handleScroll, { passive: true });
-        
+
         // Also update on animation frame for smooth tracking
         let animationFrameId;
         const trackPosition = () => {
@@ -152,7 +152,7 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
             animationFrameId = requestAnimationFrame(trackPosition);
         };
         animationFrameId = requestAnimationFrame(trackPosition);
-        
+
         return () => {
             window.removeEventListener('scroll', handleScroll);
             if (animationFrameId) {
@@ -169,7 +169,7 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
             ...strategy,
             description: describeStrategy(strategy)
         });
-        
+
         // Calculate initial offset to align detail panel with hovered card
         if (cardIndex !== null) {
             updateDetailPanelPosition(cardIndex);
@@ -208,7 +208,7 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
         } catch (err) {
             // Handle validation errors from FastAPI (array format)
             let errorMessage = 'Calculation failed. Please check your inputs.';
-            
+
             // Check if this is a network/connection error
             if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED' || err.message?.includes('Network Error')) {
                 errorMessage = '⚠️ Cannot connect to the calculation server. Please make sure the backend server is running on port 8000. Run: cd backend && python3 -m uvicorn core.integrated_ss_api:app --reload --port 8000';
@@ -540,14 +540,13 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                             <h2 className="text-lg font-semibold text-amber-900 mb-2">⚠️ Special attention required</h2>
                             <p className="text-sm text-amber-800">
-                                This calculator does not handle Social Security Disability Insurance (SSDI) or
-                                Supplemental Security Income (SSI). If you or the deceased spouse were receiving
-                                disability benefits, there are special survivor rules outside the scope of this tool. 
-                                Please reach out to us by email at{' '}
+                                This calculator focuses on survivor benefits based on age. For <strong>Social Security Disability Insurance (SSDI)</strong>,
+                                please switch to our dedicated Disability calculator. Note that <strong>Supplemental Security Income (SSI)</strong> is not covered by these tools.
+                                If you need assistance with complex disability cases, please email us at{' '}
                                 <a href="mailto:help@Ret1re.com" className="text-amber-900 font-semibold underline hover:text-amber-700">
                                     help@Ret1re.com
                                 </a>
-                                {' '}or review your case with Social Security or a qualified advisor.
+                                .
                             </p>
                         </div>
                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -572,8 +571,8 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                         {hoveredStrategyIndex !== null && activeStrategyDetails && (
                             <svg
                                 className="absolute inset-0 pointer-events-none"
-                                style={{ 
-                                    width: '100%', 
+                                style={{
+                                    width: '100%',
                                     height: '100%',
                                     left: 0,
                                     top: 0,
@@ -588,31 +587,31 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                         <stop offset="100%" style={{ stopColor: '#8b5cf6', stopOpacity: 0.8 }} />
                                     </linearGradient>
                                     <filter id="sankeyGlow">
-                                        <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+                                        <feGaussianBlur stdDeviation="6" result="coloredBlur" />
                                         <feMerge>
-                                            <feMergeNode in="coloredBlur"/>
-                                            <feMergeNode in="SourceGraphic"/>
+                                            <feMergeNode in="coloredBlur" />
+                                            <feMergeNode in="SourceGraphic" />
                                         </feMerge>
                                     </filter>
                                 </defs>
                                 {(() => {
                                     try {
                                         const cardElement = document.getElementById(`strategy-card-${hoveredStrategyIndex}`);
-                                        const detailPanel = document.querySelector('[role="dialog"]') || 
-                                                          document.querySelector('.fixed.inset-x-0.bottom-0');
-                                        
+                                        const detailPanel = document.querySelector('[role="dialog"]') ||
+                                            document.querySelector('.fixed.inset-x-0.bottom-0');
+
                                         if (!cardElement) return null;
-                                        
+
                                         const resultsPanel = cardElement.closest('.lg\\:col-span-2');
                                         if (!resultsPanel) return null;
-                                        
+
                                         const cardRect = cardElement.getBoundingClientRect();
                                         const panelRect = resultsPanel.getBoundingClientRect();
-                                        
+
                                         // Start from right edge of card
                                         const startX = cardRect.right - panelRect.left;
                                         const startY = cardRect.top + cardRect.height / 2 - panelRect.top;
-                                        
+
                                         // End at right side of the panel or at detail panel if visible
                                         let endX, endY;
                                         if (detailPanel) {
@@ -624,16 +623,16 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                             endX = panelRect.width - 50;
                                             endY = startY;
                                         }
-                                        
+
                                         // Bezier curve control points
                                         const dx = endX - startX;
                                         const controlX1 = startX + dx * 0.4;
                                         const controlY1 = startY;
                                         const controlX2 = startX + dx * 0.6;
                                         const controlY2 = endY;
-                                        
+
                                         const pathData = `M ${startX},${startY} C ${controlX1},${controlY1} ${controlX2},${controlY2} ${endX},${endY}`;
-                                        
+
                                         return (
                                             <>
                                                 {/* Main flowing path */}
@@ -672,7 +671,7 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                 })()}
                             </svg>
                         )}
-                        
+
                         <style>{`
                             @keyframes sankeyFlow {
                                 to {
@@ -680,7 +679,7 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                 }
                             }
                         `}</style>
-                        
+
                         {error && (
                             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
                                 <p className="text-red-800 font-medium">❌ {error}</p>
@@ -854,10 +853,10 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                                                 const denominator = Math.max(totalStrategies - 1, 1);
                                                                 const colorPercent = reverseIndex / denominator;
 
-                                                               let bgColor, borderColor;
-                                                               if (colorPercent < 0.33) {
-                                                                   // Worst third: Red
-                                                                   bgColor = 'bg-red-400';
+                                                                let bgColor, borderColor;
+                                                                if (colorPercent < 0.33) {
+                                                                    // Worst third: Red
+                                                                    bgColor = 'bg-red-400';
                                                                     borderColor = 'border-red-600';
                                                                 } else if (colorPercent < 0.67) {
                                                                     // Middle third: Yellow/Orange
@@ -904,29 +903,29 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                                         {/* Legend */}
                                                         <div className="flex items-center justify-center gap-6 mt-6 text-sm">
                                                             <div className="flex items-center gap-2">
-                                                    <div className="w-4 h-4 bg-green-400 border-2 border-green-600 rounded"></div>
-                                                    <span className="text-gray-700">Highest Value</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-4 h-4 bg-yellow-400 border-2 border-yellow-600 rounded"></div>
-                                                    <span className="text-gray-700">Mid-Range</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-4 h-4 bg-red-400 border-2 border-red-600 rounded"></div>
-                                                    <span className="text-gray-700">Lowest Value</span>
-                                                </div>
-                                            </div>
+                                                                <div className="w-4 h-4 bg-green-400 border-2 border-green-600 rounded"></div>
+                                                                <span className="text-gray-700">Highest Value</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-4 h-4 bg-yellow-400 border-2 border-yellow-600 rounded"></div>
+                                                                <span className="text-gray-700">Mid-Range</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-4 h-4 bg-red-400 border-2 border-red-600 rounded"></div>
+                                                                <span className="text-gray-700">Lowest Value</span>
+                                                            </div>
+                                                        </div>
 
-                                            {/* Key insight */}
-                                            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                                                <p className="text-sm text-blue-900">
-                                                    <span className="font-semibold">💡 Key Insight:</span> The difference between the optimal strategy and the worst strategy is{' '}
-                                                    <span className="font-bold text-blue-700">
-                                                        {formatCurrency(strategies[0].lifetime_total - strategies[strategies.length - 1].lifetime_total)}
-                                                    </span>
-                                                    {' '}over your lifetime. Hover over each bar to see details.
-                                                </p>
-                                            </div>
+                                                        {/* Key insight */}
+                                                        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                                            <p className="text-sm text-blue-900">
+                                                                <span className="font-semibold">💡 Key Insight:</span> The difference between the optimal strategy and the worst strategy is{' '}
+                                                                <span className="font-bold text-blue-700">
+                                                                    {formatCurrency(strategies[0].lifetime_total - strategies[strategies.length - 1].lifetime_total)}
+                                                                </span>
+                                                                {' '}over your lifetime. Hover over each bar to see details.
+                                                            </p>
+                                                        </div>
                                                     </>
                                                 );
                                             })()}
@@ -966,7 +965,7 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                                 💡 <strong>Compare Scenarios:</strong> Select any 2 strategies using the checkboxes to see a side-by-side comparison chart.
                                             </p>
                                         </div>
-                                        
+
                                         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 relative">
                                             {/* Strategy Cards - Left Side (40%) */}
                                             <div className="lg:col-span-2 space-y-3">
@@ -988,7 +987,7 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                                                 className="mt-1 h-5 w-5 text-purple-600 focus:ring-purple-500 border-gray-300 rounded cursor-pointer"
                                                                 aria-label={`Select ${strategy.strategy} for comparison`}
                                                             />
-                                                            <div 
+                                                            <div
                                                                 className="flex-1 cursor-pointer"
                                                                 role="button"
                                                                 tabIndex={0}
@@ -1039,8 +1038,8 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                             </div>
 
                                             {/* Detail Chart - Right Side (60%) - Sticky with dynamic positioning */}
-                                            <div 
-                                                id="inline-detail-chart" 
+                                            <div
+                                                id="inline-detail-chart"
                                                 className="lg:col-span-3 flex items-start sticky top-6 self-start transition-transform duration-150 ease-out"
                                                 style={{
                                                     transform: `translateY(${detailPanelOffset}px)`
@@ -1078,12 +1077,12 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                                 };
                                                 const colorIndex = hoveredStrategyIndex % 5;
                                                 const color = cardColors[colorIndex];
-                                                
+
                                                 return (
                                                     <svg
                                                         className="absolute inset-0 pointer-events-none"
-                                                        style={{ 
-                                                            width: '100%', 
+                                                        style={{
+                                                            width: '100%',
                                                             height: '100%',
                                                             zIndex: 10
                                                         }}
@@ -1099,30 +1098,30 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                                                 const cardElement = document.getElementById(`strategy-card-${hoveredStrategyIndex}`);
                                                                 const detailElement = document.getElementById('inline-detail-chart');
                                                                 const containerElement = cardElement?.closest('.grid');
-                                                                
+
                                                                 if (!cardElement || !detailElement || !containerElement) return null;
-                                                                
+
                                                                 const cardRect = cardElement.getBoundingClientRect();
                                                                 const detailRect = detailElement.getBoundingClientRect();
                                                                 const containerRect = containerElement.getBoundingClientRect();
-                                                                
+
                                                                 // Start from right edge of card
                                                                 const startX = cardRect.right - containerRect.left;
                                                                 const startY = cardRect.top + cardRect.height / 2 - containerRect.top;
-                                                                
+
                                                                 // End at left edge of detail chart
                                                                 const endX = detailRect.left - containerRect.left;
                                                                 const endYTop = detailRect.top - containerRect.top;
                                                                 const endYBottom = detailRect.bottom - containerRect.top;
-                                                                
+
                                                                 // Create flowing path with varying widths (Sankey style)
                                                                 // Flow from card edges to detail box edges
                                                                 const midX = (startX + endX) / 2;
-                                                                
+
                                                                 // Path data for area (filled shape) - flows from entire card height to entire detail box height
                                                                 const topPath = `M ${startX},${cardRect.top - containerRect.top} C ${startX + 60},${cardRect.top - containerRect.top} ${midX - 60},${endYTop} ${endX},${endYTop}`;
                                                                 const bottomPath = `L ${endX},${endYBottom} C ${midX - 60},${endYBottom} ${startX + 60},${cardRect.bottom - containerRect.top} ${startX},${cardRect.bottom - containerRect.top}`;
-                                                                
+
                                                                 return (
                                                                     <>
                                                                         {/* Sankey flow area */}
@@ -1208,21 +1207,19 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                     <div className="flex bg-gray-100 rounded-lg p-1">
                                         <button
                                             onClick={() => setComparisonViewMode('monthly')}
-                                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                                                comparisonViewMode === 'monthly'
+                                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${comparisonViewMode === 'monthly'
                                                     ? 'bg-white text-purple-700 shadow'
                                                     : 'text-gray-600 hover:text-gray-900'
-                                            }`}
+                                                }`}
                                         >
                                             Monthly
                                         </button>
                                         <button
                                             onClick={() => setComparisonViewMode('annual')}
-                                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                                                comparisonViewMode === 'annual'
+                                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${comparisonViewMode === 'annual'
                                                     ? 'bg-white text-purple-700 shadow'
                                                     : 'text-gray-600 hover:text-gray-900'
-                                            }`}
+                                                }`}
                                         >
                                             Annual
                                         </button>
@@ -1251,7 +1248,7 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                         if (age < currentAge) {
                                             return null; // N/A for past ages
                                         }
-                                        
+
                                         // Find benefit for this age from timeline
                                         const timelineEntry = strategy.benefit_timeline?.find(entry => entry.age === age);
                                         return timelineEntry ? timelineEntry.monthly_benefit * multiplier : null;
@@ -1260,7 +1257,7 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
 
                                 const data1 = getData(scenario1);
                                 const data2 = getData(scenario2);
-                                
+
                                 // Find max value for scaling
                                 const allValues = [...data1, ...data2].filter(v => v !== null);
                                 const maxValue = Math.max(...allValues);
@@ -1488,7 +1485,7 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                         ⏰ Start Early
                                     </h3>
                                     <p className="text-orange-800">
-                                        With current resource constraints at Social Security, obtaining this information may take time. 
+                                        With current resource constraints at Social Security, obtaining this information may take time.
                                         It's best to <strong>start the process early</strong> to ensure you have accurate numbers for your planning.
                                     </p>
                                 </div>

@@ -67,6 +67,8 @@ class SSDICalculator(BaseSSCalculator):
         
         cumulative_std = 0
         cumulative_suspend = 0
+        cumulative_std_post70 = 0
+        cumulative_suspend_post70 = 0
         break_even_age = None
         
         strategy_std_lifetime = 0
@@ -117,6 +119,11 @@ class SSDICalculator(BaseSSCalculator):
                 # Update totals for break-even tracking
                 cumulative_std += std_monthly
                 cumulative_suspend += suspend_path_monthly
+                
+                # Update post-70 cumulative
+                if sim_age >= 70:
+                    cumulative_std_post70 += std_monthly
+                    cumulative_suspend_post70 += suspend_path_monthly
 
                 # Check crossover only after age 70 (when they start earning back the lost income)
                 if break_even_age is None and sim_age >= 70:
@@ -127,6 +134,10 @@ class SSDICalculator(BaseSSCalculator):
                 if month == 0:
                     year_data["std_monthly"] = std_monthly
                     year_data["suspend_monthly"] = suspend_path_monthly
+                    year_data["std_cumulative"] = cumulative_std
+                    year_data["suspend_cumulative"] = cumulative_suspend
+                    year_data["std_cumulative_post70"] = cumulative_std_post70
+                    year_data["suspend_cumulative_post70"] = cumulative_suspend_post70
             
             timeline_data.append(year_data)
 

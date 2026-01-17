@@ -903,6 +903,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
     const [currentRaceAge, setCurrentRaceAge] = useState(62);
     const [isPlaying, setIsPlaying] = useState(false);
     const [raceViewMode, setRaceViewMode] = useState('cumulative'); // 'monthly' or 'cumulative'
+    const [showSince70, setShowSince70] = useState(true);
 
     // Calculate fixed max value - MUST be at top level before any conditional logic
     const maxValue = useMemo(() => {
@@ -1033,7 +1034,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
             isSince70: false
         });
 
-        if (age >= 70) {
+        if (showSince70 && age >= 70) {
             scenarios.push({
                 name: 'File at 62 - Since 70',
                 value: age62Since70,
@@ -1054,7 +1055,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
             isSince70: false
         });
 
-        if (age >= 70) {
+        if (showSince70 && age >= 70) {
             scenarios.push({
                 name: 'File at 67 - Since 70',
                 value: age67Since70,
@@ -1075,7 +1076,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
             isSince70: false
         });
 
-        if (age >= 70) {
+        if (showSince70 && age >= 70) {
             scenarios.push({
                 name: 'File at 70 - Since 70',
                 value: age70Since70,
@@ -1348,6 +1349,28 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                             );
                         })
                     )}
+
+                    {/* "Since 70" Checkbox - Positioned below the last bar */}
+                    {raceViewMode === 'cumulative' && (() => {
+                        const bottomOfList = topMargin + (numBars - 1) * (barHeight + barSpacing) + barHeight;
+
+                        return (
+                            <foreignObject x={leftMargin} y={bottomOfList + 10} width={200} height={30}>
+                                <div xmlns="http://www.w3.org/1999/xhtml" className="flex items-center gap-2 h-full">
+                                    <input
+                                        type="checkbox"
+                                        checked={showSince70}
+                                        onChange={(e) => setShowSince70(e.target.checked)}
+                                        className="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500 cursor-pointer"
+                                        id="showSince70CheckSvg"
+                                    />
+                                    <label htmlFor="showSince70CheckSvg" className="text-sm font-semibold text-gray-500 cursor-pointer select-none hover:text-gray-700">
+                                        Show Since 70
+                                    </label>
+                                </div>
+                            </foreignObject>
+                        );
+                    })()}
 
                     {/* Dynamic Difference Tracker - Right Side */}
                     {(() => {
@@ -1674,12 +1697,12 @@ const ShowMeTheMoneyCalculator = () => {
     useEffect(() => {
         if (isLoaded && persistedState && !hasLoadedPersistedState.current) {
             hasLoadedPersistedState.current = true;
-            if (persistedState.isMarried !== undefined) setIsMarried(persistedState.isMarried);
-            if (persistedState.spouse1Dob) setSpouse1Dob(persistedState.spouse1Dob);
+            // Removed: isMarried, spouse1Dob, spouse2Dob restoration 
+            // We now rely on the active sync with Profile context below to ensure accuracy relative to Onboarding
             if (persistedState.spouse1Pia !== undefined) setSpouse1Pia(persistedState.spouse1Pia);
             if (persistedState.spouse1PreferredYear !== undefined) setSpouse1PreferredYear(persistedState.spouse1PreferredYear);
             if (persistedState.spouse1PreferredMonth !== undefined) setSpouse1PreferredMonth(persistedState.spouse1PreferredMonth);
-            if (persistedState.spouse2Dob) setSpouse2Dob(persistedState.spouse2Dob);
+            // Removed: spouse2Dob restoration
             if (persistedState.spouse2Pia !== undefined) setSpouse2Pia(persistedState.spouse2Pia);
             if (persistedState.spouse2PreferredYear !== undefined) setSpouse2PreferredYear(persistedState.spouse2PreferredYear);
             if (persistedState.spouse2PreferredMonth !== undefined) setSpouse2PreferredMonth(persistedState.spouse2PreferredMonth);
@@ -1691,6 +1714,34 @@ const ShowMeTheMoneyCalculator = () => {
             if (persistedState.bubbleAge !== undefined) setBubbleAge(persistedState.bubbleAge);
         }
     }, [isLoaded, persistedState]);
+
+    // Force Sync with Profile/Partners Data
+    // This ensures that if the user updates Onboarding, the calculator reflects it effectively.
+    useEffect(() => {
+        if (!profile) return;
+
+        // 1. Sync Marital Status
+        const profileIsMarried = ['married', 'divorced', 'widowed'].includes(profile.relationship_status);
+        if (isMarried !== profileIsMarried) {
+            setIsMarried(profileIsMarried);
+        }
+
+        // 2. Sync Primary DOB
+        const profileDob = profile.date_of_birth || profile.dateOfBirth;
+        if (profileDob && profileDob !== spouse1Dob) {
+            setSpouse1Dob(profileDob);
+        }
+
+        // 3. Sync Spouse DOB
+        if (partners && partners.length > 0) {
+            const partnerDob = partners[0].date_of_birth || partners[0].dateOfBirth;
+            // Only update if current DOB is default/wrong? Or always force sync?
+            // Force sync is safer to ensure it matches onboarding.
+            if (partnerDob && partnerDob !== spouse2Dob) {
+                setSpouse2Dob(partnerDob);
+            }
+        }
+    }, [profile, partners, isMarried, spouse1Dob, spouse2Dob]);
 
     // Persist ALL state changes
     useEffect(() => {
@@ -3010,40 +3061,16 @@ const ShowMeTheMoneyCalculator = () => {
                             <div className="p-4 space-y-4">
                                 {/* Primary Filer - Compact */}
                                 <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                                    <div className="mb-2 flex items-start justify-between">
-                                        <div>
-                                            <h3 className="text-sm font-semibold text-gray-900">{(() => {
-                                                const name = (profile?.firstName && profile?.lastName)
-                                                    ? `${profile.firstName} ${profile.lastName}`
-                                                    : (profile?.first_name && profile?.last_name)
-                                                        ? `${profile.first_name} ${profile.last_name}`
-                                                        : 'Primary Filer';
-                                                return name;
-                                            })()}</h3>
-                                            <p className="text-xs text-gray-600">DOB: {spouse1Dob} • Age: {formatAge(spouse1Dob)}</p>
-                                        </div>
-                                        <div className="flex flex-col gap-1">
-                                            <label className="flex items-center gap-1 cursor-pointer" title="This setting can also be changed in the Settings/gear icon">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={!isMarried}
-                                                    onChange={(e) => setIsMarried(!e.target.checked)}
-                                                    className="w-3 h-3 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                                                />
-                                                <span className="text-xs text-gray-700">Single?</span>
-                                            </label>
-                                            {isMarried && (
-                                                <label className="flex items-center gap-1 cursor-pointer" title="This setting can also be changed in the Settings/gear icon">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={isMarried}
-                                                        onChange={(e) => setIsMarried(e.target.checked)}
-                                                        className="w-3 h-3 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                                                    />
-                                                    <span className="text-xs text-gray-700">Married?</span>
-                                                </label>
-                                            )}
-                                        </div>
+                                    <div className="mb-2">
+                                        <h3 className="text-sm font-semibold text-gray-900">{(() => {
+                                            const name = (profile?.firstName && profile?.lastName)
+                                                ? `${profile.firstName} ${profile.lastName}`
+                                                : (profile?.first_name && profile?.last_name)
+                                                    ? `${profile.first_name} ${profile.last_name}`
+                                                    : 'Primary Filer';
+                                            return name;
+                                        })()}</h3>
+                                        <p className="text-xs text-gray-600">DOB: {spouse1Dob} • Age: {formatAge(spouse1Dob)}</p>
                                     </div>
                                     <div className="space-y-2">
                                         <div>

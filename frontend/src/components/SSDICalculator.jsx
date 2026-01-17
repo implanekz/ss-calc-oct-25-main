@@ -16,6 +16,12 @@ const SSDICalculator = () => {
     });
 
     const [birthDate, setBirthDate] = useState('1963-01-01');
+    const [activeFaq, setActiveFaq] = useState(null);
+
+    // Year View State
+    const [yearViewEnabled, setYearViewEnabled] = useState(false);
+    const [selectedYear, setSelectedYear] = useState(70);
+    const [showYearModal, setShowYearModal] = useState(false);
     const [pia, setPia] = useState(2000);
     const [inflationRate, setInflationRate] = useState(0.025);
     const [longevityAge, setLongevityAge] = useState(90);
@@ -438,9 +444,57 @@ const SSDICalculator = () => {
                                                             callback: (val) => '$' + val.toLocaleString()
                                                         }
                                                     }
+                                                },
+                                                animation: {
+                                                    delay: (context) => {
+                                                        let delay = 0;
+                                                        if (context.type === 'data' && context.mode === 'default') {
+                                                            const sequenceDuration = 1000; // 1 second total sequence
+                                                            const dataSize = context.chart.data.labels.length;
+                                                            const dataIndex = context.dataIndex;
+                                                            const delayPerBar = dataSize > 0 ? sequenceDuration / dataSize : 0;
+                                                            delay = dataIndex * delayPerBar;
+                                                        }
+                                                        return delay;
+                                                    },
+                                                    duration: 500
                                                 }
                                             }}
                                         />
+                                    </div>
+
+                                    {/* Year View Control Panel */}
+                                    <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
+                                        <h4 className="font-bold text-gray-900 mb-2">Show Me Just This Single Year</h4>
+                                        <div className="flex items-center gap-4">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={yearViewEnabled}
+                                                    onChange={(e) => {
+                                                        setYearViewEnabled(e.target.checked);
+                                                        if (e.target.checked) setShowYearModal(true);
+                                                    }}
+                                                    className="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                                                />
+                                                <span className="text-sm text-gray-700">Enable year view</span>
+                                            </label>
+
+                                            {yearViewEnabled && (
+                                                <select
+                                                    value={selectedYear}
+                                                    onChange={(e) => {
+                                                        setSelectedYear(Number(e.target.value));
+                                                        setShowYearModal(true);
+                                                    }}
+                                                    className="block w-24 pl-3 pr-10 py-1 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md"
+                                                >
+                                                    {results.timeline.map(t => (
+                                                        <option key={t.age} value={t.age}>{t.age}</option>
+                                                    ))}
+                                                </select>
+                                            )}
+                                        </div>
                                     </div>
                                     <p className="text-xs text-gray-400 text-right">*Monthly amounts shown in today's dollars for comparing value.</p>
                                 </div>
@@ -449,6 +503,175 @@ const SSDICalculator = () => {
                     </div>
                 </div>
             </div>
+            {/* Year Detail Modal */}
+            {showYearModal && results && (
+                <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                    <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={() => setShowYearModal(false)}></div>
+                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                        <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full sm:p-6">
+                            <div className="absolute top-0 right-0 pt-4 pr-4">
+                                <button
+                                    type="button"
+                                    className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                                    onClick={() => setShowYearModal(false)}
+                                >
+                                    <span className="sr-only">Close</span>
+                                    <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div className="sm:flex sm:items-start w-full">
+                                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                    <h3 className="text-3xl font-bold leading-6 text-gray-900 mb-2" id="modal-title">
+                                        Benefits at Age {selectedYear}
+                                    </h3>
+                                    <p className="text-gray-500 mb-8">Comparing filing strategies for this specific year.</p>
+
+                                    {(() => {
+                                        const yearData = results.timeline.find(t => t.age === selectedYear);
+                                        if (!yearData) return null;
+
+                                        const isBestSuspend = yearData.suspend_cumulative >= yearData.std_cumulative;
+                                        const diffMonthly = yearData.suspend_monthly - yearData.std_monthly;
+
+                                        return (
+                                            <div className="space-y-6">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    {/* Standard Strategy Card */}
+                                                    <div className={`rounded-xl border-2 p-6 ${!isBestSuspend ? 'border-primary-500 bg-primary-50 shadow-lg ring-2 ring-primary-200' : 'border-gray-200 bg-white'}`}>
+                                                        {!isBestSuspend && (
+                                                            <div className="absolute -mt-10 bg-primary-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-md transform -translate-x-2">
+                                                                🏆 Best Value
+                                                            </div>
+                                                        )}
+                                                        <h4 className={`text-xl font-bold mb-4 ${!isBestSuspend ? 'text-primary-700' : 'text-gray-700'}`}>Standard (SSDI → Retirement)</h4>
+
+                                                        {yearData.std_monthly > 0 ? (
+                                                            <div className="bg-primary-100/50 text-primary-800 px-4 py-2 rounded-lg mb-6 text-center font-medium">
+                                                                ✅ Receiving benefits
+                                                            </div>
+                                                        ) : (
+                                                            <div className="bg-gray-100 text-gray-600 px-4 py-2 rounded-lg mb-6 text-center">
+                                                                ⏳ Deferring benefits
+                                                            </div>
+                                                        )}
+
+                                                        <div className="space-y-6">
+                                                            <div>
+                                                                <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Monthly</p>
+                                                                <p className={`text-3xl font-bold ${!isBestSuspend ? 'text-primary-700' : 'text-gray-900'}`}>
+                                                                    {formatCurrency(yearData.std_monthly)}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Annual</p>
+                                                                <p className={`text-xl font-bold ${!isBestSuspend ? 'text-primary-700' : 'text-gray-900'}`}>
+                                                                    {formatCurrency(yearData.std_monthly * 12)}
+                                                                </p>
+                                                                <p className="text-xs text-gray-400">12 months paid this year</p>
+                                                            </div>
+                                                            <div className="bg-gray-50 p-3 rounded-lg">
+                                                                <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Cumulative Since {results.current_age}</p>
+                                                                <p className={`text-xl font-bold ${!isBestSuspend ? 'text-primary-700' : 'text-gray-700'}`}>
+                                                                    {formatCurrency(yearData.std_cumulative)}
+                                                                </p>
+                                                            </div>
+                                                            {selectedYear >= 70 && (
+                                                                <div className="bg-gray-50 p-3 rounded-lg">
+                                                                    <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Cumulative Since 70</p>
+                                                                    <p className={`text-xl font-bold ${!isBestSuspend ? 'text-primary-700' : 'text-gray-700'}`}>
+                                                                        {formatCurrency(yearData.std_cumulative_post70 || 0)}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Suspension Strategy Card */}
+                                                    <div className={`rounded-xl border-2 p-6 ${isBestSuspend ? 'border-green-500 bg-green-50 shadow-lg ring-2 ring-green-200' : 'border-gray-200 bg-white'}`}>
+                                                        {isBestSuspend && (
+                                                            <div className="absolute -mt-10 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-md transform -translate-x-2">
+                                                                🏆 Best Value
+                                                            </div>
+                                                        )}
+                                                        <h4 className={`text-xl font-bold mb-4 ${isBestSuspend ? 'text-green-700' : 'text-gray-700'}`}>Suspend & Grow (Age 70)</h4>
+
+                                                        {yearData.suspend_monthly > 0 ? (
+                                                            <div className="bg-green-100/50 text-green-800 px-4 py-2 rounded-lg mb-6 text-center font-medium">
+                                                                ✅ Receiving benefits
+                                                            </div>
+                                                        ) : (
+                                                            <div className="bg-amber-100/50 text-amber-800 px-4 py-2 rounded-lg mb-6 text-center font-medium">
+                                                                ⏸️ Benefits Suspended
+                                                            </div>
+                                                        )}
+
+                                                        <div className="space-y-6">
+                                                            <div>
+                                                                <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Monthly</p>
+                                                                <p className={`text-3xl font-bold ${isBestSuspend ? 'text-green-700' : 'text-gray-900'}`}>
+                                                                    {formatCurrency(yearData.suspend_monthly)}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Annual</p>
+                                                                <p className={`text-xl font-bold ${isBestSuspend ? 'text-green-700' : 'text-gray-900'}`}>
+                                                                    {formatCurrency(yearData.suspend_monthly * 12)}
+                                                                </p>
+                                                                <p className="text-xs text-gray-400">12 months paid this year</p>
+                                                            </div>
+                                                            <div className="bg-gray-50 p-3 rounded-lg">
+                                                                <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Cumulative Since {results.current_age}</p>
+                                                                <p className={`text-xl font-bold ${isBestSuspend ? 'text-green-700' : 'text-gray-700'}`}>
+                                                                    {formatCurrency(yearData.suspend_cumulative)}
+                                                                </p>
+                                                            </div>
+                                                            {selectedYear >= 70 && (
+                                                                <div className="bg-gray-50 p-3 rounded-lg">
+                                                                    <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Cumulative Since 70</p>
+                                                                    <p className={`text-xl font-bold ${isBestSuspend ? 'text-green-700' : 'text-gray-700'}`}>
+                                                                        {formatCurrency(yearData.suspend_cumulative_post70 || 0)}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Insight Box */}
+                                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+                                                    <div className="text-2xl">💡</div>
+                                                    <div>
+                                                        <h5 className="font-bold text-blue-900">Key Insight</h5>
+                                                        <p className="text-blue-800">
+                                                            {yearData.suspend_monthly > yearData.std_monthly
+                                                                ? `At age ${selectedYear}, suspending boosts your monthly income by ${formatCurrency(diffMonthly)} compared to the standard path.`
+                                                                : `At age ${selectedYear}, the standard path provides more monthly income. Suspension is likely still in the "investment" phase.`}
+                                                            {isBestSuspend && " Overall, your patience has paid off with a higher total lifetime value."}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                            </div>
+                            <div className="mt-8 sm:flex sm:flex-row-reverse">
+                                <button
+                                    type="button"
+                                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                                    onClick={() => setShowYearModal(false)}
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

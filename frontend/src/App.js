@@ -355,7 +355,13 @@ function OnboardingScreen({ devMode = null }) {
       };
       const profileData = {
         dateOfBirth: norm(formData.dateOfBirth),
+        date_of_birth: norm(formData.dateOfBirth), // Ensure snake_case update
+        firstName: formData.firstName,
+        first_name: formData.firstName,
+        lastName: formData.lastName,
+        last_name: formData.lastName,
         relationshipStatus: formData.relationshipStatus,
+        relationship_status: formData.relationshipStatus, // Ensure snake_case update
         alreadyReceivingBenefits: formData.receivingBenefits === true,
         ever_divorced: formData.everDivorced === true,
         ever_widowed: formData.everWidowed === true,
