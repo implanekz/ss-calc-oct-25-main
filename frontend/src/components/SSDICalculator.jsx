@@ -30,6 +30,13 @@ const SSDICalculator = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    // XML Upload State
+    const [disabilityOnsetDate, setDisabilityOnsetDate] = useState(new Date().toISOString().slice(0, 10));
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadError, setUploadError] = useState(null);
+    const [uploadSuccess, setUploadSuccess] = useState(null);
+    const [isCalculatedPia, setIsCalculatedPia] = useState(false);
+
     // Initial load from persistence
     const hasLoadedPersistedState = React.useRef(false);
     useEffect(() => {
@@ -94,6 +101,62 @@ const SSDICalculator = () => {
         }).format(val);
     };
 
+    const handleXMLUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        setUploadError(null);
+        setUploadSuccess(null);
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('calculation_method', 'disability');
+            if (disabilityOnsetDate) {
+                formData.append('disability_onset_date', disabilityOnsetDate);
+            }
+            if (birthDate) {
+                formData.append('birth_date', birthDate);
+            }
+
+            const response = await fetch(`${API_BASE_URL}/upload-ssa-xml`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'XML upload failed');
+            }
+
+            const result = await response.json();
+
+            // Update PIA with calculated amount
+            if (result.original_pia) {
+                setPia(result.original_pia);
+                setIsCalculatedPia(true);
+                setUploadSuccess(`Calculated Benefit: $${result.original_pia.toLocaleString()}`);
+
+                // Update Birth Date from XML
+                if (result.person_info && result.person_info.birth_date) {
+                    setBirthDate(result.person_info.birth_date);
+                }
+
+                // If the calculator logic needs to re-run immediately:
+                if (result.original_pia > 0) {
+                    // Optionally trigger global calculate? 
+                    // We'll let the user click "Calculate Strategy" to confirm/review.
+                }
+            }
+        } catch (err) {
+            setUploadError(err.message);
+        } finally {
+            setIsUploading(false);
+            event.target.value = ''; // Reset file input
+        }
+    };
+
     // Chart Data Preparation
     const getChartData = () => {
         if (!results || !results.timeline) return null;
@@ -154,14 +217,55 @@ const SSDICalculator = () => {
                             </div>
 
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Estimated PIA (Monthly Benefit)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Disability Onset Date</label>
+                                <input
+                                    type="date"
+                                    value={disabilityOnsetDate}
+                                    onChange={(e) => setDisabilityOnsetDate(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Used for "Freeze" calculation.</p>
+                            </div>
+
+                            {/* XML Upload Section */}
+                            <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                                <label className="block text-sm font-bold text-gray-900 mb-2">
+                                    Get Precise Estimate (XML)
+                                </label>
+                                <p className="text-xs text-gray-600 mb-3">
+                                    Upload your generic `ssa.gov` XML file. We'll apply the Disability Freeze logic to calculate your exact PIA.
+                                </p>
+                                <input
+                                    type="file"
+                                    accept=".xml"
+                                    onChange={handleXMLUpload}
+                                    disabled={isUploading}
+                                    className="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer"
+                                />
+                                {isUploading && <div className="text-xs text-blue-600 mt-1">Analyzing...</div>}
+                                {uploadError && <div className="text-xs text-red-600 mt-1">{uploadError}</div>}
+                                {uploadSuccess && (
+                                    <div className="text-xs text-green-700 mt-2 font-semibold flex items-center gap-1">
+                                        <span>✓</span> {uploadSuccess}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Estimated PIA (Monthly Benefit)
+                                    {isCalculatedPia && <span className="ml-2 text-green-600 text-xs font-bold">(Calculated)</span>}
+                                </label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-2 text-gray-500">$</span>
                                     <input
                                         type="number"
                                         value={pia}
-                                        onChange={(e) => setPia(e.target.value)}
-                                        className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                        onChange={(e) => {
+                                            setPia(e.target.value);
+                                            setIsCalculatedPia(false); // Reset if manually edited
+                                        }}
+                                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500 ${isCalculatedPia ? 'border-green-500 ring-1 ring-green-200' : 'border-gray-300'}`}
                                     />
                                 </div>
                                 <p className="text-xs text-gray-500 mt-1">Your full benefit amount if disabled.</p>
@@ -265,6 +369,50 @@ const SSDICalculator = () => {
                                             <strong>With Freeze:</strong> SSDI hits the "pause button." It throws out those empty years so they don't drag down your average. This protects your benefit amount, keeping it as strong as if you were still working.
                                         </p>
                                     </div>
+                                </details>
+
+                                {/* Income Restrictions & SGA */}
+                                <details className="group">
+                                    <summary className="flex justify-between items-center font-medium cursor-pointer list-none">
+                                        <span>How much can I earn while on SSDI?</span>
+                                        <span className="transition group-open:rotate-180">
+                                            <svg fill="none" height="24" shapeRendering="geometricPrecision" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+                                        </span>
+                                    </summary>
+                                    <p className="text-gray-600 mt-3 text-sm group-open:animate-fadeIn">
+                                        The main restriction is on <strong>earned income</strong>. Earnings above Substantial Gainful Activity (SGA)—<strong>$1,690/month</strong> in 2026 for non‑blind individuals ($2,830 for blind)—can trigger a review and potential loss of benefits.
+                                    </p>
+                                </details>
+
+                                {/* Work Incentives */}
+                                <details className="group">
+                                    <summary className="flex justify-between items-center font-medium cursor-pointer list-none">
+                                        <span>Can I test working without losing benefits?</span>
+                                        <span className="transition group-open:rotate-180">
+                                            <svg fill="none" height="24" shapeRendering="geometricPrecision" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+                                        </span>
+                                    </summary>
+                                    <div className="text-gray-600 mt-3 text-sm group-open:animate-fadeIn">
+                                        <p className="mb-2">
+                                            Yes. The <strong>Trial Work Period (TWP)</strong> allows you to earn any amount for 9 months (non‑consecutive within 60 months) without losing benefits. (~$1,160/month counts as a TWP month in 2025).
+                                        </p>
+                                        <p>
+                                            After that, an <strong>Extended Period of Eligibility</strong> ensures benefits continue for 36 months if you stay under SGA. Impairment‑related work expenses can also be deducted to stay under limits.
+                                        </p>
+                                    </div>
+                                </details>
+
+                                {/* Assets & Passive Income */}
+                                <details className="group">
+                                    <summary className="flex justify-between items-center font-medium cursor-pointer list-none">
+                                        <span>Do assets or passive income affect my SSDI?</span>
+                                        <span className="transition group-open:rotate-180">
+                                            <svg fill="none" height="24" shapeRendering="geometricPrecision" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+                                        </span>
+                                    </summary>
+                                    <p className="text-gray-600 mt-3 text-sm group-open:animate-fadeIn">
+                                        No. Unlike SSI, SSDI has <strong>no asset limits</strong> and no caps on unearned income. Passive income (rentals, pensions, investments), inheritances, savings, property, or vehicles do <strong>not</strong> affect your payments. Only <em>earned</em> income matters.
+                                    </p>
                                 </details>
                             </div>
                         </div>

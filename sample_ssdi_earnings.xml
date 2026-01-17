@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OSSS>
+  <UserInformation>
+    <Name>Sample User</Name>
+    <DateGenerated>2025-01-15</DateGenerated>
+    <BirthDate>1963-01-15</BirthDate>
+    <EstimatedPIA>2100.00</EstimatedPIA>
+  </UserInformation>
+  <Earnings>
+    <!-- Early Career (Low Earnings) -->
+    <EarningsRecord><Year>1984</Year><Earnings>12500</Earnings></EarningsRecord>
+    <EarningsRecord><Year>1985</Year><Earnings>14200</Earnings></EarningsRecord>
+    <EarningsRecord><Year>1986</Year><Earnings>16500</Earnings></EarningsRecord>
+    <EarningsRecord><Year>1987</Year><Earnings>18000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>1988</Year><Earnings>19500</Earnings></EarningsRecord>
+    <EarningsRecord><Year>1989</Year><Earnings>22000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>1990</Year><Earnings>25000</Earnings></EarningsRecord>
+
+    <!-- The 5 Zero Years (Gap in employment) -->
+    <EarningsRecord><Year>1991</Year><Earnings>0</Earnings></EarningsRecord>
+    <EarningsRecord><Year>1992</Year><Earnings>0</Earnings></EarningsRecord>
+    <EarningsRecord><Year>1993</Year><Earnings>0</Earnings></EarningsRecord>
+    <EarningsRecord><Year>1994</Year><Earnings>0</Earnings></EarningsRecord>
+    <EarningsRecord><Year>1995</Year><Earnings>0</Earnings></EarningsRecord>
+
+    <!-- Mid Career (Steady Growth) -->
+    <EarningsRecord><Year>1996</Year><Earnings>32000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>1997</Year><Earnings>34500</Earnings></EarningsRecord>
+    <EarningsRecord><Year>1998</Year><Earnings>38000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>1999</Year><Earnings>41000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2000</Year><Earnings>44000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2001</Year><Earnings>46500</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2002</Year><Earnings>49000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2003</Year><Earnings>52000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2004</Year><Earnings>54500</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2005</Year><Earnings>58000</Earnings></EarningsRecord>
+
+    <!-- Peak Earnings -->
+    <EarningsRecord><Year>2006</Year><Earnings>62000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2007</Year><Earnings>65000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2008</Year><Earnings>67500</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2009</Year><Earnings>69000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2010</Year><Earnings>71000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2011</Year><Earnings>73500</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2012</Year><Earnings>76000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2013</Year><Earnings>78500</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2014</Year><Earnings>81000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2015</Year><Earnings>83000</Earnings></EarningsRecord>
+
+    <!-- Recent History (High/Steady) -->
+    <EarningsRecord><Year>2016</Year><Earnings>85000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2017</Year><Earnings>86500</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2018</Year><Earnings>88000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2019</Year><Earnings>90000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2020</Year><Earnings>92000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2021</Year><Earnings>94000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2022</Year><Earnings>96000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2023</Year><Earnings>98000</Earnings></EarningsRecord>
+    <EarningsRecord><Year>2024</Year><Earnings>100000</Earnings></EarningsRecord>
+  </Earnings>
+</OSSS>

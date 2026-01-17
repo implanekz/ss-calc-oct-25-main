@@ -260,59 +260,10 @@ class SSAXMLProcessor:
         if pia_year is None:
             pia_year = self.birth_year + 62 if self.birth_year else datetime.now().year
 
-        # Get bend points for the appropriate year
-        bend_points = self.PIA_BEND_POINTS_BY_YEAR.get(pia_year)
-        if not bend_points:
-            # Use most recent bend points if year not in table
-            latest_year = max(self.PIA_BEND_POINTS_BY_YEAR.keys())
-            bend_points = self.PIA_BEND_POINTS_BY_YEAR[latest_year]
+        return self._calculate_pia_structure(aime, pia, pia_year, bend_points, first_bracket_pia, second_bracket_pia, third_bracket_pia)
 
-        # Get top 35 years of indexed earnings
-        sorted_earnings = sorted(self.indexed_earnings,
-                               key=lambda x: x['indexed_earnings'],
-                               reverse=True)
-
-        self.top_35_years = sorted_earnings[:35]
-
-        # Pad with zeros if less than 35 years
-        while len(self.top_35_years) < 35:
-            self.top_35_years.append({
-                'year': None,
-                'original_earnings': 0,
-                'indexed_earnings': 0,
-                'indexing_factor': 0,
-                'is_zero': True,
-                'is_capped': False,
-                'max_taxable': 0
-            })
-
-        # Calculate AIME
-        total_indexed_earnings = sum(year['indexed_earnings'] for year in self.top_35_years)
-        aime = total_indexed_earnings / (35 * 12)  # Divide by 420 months
-        self.current_aime = round(aime, 2)
-
-        # Calculate PIA using bend point formula
-        pia = 0
-        remaining_aime = aime
-
-        # First bracket: 0 to first bend point (90%)
-        first_bracket_amount = min(remaining_aime, bend_points[0])
-        first_bracket_pia = first_bracket_amount * self.PIA_FACTORS[0]
-        pia += first_bracket_pia
-        remaining_aime -= first_bracket_amount
-
-        # Second bracket: first to second bend point (32%)
-        second_bracket_amount = min(remaining_aime, bend_points[1] - bend_points[0])
-        second_bracket_pia = second_bracket_amount * self.PIA_FACTORS[1]
-        pia += second_bracket_pia
-        remaining_aime -= second_bracket_amount
-
-        # Third bracket: above second bend point (15%)
-        third_bracket_pia = remaining_aime * self.PIA_FACTORS[2]
-        pia += third_bracket_pia
-
-        self.current_pia = round(pia, 2)
-
+    def _calculate_pia_structure(self, aime, pia, pia_year, bend_points, b1, b2, b3):
+        """Helper to format PIA response structure"""
         return {
             'aime': self.current_aime,
             'pia': self.current_pia,
@@ -323,12 +274,136 @@ class SSAXMLProcessor:
             'lowest_year_in_top_35': min((year['indexed_earnings'] for year in self.top_35_years), default=0),
             'highest_year_in_top_35': max((year['indexed_earnings'] for year in self.top_35_years), default=0),
             'calculation_details': {
-                'first_bracket': round(first_bracket_pia, 2),
-                'second_bracket': round(second_bracket_pia, 2),
-                'third_bracket': round(third_bracket_pia, 2),
+                'first_bracket': round(b1, 2),
+                'second_bracket': round(b2, 2),
+                'third_bracket': round(b3, 2),
                 'total_pia': round(pia, 2)
             }
         }
+
+    def _calculate_pia_components(self, aime: float, year: int) -> Tuple[float, List[int], float, float, float]:
+        """Core PIA formula logic"""
+        # Get bend points
+        bend_points = self.PIA_BEND_POINTS_BY_YEAR.get(year)
+        if not bend_points:
+            latest_year = max(self.PIA_BEND_POINTS_BY_YEAR.keys())
+            bend_points = self.PIA_BEND_POINTS_BY_YEAR[latest_year]
+
+        pia = 0
+        remaining_aime = aime
+
+        # First bracket (90%)
+        first_bracket_amount = min(remaining_aime, bend_points[0])
+        first_bracket_pia = first_bracket_amount * self.PIA_FACTORS[0]
+        pia += first_bracket_pia
+        remaining_aime -= first_bracket_amount
+
+        # Second bracket (32%)
+        second_bracket_amount = min(remaining_aime, bend_points[1] - bend_points[0])
+        second_bracket_pia = max(0, second_bracket_amount * self.PIA_FACTORS[1])
+        pia += second_bracket_pia
+        remaining_aime -= second_bracket_amount
+
+        # Third bracket (15%)
+        # Fix: remaining_aime could be negative if aime < bend_points[0] (handled by min above but good to be safe)
+        third_bracket_pia = max(0, remaining_aime * self.PIA_FACTORS[2])
+        pia += third_bracket_pia
+
+        return pia, bend_points, first_bracket_pia, second_bracket_pia, third_bracket_pia
+
+    def calculate_disability_pia(self, onset_date: date) -> Dict:
+        """
+        Calculate PIA using Disability rules (Freeze, custom computation years)
+        """
+        if not self.birth_year:
+             raise ValueError("Birth year required for disability calculation")
+
+        # 1. Eligibility Year = Onset Year
+        eligibility_year = onset_date.year
+        
+        # 2. Indexing Year = Eligibility Year - 2
+        indexing_year = eligibility_year - 2
+        
+        # Re-index earnings based on disability timeline
+        self.calculate_indexed_earnings(indexing_year=indexing_year)
+        
+        # 3. Computation Years Logic
+        # Elapsed years = years from age 22 to year BEFORE onset (or year of onset? usually onset year - 22)
+        # Technically: Years from year attaining 22 through year before onset.
+        # Example: Born 1980. Turn 22 in 2002. Onset 2024.
+        # Elapsed = 2024 - 2002 = 22 years.
+        year_turn_22 = self.birth_year + 22
+        elapsed_years = max(0, onset_date.year - year_turn_22)
+        
+        # Dropout years = elapsed / 5 (max 5)
+        # Disability allows up to 5 dropouts usually.
+        dropout_years = min(5, elapsed_years // 5)
+        
+        # Computation years (min 2)
+        computation_years = max(2, elapsed_years - dropout_years)
+        
+        # 4. Selection (The Freeze)
+        # Exclude years wholly within period of disability (future years from onset)
+        # We limit selection to years BEFORE onset year? 
+        # Typically earnings in onset year are counted if they raise the average, but for simplicity/freeze projection 
+        # we often look at prior record. However, standard practice is to use all indexed earnings up to onset.
+        valid_earnings = [e for e in self.indexed_earnings if e['year'] < onset_date.year]
+        
+        sorted_earnings = sorted(valid_earnings, key=lambda x: x['indexed_earnings'], reverse=True)
+        top_years = sorted_earnings[:computation_years]
+        
+        # 5. AIME Calculation
+        total_indexed = sum(y['indexed_earnings'] for y in top_years)
+        # Divisor is computation years * 12 used for benefit calc
+        # Note: Regular retirement uses fixed 35 years (420 months). Disability uses actual computation years.
+        divisor_months = computation_years * 12
+        if divisor_months == 0: divisor_months = 12 # Safety
+        
+        aime = total_indexed / divisor_months
+        self.current_aime = round(aime, 2)
+        
+        # 6. PIA Calculation
+        pia, bend_points, b1, b2, b3 = self._calculate_pia_components(aime, eligibility_year)
+        self.current_pia = round(pia, 2)
+        
+        # Store for display
+        self.top_35_years = top_years # Technically top N years
+        
+        return self._calculate_pia_structure(aime, pia, eligibility_year, bend_points, b1, b2, b3)
+
+    def calculate_aime_and_pia(self, pia_year: Optional[int] = None) -> Dict:
+        """
+        Calculate AIME (Average Indexed Monthly Earnings) and PIA (Primary Insurance Amount)
+        Standard Retirement Method (Top 35 Years)
+        """
+        if not self.indexed_earnings:
+            self.calculate_indexed_earnings()
+
+        # Determine PIA calculation year (year person turns 62, or current year)
+        if pia_year is None:
+            pia_year = self.birth_year + 62 if self.birth_year else datetime.now().year
+
+        # Get top 35 years
+        sorted_earnings = sorted(self.indexed_earnings, key=lambda x: x['indexed_earnings'], reverse=True)
+        self.top_35_years = sorted_earnings[:35]
+        
+        # Pad with zeros
+        while len(self.top_35_years) < 35:
+            self.top_35_years.append({
+                'year': None, 'original_earnings': 0, 'indexed_earnings': 0, 
+                'indexing_factor': 0, 'is_zero': True, 'is_capped': False, 'max_taxable': 0
+            })
+
+        # Calculate AIME (Fixed 35 years)
+        total_indexed_earnings = sum(year['indexed_earnings'] for year in self.top_35_years)
+        aime = total_indexed_earnings / (35 * 12)
+        self.current_aime = round(aime, 2)
+
+        # Calculate PIA
+        pia, bend_points, b1, b2, b3 = self._calculate_pia_components(aime, pia_year)
+        self.current_pia = round(pia, 2)
+
+        return self._calculate_pia_structure(aime, pia, pia_year, bend_points, b1, b2, b3)
     
     def create_editable_spreadsheet(self) -> List[Dict]:
         """

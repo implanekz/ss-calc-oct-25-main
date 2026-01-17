@@ -6,7 +6,7 @@ Integrated Social Security API
 Combines optimization calculator with XML processing for complete PIA analysis
 """
 
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, validator
@@ -316,7 +316,9 @@ async def generate_bcr_endpoint(request: BCRRequest):
 @app.post("/upload-ssa-xml", response_model=XMLAnalysisResponse)
 async def upload_ssa_xml(
     file: UploadFile = File(...),
-    birth_date: date = None
+    birth_date: Optional[date] = Form(None),
+    calculation_method: str = Form("retirement"), # "retirement" or "disability"
+    disability_onset_date: Optional[date] = Form(None)
 ):
     """
     Upload SSA XML file and analyze earnings impact on PIA
@@ -341,8 +343,13 @@ async def upload_ssa_xml(
         # Set birth year for wage indexing
         processor.birth_year = birth_date.year
 
-        # Calculate PIA
-        pia_calculation = processor.calculate_aime_and_pia()
+        # Calculate PIA based on method
+        if calculation_method == "disability" and disability_onset_date:
+            logger.info(f"Calculating Disability PIA with onset {disability_onset_date}")
+            pia_calculation = processor.calculate_disability_pia(disability_onset_date)
+        else:
+            pia_calculation = processor.calculate_aime_and_pia()
+            
         original_pia = pia_calculation.get('pia', 0)
 
         # Create editable spreadsheet
