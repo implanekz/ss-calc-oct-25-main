@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import ShowMeTheMoneyCalculator from './components/ShowMeTheMoneyCalculator.jsx';
 import DivorcedCalculator from './components/DivorcedCalculator.jsx';
+import SSDICalculator from './components/SSDICalculator.jsx';
 import WidowCalculator from './components/WidowCalculator.jsx';
 import PIACalculator from './components/PIACalculator.jsx';
 import Settings from './components/Settings.jsx';
@@ -211,7 +212,7 @@ function OnboardingScreen({ devMode = null }) {
   const [error, setError] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showPartnerHistoryModal, setShowPartnerHistoryModal] = useState(false);
-  
+
   // Use dev mode handlers if provided, otherwise use real User context
   const realUserContext = useUser();
   // Alias context addChild to avoid clashing with local UI helper addChild()
@@ -350,7 +351,7 @@ function OnboardingScreen({ devMode = null }) {
       const norm = (d) => {
         if (!d) return d;
         const dt = new Date(d);
-        return isNaN(dt.getTime()) ? d : dt.toISOString().slice(0,10);
+        return isNaN(dt.getTime()) ? d : dt.toISOString().slice(0, 10);
       };
       const profileData = {
         dateOfBirth: norm(formData.dateOfBirth),
@@ -371,16 +372,16 @@ function OnboardingScreen({ devMode = null }) {
 
       await updateProfile(profileData);
 
-          // Save partner info if applicable (not required, but save if provided)
-          if (['married', 'divorced', 'widowed'].includes(formData.relationshipStatus) && formData.partnerDob) {
-          const partnerData = {
-            relationshipType: formData.relationshipStatus === 'married' ? 'spouse' : 
-                              formData.relationshipStatus === 'divorced' ? 'ex_spouse' : 'deceased_spouse',
-            firstName: formData.partnerFirstName || undefined,
-            lastName: formData.partnerLastName || undefined,
-            dateOfBirth: norm(formData.partnerDob),
-            alreadyReceivingBenefits: formData.partnerReceivingBenefits === true
-          };
+      // Save partner info if applicable (not required, but save if provided)
+      if (['married', 'divorced', 'widowed'].includes(formData.relationshipStatus) && formData.partnerDob) {
+        const partnerData = {
+          relationshipType: formData.relationshipStatus === 'married' ? 'spouse' :
+            formData.relationshipStatus === 'divorced' ? 'ex_spouse' : 'deceased_spouse',
+          firstName: formData.partnerFirstName || undefined,
+          lastName: formData.partnerLastName || undefined,
+          dateOfBirth: norm(formData.partnerDob),
+          alreadyReceivingBenefits: formData.partnerReceivingBenefits === true
+        };
 
         // Add partner benefit details if receiving benefits
         if (formData.partnerReceivingBenefits === true) {
@@ -806,7 +807,7 @@ function OnboardingScreen({ devMode = null }) {
             {/* Left Column - Your Information */}
             <div className="space-y-6">
               <h3 className="text-lg font-bold text-slate-900 border-b pb-2">Your Information</h3>
-              
+
               {/* First Name */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -815,7 +816,7 @@ function OnboardingScreen({ devMode = null }) {
                 <input
                   type="text"
                   value={formData.firstName}
-                  onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                   className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="First name"
                 />
@@ -829,12 +830,12 @@ function OnboardingScreen({ devMode = null }) {
                 <input
                   type="text"
                   value={formData.lastName}
-                  onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                   className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Doe"
                 />
               </div>
-              
+
               {/* Date of Birth */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -843,7 +844,7 @@ function OnboardingScreen({ devMode = null }) {
                 <input
                   type="date"
                   value={formData.dateOfBirth}
-                  onChange={(e) => setFormData({...formData, dateOfBirth: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
                   className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
@@ -864,12 +865,11 @@ function OnboardingScreen({ devMode = null }) {
                     <button
                       key={status.value}
                       type="button"
-                      onClick={() => setFormData({...formData, relationshipStatus: status.value})}
-                      className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${
-                        formData.relationshipStatus === status.value
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-slate-200 hover:border-slate-300 text-slate-700'
-                      }`}
+                      onClick={() => setFormData({ ...formData, relationshipStatus: status.value })}
+                      className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${formData.relationshipStatus === status.value
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                        }`}
                     >
                       {status.label}
                     </button>
@@ -885,23 +885,21 @@ function OnboardingScreen({ devMode = null }) {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={() => setFormData({...formData, receivingBenefits: false})}
-                    className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${
-                      formData.receivingBenefits === false
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-slate-200 hover:border-slate-300 text-slate-700'
-                    }`}
+                    onClick={() => setFormData({ ...formData, receivingBenefits: false })}
+                    className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${formData.receivingBenefits === false
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                      }`}
                   >
                     No
                   </button>
                   <button
                     type="button"
-                    onClick={() => setFormData({...formData, receivingBenefits: true})}
-                    className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${
-                      formData.receivingBenefits === true
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-slate-200 hover:border-slate-300 text-slate-700'
-                    }`}
+                    onClick={() => setFormData({ ...formData, receivingBenefits: true })}
+                    className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${formData.receivingBenefits === true
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                      }`}
                   >
                     Yes
                   </button>
@@ -920,7 +918,7 @@ function OnboardingScreen({ devMode = null }) {
                       <input
                         type="number"
                         value={formData.benefitAmount}
-                        onChange={(e) => setFormData({...formData, benefitAmount: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, benefitAmount: e.target.value })}
                         className="w-full pl-8 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="2500"
                       />
@@ -934,7 +932,7 @@ function OnboardingScreen({ devMode = null }) {
                       <input
                         type="date"
                         value={formData.benefitFilingDate}
-                        onChange={(e) => setFormData({...formData, benefitFilingDate: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, benefitFilingDate: e.target.value })}
                         className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>
@@ -945,7 +943,7 @@ function OnboardingScreen({ devMode = null }) {
                       <input
                         type="number"
                         value={formData.benefitFilingAge}
-                        onChange={(e) => setFormData({...formData, benefitFilingAge: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, benefitFilingAge: e.target.value })}
                         className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="67"
                       />
@@ -965,27 +963,25 @@ function OnboardingScreen({ devMode = null }) {
                       <button
                         type="button"
                         onClick={() => {
-                          setFormData({...formData, everDivorced: false, everWidowed: false, divorceHistory: [], widowHistory: []});
+                          setFormData({ ...formData, everDivorced: false, everWidowed: false, divorceHistory: [], widowHistory: [] });
                         }}
-                        className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${
-                          formData.everDivorced === false && formData.everWidowed === false
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-slate-200 hover:border-slate-300 text-slate-700'
-                        }`}
+                        className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${formData.everDivorced === false && formData.everWidowed === false
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                          }`}
                       >
                         No
                       </button>
                       <button
                         type="button"
                         onClick={() => {
-                          setFormData({...formData, everDivorced: true});
+                          setFormData({ ...formData, everDivorced: true });
                           setShowHistoryModal(true);
                         }}
-                        className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${
-                          formData.everDivorced === true || formData.everWidowed === true
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-slate-200 hover:border-slate-300 text-slate-700'
-                        }`}
+                        className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${formData.everDivorced === true || formData.everWidowed === true
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                          }`}
                       >
                         Yes
                       </button>
@@ -1025,274 +1021,270 @@ function OnboardingScreen({ devMode = null }) {
               <div className="space-y-6">
                 <h3 className="text-lg font-bold text-slate-900 border-b pb-2">
                   {formData.relationshipStatus === 'married' ? 'Spouse Information (optional)' :
-                   formData.relationshipStatus === 'divorced' ? 'Ex-Spouse Information (optional)' :
-                   'Deceased Spouse Information (optional)'}
+                    formData.relationshipStatus === 'divorced' ? 'Ex-Spouse Information (optional)' :
+                      'Deceased Spouse Information (optional)'}
                 </h3>
-              
-              {/* Partner First Name */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  First name
-                </label>
-                <input
-                  type="text"
-                  value={formData.partnerFirstName}
-                  onChange={(e) => setFormData({...formData, partnerFirstName: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="First name"
-                />
-              </div>
 
-              {/* Partner Last Name */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Last name
-                </label>
-                <input
-                  type="text"
-                  value={formData.partnerLastName}
-                  onChange={(e) => setFormData({...formData, partnerLastName: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Last name"
-                />
-              </div>
-              
-              {/* Partner DOB */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Date of birth
-                </label>
-                <input
-                  type="date"
-                  value={formData.partnerDob}
-                  onChange={(e) => setFormData({...formData, partnerDob: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              {/* Partner Benefits */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Receiving Social Security Benefits?
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({...formData, partnerReceivingBenefits: false})}
-                    className={`py-2 px-4 rounded-lg border-2 transition-all font-medium ${
-                      formData.partnerReceivingBenefits === false
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-slate-200 hover:border-slate-300 text-slate-700'
-                    }`}
-                  >
-                    No
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({...formData, partnerReceivingBenefits: true})}
-                    className={`py-2 px-4 rounded-lg border-2 transition-all font-medium ${
-                      formData.partnerReceivingBenefits === true
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-slate-200 hover:border-slate-300 text-slate-700'
-                    }`}
-                  >
-                    Yes
-                  </button>
-                </div>
-              </div>
-
-              {/* Partner Benefit Details - Show if receiving benefits */}
-              {formData.partnerReceivingBenefits === true && (
-                <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Current monthly benefit
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2.5 text-slate-500">$</span>
-                      <input
-                        type="number"
-                        value={formData.partnerBenefitAmount}
-                        onChange={(e) => setFormData({...formData, partnerBenefitAmount: e.target.value})}
-                        className="w-full pl-8 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="2000"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Filing date
-                      </label>
-                      <input
-                        type="date"
-                        value={formData.partnerBenefitFilingDate}
-                        onChange={(e) => setFormData({...formData, partnerBenefitFilingDate: e.target.value})}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Age filed
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.partnerBenefitFilingAge}
-                        onChange={(e) => setFormData({...formData, partnerBenefitFilingAge: e.target.value})}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                        placeholder="62"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Divorce-specific fields */}
-              {formData.relationshipStatus === 'divorced' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Divorce date
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.divorceDate}
-                      onChange={(e) => setFormData({...formData, divorceDate: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Marriage length (years)
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.marriageLength}
-                      onChange={(e) => setFormData({...formData, marriageLength: e.target.value})}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="10"
-                    />
-                  </div>
-                </>
-              )}
-
-              {/* Widowed-specific fields */}
-              {formData.relationshipStatus === 'widowed' && (
+                {/* Partner First Name */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Date of death
+                    First name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.partnerFirstName}
+                    onChange={(e) => setFormData({ ...formData, partnerFirstName: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="First name"
+                  />
+                </div>
+
+                {/* Partner Last Name */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Last name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.partnerLastName}
+                    onChange={(e) => setFormData({ ...formData, partnerLastName: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Last name"
+                  />
+                </div>
+
+                {/* Partner DOB */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Date of birth
                   </label>
                   <input
                     type="date"
-                    value={formData.dateOfDeath}
-                    onChange={(e) => setFormData({...formData, dateOfDeath: e.target.value})}
+                    value={formData.partnerDob}
+                    onChange={(e) => setFormData({ ...formData, partnerDob: e.target.value })}
                     className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-              )}
 
-              {/* Partner Divorce/Widow History - Show for married only */}
-              {formData.relationshipStatus === 'married' && (
-                <>
-                  <div className="border-t pt-6">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Has your spouse <span className="font-bold">ever</span> been divorced or widowed?
-                    </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFormData({...formData, partnerEverDivorced: false, partnerEverWidowed: false, partnerDivorceHistory: [], partnerWidowHistory: []});
-                        }}
-                        className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${
-                          formData.partnerEverDivorced === false && formData.partnerEverWidowed === false
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-slate-200 hover:border-slate-300 text-slate-700'
-                        }`}
-                      >
-                        No
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFormData({...formData, partnerEverDivorced: true});
-                          setShowPartnerHistoryModal(true);
-                        }}
-                        className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${
-                          formData.partnerEverDivorced === true || formData.partnerEverWidowed === true
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-slate-200 hover:border-slate-300 text-slate-700'
-                        }`}
-                      >
-                        Yes
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Show summary if history exists */}
-                  {(formData.partnerDivorceHistory.length > 0 || formData.partnerWidowHistory.length > 0) && (
-                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold text-slate-900 text-sm">Spouse's Marriage History Summary</h4>
-                        <button
-                          onClick={() => setShowPartnerHistoryModal(true)}
-                          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                        >
-                          Edit Details
-                        </button>
-                      </div>
-                      {formData.partnerDivorceHistory.length > 0 && (
-                        <p className="text-xs text-slate-700">
-                          • {formData.partnerDivorceHistory.length} divorce(s) recorded
-                        </p>
-                      )}
-                      {formData.partnerWidowHistory.length > 0 && (
-                        <p className="text-xs text-slate-700">
-                          • {formData.partnerWidowHistory.length} deceased spouse(s) recorded
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* Children Section */}
-              <div className="border-t pt-6 mt-2">
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-sm font-medium text-slate-700">
-                    Children under 16 (optional)
+                {/* Partner Benefits */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Receiving Social Security Benefits?
                   </label>
-                  <button
-                    type="button"
-                    onClick={addChild}
-                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                  >
-                    + Add child
-                  </button>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, partnerReceivingBenefits: false })}
+                      className={`py-2 px-4 rounded-lg border-2 transition-all font-medium ${formData.partnerReceivingBenefits === false
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                        }`}
+                    >
+                      No
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, partnerReceivingBenefits: true })}
+                      className={`py-2 px-4 rounded-lg border-2 transition-all font-medium ${formData.partnerReceivingBenefits === true
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                        }`}
+                    >
+                      Yes
+                    </button>
+                  </div>
                 </div>
 
-                {formData.children.length > 0 && (
-                  <div className="space-y-2">
-                    {formData.children.map((child, index) => (
-                      <div key={index} className="flex gap-2">
+                {/* Partner Benefit Details - Show if receiving benefits */}
+                {formData.partnerReceivingBenefits === true && (
+                  <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Current monthly benefit
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2.5 text-slate-500">$</span>
+                        <input
+                          type="number"
+                          value={formData.partnerBenefitAmount}
+                          onChange={(e) => setFormData({ ...formData, partnerBenefitAmount: e.target.value })}
+                          className="w-full pl-8 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="2000"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Filing date
+                        </label>
                         <input
                           type="date"
-                          value={child.dateOfBirth}
-                          onChange={(e) => updateChild(index, e.target.value)}
-                          className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                          value={formData.partnerBenefitFilingDate}
+                          onChange={(e) => setFormData({ ...formData, partnerBenefitFilingDate: e.target.value })}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                         />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Age filed
+                        </label>
+                        <input
+                          type="number"
+                          value={formData.partnerBenefitFilingAge}
+                          onChange={(e) => setFormData({ ...formData, partnerBenefitFilingAge: e.target.value })}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                          placeholder="62"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Divorce-specific fields */}
+                {formData.relationshipStatus === 'divorced' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Divorce date
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.divorceDate}
+                        onChange={(e) => setFormData({ ...formData, divorceDate: e.target.value })}
+                        className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Marriage length (years)
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.marriageLength}
+                        onChange={(e) => setFormData({ ...formData, marriageLength: e.target.value })}
+                        className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="10"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Widowed-specific fields */}
+                {formData.relationshipStatus === 'widowed' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Date of death
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.dateOfDeath}
+                      onChange={(e) => setFormData({ ...formData, dateOfDeath: e.target.value })}
+                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                )}
+
+                {/* Partner Divorce/Widow History - Show for married only */}
+                {formData.relationshipStatus === 'married' && (
+                  <>
+                    <div className="border-t pt-6">
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Has your spouse <span className="font-bold">ever</span> been divorced or widowed?
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
                         <button
                           type="button"
-                          onClick={() => removeChild(index)}
-                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition text-sm"
+                          onClick={() => {
+                            setFormData({ ...formData, partnerEverDivorced: false, partnerEverWidowed: false, partnerDivorceHistory: [], partnerWidowHistory: [] });
+                          }}
+                          className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${formData.partnerEverDivorced === false && formData.partnerEverWidowed === false
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                            }`}
                         >
-                          Remove
+                          No
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormData({ ...formData, partnerEverDivorced: true });
+                            setShowPartnerHistoryModal(true);
+                          }}
+                          className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${formData.partnerEverDivorced === true || formData.partnerEverWidowed === true
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                            }`}
+                        >
+                          Yes
+                        </button>
+                      </div>
                     </div>
-                  ))}
+
+                    {/* Show summary if history exists */}
+                    {(formData.partnerDivorceHistory.length > 0 || formData.partnerWidowHistory.length > 0) && (
+                      <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-semibold text-slate-900 text-sm">Spouse's Marriage History Summary</h4>
+                          <button
+                            onClick={() => setShowPartnerHistoryModal(true)}
+                            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                          >
+                            Edit Details
+                          </button>
+                        </div>
+                        {formData.partnerDivorceHistory.length > 0 && (
+                          <p className="text-xs text-slate-700">
+                            • {formData.partnerDivorceHistory.length} divorce(s) recorded
+                          </p>
+                        )}
+                        {formData.partnerWidowHistory.length > 0 && (
+                          <p className="text-xs text-slate-700">
+                            • {formData.partnerWidowHistory.length} deceased spouse(s) recorded
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Children Section */}
+                <div className="border-t pt-6 mt-2">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-medium text-slate-700">
+                      Children under 16 (optional)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addChild}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      + Add child
+                    </button>
+                  </div>
+
+                  {formData.children.length > 0 && (
+                    <div className="space-y-2">
+                      {formData.children.map((child, index) => (
+                        <div key={index} className="flex gap-2">
+                          <input
+                            type="date"
+                            value={child.dateOfBirth}
+                            onChange={(e) => updateChild(index, e.target.value)}
+                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeChild(index)}
+                            className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition text-sm"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
               </div>
             )}
 
@@ -1300,7 +1292,7 @@ function OnboardingScreen({ devMode = null }) {
             {formData.relationshipStatus === 'single' && (
               <div className="space-y-6">
                 <h3 className="text-lg font-bold text-slate-900 border-b pb-2">Children & Dependents</h3>
-                
+
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <label className="text-sm font-medium text-slate-700">
@@ -1398,6 +1390,7 @@ function CalculatorApp() {
     { id: 'married', label: 'Married/Single', icon: '👫' },
     { id: 'divorced', label: 'Divorced', icon: '💔' },
     { id: 'widowed', label: 'Widowed', icon: '🕊️' },
+    { id: 'ssdi', label: 'Disability', icon: '♿' },
   ];
 
   const navItems = [
@@ -1556,124 +1549,129 @@ function CalculatorApp() {
           <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
             {/* Navigation Bar */}
             <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
-            {/* Logo/Brand and Navigation Items - All on left */}
-            <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide flex-nowrap">
-              <h1 className="text-xl font-bold text-white whitespace-nowrap">
-                RISE and SHINE Method
-              </h1>
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center h-16">
+                  {/* Logo/Brand and Navigation Items - All on left */}
+                  <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide flex-nowrap">
+                    <h1 className="text-xl font-bold text-white whitespace-nowrap">
+                      RISE and SHINE Method
+                    </h1>
 
-              {/* Social Security Planner Button */}
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setActiveApp(item.id)}
-                  className={`
+                    {/* Social Security Planner Button */}
+                    {navItems.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setActiveApp(item.id)}
+                        className={`
                     px-3 sm:px-4 py-2 rounded-full font-semibold text-sm transition-all duration-200 whitespace-nowrap
                     ${activeApp === item.id
-                      ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/30 scale-105'
-                      : 'bg-slate-700 text-slate-200 hover:bg-slate-600 hover:text-white'
-                    }
+                            ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/30 scale-105'
+                            : 'bg-slate-700 text-slate-200 hover:bg-slate-600 hover:text-white'
+                          }
                   `}
-                  aria-label={item.label}
-                  aria-current={activeApp === item.id ? 'page' : undefined}
-                >
-                  <span className="sm:hidden">{item.icon}</span>
-                  <span className="hidden sm:inline">{item.label}</span>
-                </button>
-              ))}
+                        aria-label={item.label}
+                        aria-current={activeApp === item.id ? 'page' : undefined}
+                      >
+                        <span className="sm:hidden">{item.icon}</span>
+                        <span className="hidden sm:inline">{item.label}</span>
+                      </button>
+                    ))}
 
-              {/* Calculator Type Dropdown - Only show when SS is active */}
+                    {/* Calculator Type Dropdown - Only show when SS is active */}
+                    {activeApp === 'ss' && (
+                      <>
+                        <select
+                          value={calculatorType}
+                          onChange={(e) => setCalculatorType(e.target.value)}
+                          className="px-3 py-2 bg-slate-700 text-slate-200 rounded-full font-semibold text-sm border border-slate-600 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        >
+                          {calculatorTypes.map((type) => (
+                            <option key={type.id} value={type.id} disabled={type.disabled}>
+                              {type.icon} {type.label}
+                            </option>
+                          ))}
+                        </select>
+
+                        {/* Simple guidance - only shows when SS is active */}
+                        <button
+                          onClick={() => setShowHelpDropdown(!showHelpDropdown)}
+                          className="text-xs text-slate-300 hover:text-white flex items-center gap-1 px-2 py-1 cursor-pointer transition-colors"
+                        >
+                          <span className="text-[10px]">💡</span> Need help choosing?
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </nav>
+
+            {/* Help Modal - Centered floating modal */}
+            {showHelpDropdown && (
+              <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4">
+                {/* Backdrop */}
+                <div
+                  className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+                  onClick={() => setShowHelpDropdown(false)}
+                />
+                {/* Modal Content */}
+                <div className="relative bg-slate-800 rounded-xl shadow-2xl border border-slate-600 p-6 w-full max-w-md animate-fade-in">
+                  <button
+                    onClick={() => setShowHelpDropdown(false)}
+                    className="absolute top-4 right-4 text-slate-400 hover:text-white transition"
+                  >
+                    ✕
+                  </button>
+                  <h3 className="text-xl font-bold text-slate-200 mb-4">💡 Calculator Selection Guide</h3>
+                  <div className="space-y-3">
+                    <div className="bg-slate-700/50 rounded-lg p-3">
+                      <p className="text-slate-300 font-semibold mb-1">Married or single?</p>
+                      <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Married/Single</strong> calculator</p>
+                    </div>
+                    <div className="bg-slate-700/50 rounded-lg p-3">
+                      <p className="text-slate-300 font-semibold mb-1">Divorced (ex-spouse alive)?</p>
+                      <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Divorced</strong> calculator</p>
+                    </div>
+                    <div className="bg-slate-700/50 rounded-lg p-3">
+                      <p className="text-slate-300 font-semibold mb-1">Divorced (ex-spouse deceased)?</p>
+                      <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Widowed</strong> calculator</p>
+                    </div>
+                    <div className="bg-slate-700/50 rounded-lg p-3">
+                      <p className="text-slate-300 font-semibold mb-1">Widowed?</p>
+                      <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Widowed</strong> calculator</p>
+                    </div>
+                    <div className="bg-slate-700/50 rounded-lg p-3">
+                      <p className="text-slate-300 font-semibold mb-1">Considering Disability (SSDI)?</p>
+                      <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Disability</strong> calculator</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 p-3 bg-blue-900/30 border border-blue-700/50 rounded-lg">
+                    <p className="text-xs text-blue-200 italic">
+                      💡 Tip: If your ex-spouse is deceased, you may qualify for survivor benefits (not ex-spouse benefits)
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Main Content Area */}
+            <main className="animate-fade-in">
               {activeApp === 'ss' && (
                 <>
-                  <select
-                    value={calculatorType}
-                    onChange={(e) => setCalculatorType(e.target.value)}
-                    className="px-3 py-2 bg-slate-700 text-slate-200 rounded-full font-semibold text-sm border border-slate-600 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  >
-                    {calculatorTypes.map((type) => (
-                      <option key={type.id} value={type.id} disabled={type.disabled}>
-                        {type.icon} {type.label}
-                      </option>
-                    ))}
-                  </select>
-
-                  {/* Simple guidance - only shows when SS is active */}
-                  <button
-                    onClick={() => setShowHelpDropdown(!showHelpDropdown)}
-                    className="text-xs text-slate-300 hover:text-white flex items-center gap-1 px-2 py-1 cursor-pointer transition-colors"
-                  >
-                    <span className="text-[10px]">💡</span> Need help choosing?
-                  </button>
+                  {calculatorType === 'married' && <ShowMeTheMoneyCalculator />}
+                  {calculatorType === 'divorced' && <DivorcedCalculator onSwitchToMarried={() => setCalculatorType('married')} />}
+                  {calculatorType === 'widowed' && <WidowCalculator />}
+                  {calculatorType === 'ssdi' && <SSDICalculator />}
                 </>
               )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Help Modal - Centered floating modal */}
-      {showHelpDropdown && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4">
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setShowHelpDropdown(false)}
-          />
-          {/* Modal Content */}
-          <div className="relative bg-slate-800 rounded-xl shadow-2xl border border-slate-600 p-6 w-full max-w-md animate-fade-in">
-            <button
-              onClick={() => setShowHelpDropdown(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white transition"
-            >
-              ✕
-            </button>
-            <h3 className="text-xl font-bold text-slate-200 mb-4">💡 Calculator Selection Guide</h3>
-            <div className="space-y-3">
-              <div className="bg-slate-700/50 rounded-lg p-3">
-                <p className="text-slate-300 font-semibold mb-1">Married or single?</p>
-                <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Married/Single</strong> calculator</p>
-              </div>
-              <div className="bg-slate-700/50 rounded-lg p-3">
-                <p className="text-slate-300 font-semibold mb-1">Divorced (ex-spouse alive)?</p>
-                <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Divorced</strong> calculator</p>
-              </div>
-              <div className="bg-slate-700/50 rounded-lg p-3">
-                <p className="text-slate-300 font-semibold mb-1">Divorced (ex-spouse deceased)?</p>
-                <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Widowed</strong> calculator</p>
-              </div>
-              <div className="bg-slate-700/50 rounded-lg p-3">
-                <p className="text-slate-300 font-semibold mb-1">Widowed?</p>
-                <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Widowed</strong> calculator</p>
-              </div>
-            </div>
-            <div className="mt-4 p-3 bg-blue-900/30 border border-blue-700/50 rounded-lg">
-              <p className="text-xs text-blue-200 italic">
-                💡 Tip: If your ex-spouse is deceased, you may qualify for survivor benefits (not ex-spouse benefits)
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Main Content Area */}
-      <main className="animate-fade-in">
-        {activeApp === 'ss' && (
-          <>
-            {calculatorType === 'married' && <ShowMeTheMoneyCalculator />}
-            {calculatorType === 'divorced' && <DivorcedCalculator onSwitchToMarried={() => setCalculatorType('married')} />}
-            {calculatorType === 'widowed' && <WidowCalculator />}
-          </>
-        )}
-        {activeApp === 'start-stop-start' && <StartStopStartCalculator />}
-        {activeApp === 'pia' && <PIACalculator />}
-        {activeApp === 'helper-spending' && <RetirementSpendingApp />}
-        {activeApp === 'helper-income' && <RetirementIncomeNeedsApp />}
-        {activeApp === 'sequence' && <SequenceOfReturnsApp />}
-        {activeApp === 'budget' && <RetirementBudgetWorksheet />}
-      </main>
+              {activeApp === 'start-stop-start' && <StartStopStartCalculator />}
+              {activeApp === 'pia' && <PIACalculator />}
+              {activeApp === 'helper-spending' && <RetirementSpendingApp />}
+              {activeApp === 'helper-income' && <RetirementIncomeNeedsApp />}
+              {activeApp === 'sequence' && <SequenceOfReturnsApp />}
+              {activeApp === 'budget' && <RetirementBudgetWorksheet />}
+            </main>
           </div>
         } />
       </Routes>
@@ -1792,7 +1790,7 @@ function AppWithDevMode() {
     <>
       {isDevMode && <DevModeBanner />}
       {!isDevMode && !user && <DevModeToggle />}
-      
+
       {!user ? (
         <LoginScreenWithDevMode />
       ) : !profile?.onboarding_completed ? (

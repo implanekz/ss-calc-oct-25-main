@@ -26,6 +26,7 @@ from .ss_core_calculator import (
     IndividualSSCalculator,
     HouseholdSSCalculator
 )
+from .ssdi_calculator import SSDICalculator
 from .divorced_calculator import DivorcedSSCalculator
 from .widow_calculator import WidowSSCalculator
 from .ssa_xml_processor import SSAXMLProcessor, EarningsRecord
@@ -215,6 +216,22 @@ class WhatIfComparisonResult(BaseModel):
     original: PIACalculationResult
     modified: PIACalculationResult
     impact: Dict[str, float]  # monthly_change, annual_change, lifetime_25_years
+
+class SSDICalculationRequest(BaseModel):
+    """Request for SSDI benefit analysis"""
+    birth_date: date
+    pia: float = Field(..., gt=0, description="Estimated Primary Insurance Amount")
+    inflation_rate: float = Field(0.025, ge=0.0, le=0.10)
+    longevity_age: int = Field(90, ge=70, le=100)
+
+class SSDICalculationResponse(BaseModel):
+    """Response for SSDI calculation and comparison"""
+    current_age: float
+    fra_age: float
+    ssdi_monthly_benefit: float
+    early_retirement: Dict[str, Any] # eligible, amount, reduction_percent
+    strategies: Dict[str, Any] # standard vs suspension
+    timeline: List[Dict[str, Any]] # Year by year data for charts
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -767,6 +784,25 @@ async def calculate_widow(request: WidowCalculationRequest):
     except Exception as e:
         logger.error(f"Widow calculation error: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Widow calculation failed: {str(e)}")
+
+@app.post("/calculate-ssdi", response_model=SSDICalculationResponse)
+async def calculate_ssdi(request: SSDICalculationRequest):
+    """
+    Calculate SSDI benefits and compare with early retirement and suspension strategies.
+    """
+    try:
+        calc = SSDICalculator(request.birth_date, request.pia)
+        
+        result = calc.calculate_ssdi_comparison(
+            inflation_rate=request.inflation_rate,
+            longevity_age=request.longevity_age
+        )
+        
+        return SSDICalculationResponse(**result)
+        
+    except Exception as e:
+        logger.error(f"SSDI calculation error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"SSDI calculation failed: {str(e)}")
 
 @app.post("/calculate-pia-from-earnings", response_model=PIACalculationResult)
 async def calculate_pia_from_earnings(request: ManualPIACalculationRequest):

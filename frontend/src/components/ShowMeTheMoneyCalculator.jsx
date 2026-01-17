@@ -119,7 +119,7 @@ const RetirementStagesSlider = ({
                     className="relative flex items-center justify-center text-white font-bold text-sm transition-all duration-200"
                     style={{
                         width: `${goGoWidth}%`,
-                        background: 'linear-gradient(135deg, #6E5468 0%, #5A4356 100%)',
+                        backgroundColor: '#E67E22', // Carrot (Flat UI) - Assumed correction for #E6E22
                     }}
                 >
                     <span className="drop-shadow-sm">Go-Go Years</span>
@@ -148,7 +148,7 @@ const RetirementStagesSlider = ({
                     className="relative flex items-center justify-center text-white font-bold text-sm transition-all duration-200"
                     style={{
                         width: `${slowGoWidth}%`,
-                        background: 'linear-gradient(135deg, #D4A024 0%, #B8891F 100%)',
+                        backgroundColor: '#F1C40F', // Sunflower (Flat UI)
                     }}
                 >
                     <span className="drop-shadow-sm">Slow-Go Years</span>
@@ -177,9 +177,10 @@ const RetirementStagesSlider = ({
                     className="relative flex items-center justify-center text-white font-bold text-sm transition-all duration-200"
                     style={{
                         width: `${noGoWidth}%`,
-                        background: 'linear-gradient(135deg, #5a5a5a 0%, #3D3D3D 100%)',
+                        backgroundColor: '#95A5A6', // Concrete (Flat UI)
                     }}
                 >
+
                     <span className="drop-shadow-sm">No-Go Years</span>
                 </div>
             </div>
