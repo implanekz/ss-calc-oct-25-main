@@ -39,6 +39,7 @@ from api.auth import router as auth_router
 from api.profiles import router as profiles_router
 from api.partners import router as partners_router
 from api.children import router as children_router
+from api.preferences import router as preferences_router
 
 # Load environment variables early
 load_dotenv()
@@ -263,6 +264,7 @@ app.include_router(auth_router)
 app.include_router(profiles_router)
 app.include_router(partners_router)
 app.include_router(children_router)
+app.include_router(preferences_router)
 
 # Logging setup
 logging.basicConfig(level=logging.INFO)

@@ -1625,12 +1625,13 @@ const ShowMeTheMoneyCalculator = () => {
     const navigate = useNavigate();
 
     // Get user context data
-    const { profile: realProfile, partners: realPartners, updateProfile, updatePartner } = useUser();
+    const { profile: realProfile, partners: realPartners, preferences: realPreferences, updateProfile, updatePartner, updatePreferences } = useUser();
     const { isDevMode, devProfile, devPartners, updateDevProfile, updateDevPartner } = useDevMode();
 
     // Use dev or real data based on mode
     const profile = isDevMode ? devProfile : realProfile;
     const partners = isDevMode ? devPartners : realPartners;
+    const preferences = isDevMode ? null : realPreferences;
 
     // Initialize state from profile data
     const getInitialMarriedState = () => {
@@ -1753,7 +1754,21 @@ const ShowMeTheMoneyCalculator = () => {
                 setSpouse2Pia(partnerPia);
             }
         }
-    }, [profile, partners]); // Dep on profile/partners strictly to avoid typing loops
+
+        // 5. Sync Preferred Ages (Primary)
+        const pYear = profile.preferred_claiming_age_years ?? profile.preferredClaimingAgeYears;
+        const pMonth = profile.preferred_claiming_age_months ?? profile.preferredClaimingAgeMonths;
+        if (pYear !== undefined && pYear !== null && pYear !== spouse1PreferredYear) setSpouse1PreferredYear(pYear);
+        if (pMonth !== undefined && pMonth !== null && pMonth !== spouse1PreferredMonth) setSpouse1PreferredMonth(pMonth);
+
+        // 6. Sync Preferred Ages (Spouse - from Preferences)
+        if (preferences) {
+            const sYear = preferences.spouse_preferred_claiming_age_years ?? preferences.spousePreferredClaimingAgeYears;
+            const sMonth = preferences.spouse_preferred_claiming_age_months ?? preferences.spousePreferredClaimingAgeMonths;
+            if (sYear !== undefined && sYear !== null && sYear !== spouse2PreferredYear) setSpouse2PreferredYear(sYear);
+            if (sMonth !== undefined && sMonth !== null && sMonth !== spouse2PreferredMonth) setSpouse2PreferredMonth(sMonth);
+        }
+    }, [profile, partners, preferences]); // Dep on profile/partners strictly to avoid typing loops
 
     // Persist ALL state changes
     useEffect(() => {
@@ -3034,6 +3049,22 @@ const ShowMeTheMoneyCalculator = () => {
         }
     };
 
+    const handleSpouse1AgeBlur = () => {
+        if (isDevMode) return;
+        updateProfile({
+            preferredClaimingAgeYears: Number(spouse1PreferredYear),
+            preferredClaimingAgeMonths: Number(spouse1PreferredMonth)
+        });
+    };
+
+    const handleSpouse2AgeBlur = () => {
+        if (isDevMode) return;
+        updatePreferences({
+            spousePreferredClaimingAgeYears: Number(spouse2PreferredYear),
+            spousePreferredClaimingAgeMonths: Number(spouse2PreferredMonth)
+        });
+    };
+
     const chartTabs = [
         { key: 'monthly', label: 'Monthly Benefit' },
         { key: 'cumulative', label: 'Cumulative Benefit' },
@@ -3144,6 +3175,7 @@ const ShowMeTheMoneyCalculator = () => {
                                                         type="number"
                                                         value={spouse1PreferredYear}
                                                         onChange={e => setSpouse1PreferredYear(Number(e.target.value))}
+                                                        onBlur={handleSpouse1AgeBlur}
                                                         className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
                                                         placeholder="Yr"
                                                     />
@@ -3153,6 +3185,7 @@ const ShowMeTheMoneyCalculator = () => {
                                                         type="number"
                                                         value={spouse1PreferredMonth}
                                                         onChange={e => setSpouse1PreferredMonth(Number(e.target.value))}
+                                                        onBlur={handleSpouse1AgeBlur}
                                                         className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
                                                         placeholder="Mo"
                                                     />
@@ -3229,6 +3262,7 @@ const ShowMeTheMoneyCalculator = () => {
                                                             type="number"
                                                             value={spouse2PreferredYear}
                                                             onChange={e => setSpouse2PreferredYear(Number(e.target.value))}
+                                                            onBlur={handleSpouse2AgeBlur}
                                                             className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
                                                             placeholder="Yr"
                                                         />
@@ -3238,6 +3272,7 @@ const ShowMeTheMoneyCalculator = () => {
                                                             type="number"
                                                             value={spouse2PreferredMonth}
                                                             onChange={e => setSpouse2PreferredMonth(Number(e.target.value))}
+                                                            onBlur={handleSpouse2AgeBlur}
                                                             className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500"
                                                             placeholder="Mo"
                                                         />

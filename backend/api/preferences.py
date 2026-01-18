@@ -2,88 +2,91 @@
 Calculator preferences endpoints for Ret1re Platform
 Handles: get and update calculator preferences (auto-save functionality)
 """
-from flask import Blueprint, request, jsonify
+from fastapi import APIRouter, Request, HTTPException
 from supabase import Client
 from config.supabase import get_supabase_client
 import traceback
 
-preferences_bp = Blueprint('preferences', __name__, url_prefix='/api/preferences')
+router = APIRouter(prefix="/api/preferences", tags=["preferences"])
 supabase: Client = get_supabase_client()
 
-def get_user_id_from_token(request):
+def get_user_id_from_token_sync(request: Request):
     """Extract and validate user ID from authorization token"""
     try:
-        token = request.headers.get('Authorization', '').split(' ')[1] if 'Authorization' in request.headers else None
-        if not token:
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
             return None
+        
+        token = auth_header.split(' ')[1]
         user = supabase.auth.get_user(token)
         return user.user.id if user and user.user else None
-    except Exception:
+    except Exception as e:
+        print(f"Token extraction error: {e}")
         return None
 
 # ============================================
 # GET /api/preferences
 # ============================================
-@preferences_bp.route('', methods=['GET'])
-def get_preferences():
+@router.get("")
+async def get_preferences(request: Request):
     """
     Get calculator preferences for current user
-    Headers: Authorization: Bearer <token>
     """
     try:
-        user_id = get_user_id_from_token(request)
+        user_id = get_user_id_from_token_sync(request)
         if not user_id:
-            return jsonify({'error': 'Unauthorized'}), 401
+            raise HTTPException(status_code=401, detail="Unauthorized")
         
         response = supabase.table('calculator_preferences').select('*').eq('user_id', user_id).single().execute()
         
+        # If no preferences yet, return empty defaults
         if not response.data:
-            return jsonify({'error': 'Preferences not found'}), 404
+            return {
+                'preferences': {
+                    'inflation_rate': 0.025,
+                    'spouse_preferred_claiming_age_years': None,
+                    'spouse_preferred_claiming_age_months': None
+                }
+            }
+        
+        data = response.data
         
         # Flatten calculator_states to top-level keys for frontend compatibility
         preferences = {
-            'inflation_rate': response.data.get('inflation_rate'),
-            'spouse_preferred_claiming_age_years': response.data.get('spouse_preferred_claiming_age_years'),
-            'spouse_preferred_claiming_age_months': response.data.get('spouse_preferred_claiming_age_months')
+            'inflation_rate': data.get('inflation_rate'),
+            'spouse_preferred_claiming_age_years': data.get('spouse_preferred_claiming_age_years'),
+            'spouse_preferred_claiming_age_months': data.get('spouse_preferred_claiming_age_months')
         }
         
         # Add calculator states as top-level keys
-        calculator_states = response.data.get('calculator_states') or {}
+        calculator_states = data.get('calculator_states') or {}
         if calculator_states:
             preferences.update(calculator_states)
         
-        return jsonify({
+        return {
             'preferences': preferences
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Get preferences error: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ============================================
 # PUT /api/preferences
 # ============================================
-@preferences_bp.route('', methods=['PUT'])
-def update_preferences():
+@router.put("")
+async def update_preferences(request: Request):
     """
     Update calculator preferences (auto-save endpoint)
-    Headers: Authorization: Bearer <token>
-    Body: {
-      inflationRate?: number,
-      spousePreferredClaimingAgeYears?: number,
-      spousePreferredClaimingAgeMonths?: number,
-      showMeTheMoney?: object,  // Calculator-specific state
-      pia?: object,             // Calculator-specific state
-      divorced?: object,        // Calculator-specific state
-      widow?: object            // Calculator-specific state
-    }
     """
     try:
-        user_id = get_user_id_from_token(request)
+        user_id = get_user_id_from_token_sync(request)
         if not user_id:
-            return jsonify({'error': 'Unauthorized'}), 401
+             raise HTTPException(status_code=401, detail="Unauthorized")
         
-        data = request.get_json()
+        data = await request.json()
         
         # Build update object for standard fields
         update_data = {}
@@ -119,12 +122,23 @@ def update_preferences():
             update_data['calculator_states'] = merged_states
         
         if not update_data:
-            return jsonify({'error': 'No valid fields to update'}), 400
+             # Even if no updates, maybe create the record if missing?
+             # But usually frontend sends data.
+             pass 
         
-        response = supabase.table('calculator_preferences').update(update_data).eq('user_id', user_id).execute()
+        # First check if record exists
+        check = supabase.table('calculator_preferences').select('id').eq('user_id', user_id).execute()
         
+        if check.data:
+            # Update
+            response = supabase.table('calculator_preferences').update(update_data).eq('user_id', user_id).execute()
+        else:
+            # Insert
+            update_data['user_id'] = user_id
+            response = supabase.table('calculator_preferences').insert(update_data).execute()
+            
         if not response.data:
-            return jsonify({'error': 'Failed to update preferences'}), 400
+             raise HTTPException(status_code=400, detail="Failed to update preferences")
         
         # Format response to match GET endpoint structure
         updated_prefs = response.data[0]
@@ -139,12 +153,14 @@ def update_preferences():
         if calculator_states:
             preferences.update(calculator_states)
         
-        return jsonify({
+        return {
             'success': True,
             'preferences': preferences
-        }), 200
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Update preferences error: {str(e)}")
         traceback.print_exc()
-        return jsonify({'error': str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
