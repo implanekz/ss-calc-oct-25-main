@@ -256,7 +256,16 @@ export const UserProvider = ({ children }) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || data.detail || 'Failed to update profile');
 
-      setProfile(data.profile);
+      // Normalize profile response
+      const p = data.profile;
+      const normalizedProfile = {
+        ...p,
+        firstName: p.firstName ?? p.first_name,
+        lastName: p.lastName ?? p.last_name,
+        dateOfBirth: p.dateOfBirth ?? p.date_of_birth,
+        relationshipStatus: p.relationshipStatus ?? p.relationship_status,
+      };
+      setProfile(normalizedProfile);
       return data;
     } catch (err) {
       setError(err.message);
@@ -312,7 +321,16 @@ export const UserProvider = ({ children }) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || data.detail || 'Failed to update partner');
 
-      setPartners(partners.map(p => p.id === partnerId ? data.partner : p));
+      // Normalize partner response
+      const pt = data.partner;
+      const normalizedPartner = {
+        ...pt,
+        firstName: pt.firstName ?? pt.first_name,
+        lastName: pt.lastName ?? pt.last_name,
+        dateOfBirth: pt.dateOfBirth ?? pt.date_of_birth,
+      };
+
+      setPartners(partners.map(p => p.id === partnerId ? normalizedPartner : p));
       return data;
     } catch (err) {
       setError(err.message);
