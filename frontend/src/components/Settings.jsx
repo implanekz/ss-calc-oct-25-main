@@ -5,10 +5,10 @@ import { useDevMode } from '../contexts/DevModeContext';
 const Settings = () => {
     const { profile: realProfile, partners: realPartners, updateProfile, updatePartner } = useUser();
     const { isDevMode, devProfile, devPartners, updateDevProfile, updateDevPartner } = useDevMode();
-    
+
     const profile = isDevMode ? devProfile : realProfile;
     const partners = isDevMode ? devPartners : realPartners;
-    
+
     // State
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -48,17 +48,15 @@ const Settings = () => {
 
     useEffect(() => {
         if (profile) {
-            const displayName = profile.display_name || '';
-            const nameParts = displayName.split(' ');
-            setFirstName(nameParts[0] || '');
-            setLastName(nameParts.slice(1).join(' ') || '');
-            setDateOfBirth(profile.date_of_birth || '');
+            setFirstName(profile.firstName || profile.first_name || '');
+            setLastName(profile.lastName || profile.last_name || '');
+            setDateOfBirth(profile.dateOfBirth || profile.date_of_birth || '');
             setEmail(profile.email || '');
-            setRelationshipStatus(profile.relationship_status || 'single');
-            setEverDivorced(profile.ever_divorced || false);
-            setDivorceCount(profile.divorce_count || 1);
-            setEverWidowed(profile.ever_widowed || false);
-            setWidowedCount(profile.widowed_count || 1);
+            setRelationshipStatus(profile.relationshipStatus || profile.relationship_status || 'single');
+            setEverDivorced(profile.everDivorced || profile.ever_divorced || false);
+            setDivorceCount(profile.divorceCount || profile.divorce_count || 1);
+            setEverWidowed(profile.everWidowed || profile.ever_widowed || false);
+            setWidowedCount(profile.widowedCount || profile.widowed_count || 1);
             setHasStartedSS(profile.has_started_ss || false);
             setSSStartDate(profile.ss_start_date || '');
             setCurrentSSBenefit(profile.current_ss_benefit || '');
@@ -77,12 +75,14 @@ const Settings = () => {
             setRemarriageDate(profile.remarriage_date || '');
         }
         if (partners && partners.length > 0) {
-            setSpouseName(partners[0].name || '');
-            setSpouseDateOfBirth(partners[0].date_of_birth || '');
-            setMarriageDate(partners[0].marriage_date || '');
-            setSpouseHasStartedSS(partners[0].has_started_ss || false);
-            setSpouseSSBenefit(partners[0].ss_benefit || '');
-            setSpousePIA(partners[0].pia || '');
+            const p = partners[0];
+            const pName = p.name || (p.firstName && p.lastName ? `${p.firstName} ${p.lastName}` : '') || p.firstName || '';
+            setSpouseName(pName);
+            setSpouseDateOfBirth(p.dateOfBirth || p.date_of_birth || '');
+            setMarriageDate(p.marriage_date || '');
+            setSpouseHasStartedSS(p.has_started_ss || false);
+            setSpouseSSBenefit(p.ss_benefit || '');
+            setSpousePIA(p.pia || '');
         }
     }, [profile, partners]);
 
@@ -134,7 +134,7 @@ const Settings = () => {
     const handleSave = async () => {
         setSaving(true);
         setSaveMessage('');
-        
+
         try {
             const displayName = `${firstName} ${lastName}`.trim();
             const profileUpdate = {
@@ -299,11 +299,10 @@ const Settings = () => {
                                         <button
                                             key={status}
                                             onClick={() => setRelationshipStatus(status)}
-                                            className={`px-4 py-3 rounded-xl border-2 transition-all ${
-                                                relationshipStatus === status
+                                            className={`px-4 py-3 rounded-xl border-2 transition-all ${relationshipStatus === status
                                                     ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium'
                                                     : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300'
-                                            }`}
+                                                }`}
                                         >
                                             {status.charAt(0).toUpperCase() + status.slice(1)}
                                         </button>
@@ -392,9 +391,8 @@ const Settings = () => {
                                         value={spouseDateOfBirth}
                                         onChange={(e) => setSpouseDateOfBirth(e.target.value)}
                                         disabled={!!spouseDateOfBirth && !isDevMode}
-                                        className={`w-full px-4 py-3 border border-gray-200 rounded-xl ${
-                                            spouseDateOfBirth && !isDevMode ? 'bg-gray-100 cursor-not-allowed' : 'bg-gray-50'
-                                        }`}
+                                        className={`w-full px-4 py-3 border border-gray-200 rounded-xl ${spouseDateOfBirth && !isDevMode ? 'bg-gray-100 cursor-not-allowed' : 'bg-gray-50'
+                                            }`}
                                     />
                                     {spouseAge && <div className="mt-1 text-sm text-gray-500">Age: {spouseAge} | FRA: {spouseFRA}</div>}
                                 </div>

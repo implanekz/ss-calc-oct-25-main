@@ -8,7 +8,7 @@ const REMOTE_API_URL =
   process.env.REACT_APP_API_URL ||
   'https://api.ret1re.com';
 
-const LOCAL_API_URL = process.env.REACT_APP_API_URL_LOCAL || 'http://localhost:8000';
+const LOCAL_API_URL = process.env.REACT_APP_API_URL_LOCAL || 'http://127.0.0.1:8000';
 
 const forceRemote = process.env.REACT_APP_API_URL_FORCE_REMOTE === 'true';
 const forceLocal = process.env.REACT_APP_API_URL_FORCE_LOCAL === 'true';

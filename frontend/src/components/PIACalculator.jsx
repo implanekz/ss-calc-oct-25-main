@@ -9,18 +9,18 @@ import { API_BASE_URL } from '../config/api';
 const PIACalculator = () => {
     // Get user context for names and marital status
     const { profile, partners } = useUser();
-    
+
     // Read the main calculator's persisted state to sync married/single view
     const { state: mainCalcState } = useCalculatorPersistence('showMeTheMoney', {});
-    
+
     // Determine if user is married - use main calculator's state if available, otherwise fall back to profile
-    const isMarried = mainCalcState?.isMarried !== undefined 
-        ? mainCalcState.isMarried 
+    const isMarried = mainCalcState?.isMarried !== undefined
+        ? mainCalcState.isMarried
         : (profile?.relationship_status && ['married', 'divorced', 'widowed'].includes(profile.relationship_status));
-    
+
     // Tab management
     const [activeTab, setActiveTab] = useState('primary');
-    
+
     // PRIMARY State management - use profile DOB if available
     const getInitialBirthYear = () => {
         if (profile?.date_of_birth) {
@@ -113,22 +113,48 @@ const PIACalculator = () => {
     const setUploadedFileName = isPrimary ? setPrimaryUploadedFileName : setSpouseUploadedFileName;
     const uploadedFileHash = isPrimary ? primaryUploadedFileHash : spouseUploadedFileHash;
     const setUploadedFileHash = isPrimary ? setPrimaryUploadedFileHash : setSpouseUploadedFileHash;
-    
-    // Get tab labels from user context
-    const primaryLabel = profile?.firstName && profile?.lastName 
-        ? `${profile.firstName} ${profile.lastName}` 
-        : 'Primary Spouse';
-    const spouseLabel = partners?.[0]?.firstName && partners?.[0]?.lastName
-        ? `${partners[0].firstName} ${partners[0].lastName}`
-        : 'Spouse Filer';
 
-    // Initialize earnings history with current year and future projections (only on first mount)
+    // Get tab labels from user context
+    const pFirst = profile?.firstName || profile?.first_name;
+    const pLast = profile?.lastName || profile?.last_name;
+    const primaryLabel = pFirst && pLast ? `${pFirst} ${pLast}` : 'Primary Spouse';
+
+    const sFirst = partners?.[0]?.firstName || partners?.[0]?.first_name;
+    const sLast = partners?.[0]?.lastName || partners?.[0]?.last_name;
+    const spouseLabel = sFirst && sLast ? `${sFirst} ${sLast}` : 'Spouse Filer';
+
+    // Sync Primary Birth Year
     useEffect(() => {
-        // Only initialize if earnings history is empty
-        if (earningsHistory.length === 0) {
+        const dob = profile?.date_of_birth || profile?.dateOfBirth;
+        if (dob) {
+            const y = new Date(dob).getFullYear();
+            if (y >= 1937 && y <= 2010 && y !== primaryBirthYear) setPrimaryBirthYear(y);
+        }
+    }, [profile, primaryBirthYear]);
+
+    // Sync Spouse Birth Year
+    useEffect(() => {
+        if (partners?.[0]) {
+            const dob = partners[0].date_of_birth || partners[0].dateOfBirth;
+            if (dob) {
+                const y = new Date(dob).getFullYear();
+                if (y >= 1937 && y <= 2010 && y !== spouseBirthYear) setSpouseBirthYear(y);
+            }
+        }
+    }, [partners, spouseBirthYear]);
+
+    // Initialize earnings history with current year and future projections
+    useEffect(() => {
+        // Only initialize if earnings history is empty OR contains no data
+        const hasData = earningsHistory.some(e => e.earnings > 0);
+
+        if (earningsHistory.length === 0 || !hasData) {
             const currentYear = new Date().getFullYear();
             const startYear = birthYear + 18; // Assume work starts at 18
             const endYear = Math.min(currentYear + 15, birthYear + 80); // Project 15 years out or to age 80
+
+            // If we are regenerating due to birth year change, we can preserve existing non-zero values if years match?
+            // But if !hasData, there are no values to preserve.
 
             const initialEarnings = [];
             for (let year = startYear; year <= endYear; year++) {
@@ -145,7 +171,7 @@ const PIACalculator = () => {
             }
             setEarningsHistory(initialEarnings);
         }
-    }, []);
+    }, [birthYear, activeTab]); // Re-run when birthYear changes or tab switches
 
     // Calculate PIA from earnings
     const calculatePIA = async () => {
@@ -182,7 +208,7 @@ const PIACalculator = () => {
             });
 
             console.log('Response status:', response.status, response.statusText);
-            
+
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Error response:', errorText);
@@ -259,7 +285,7 @@ const PIACalculator = () => {
 
             const result = await response.json();
             console.log('What-if result:', result);
-            
+
             setWhatIfResult(result);
             setWhatIfScenario({
                 name: 'What-If Scenario',
@@ -438,13 +464,13 @@ const PIACalculator = () => {
     const updateEarnings = (year, value) => {
         const maxForYear = getTaxableMaximum(year);
         const cappedValue = Math.min(parseFloat(value) || 0, maxForYear);
-        
+
         // Show warning if value was capped
         if (parseFloat(value) > maxForYear) {
             setError(`Earnings for ${year} capped at $${maxForYear.toLocaleString()} (SSA taxable maximum)`);
             setTimeout(() => setError(null), 3000);
         }
-        
+
         setEarningsHistory(prev =>
             prev.map(e =>
                 e.year === year
@@ -520,14 +546,13 @@ const PIACalculator = () => {
                 <div className="mb-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-300 rounded-lg">
                     <Tabs>
                         <TabList className="flex gap-3">
-                            <Tab 
-                                active={activeTab === 'primary'} 
+                            <Tab
+                                active={activeTab === 'primary'}
                                 onClick={() => setActiveTab('primary')}
-                                className={`px-6 py-3 text-base font-bold rounded-lg transition-all ${
-                                    activeTab === 'primary' 
-                                        ? 'bg-blue-600 text-white shadow-lg' 
+                                className={`px-6 py-3 text-base font-bold rounded-lg transition-all ${activeTab === 'primary'
+                                        ? 'bg-blue-600 text-white shadow-lg'
                                         : 'bg-white text-gray-700 hover:bg-gray-100'
-                                }`}
+                                    }`}
                             >
                                 <span className="text-xl">👤</span> {primaryLabel}
                                 {primaryCalculatedResult && (
@@ -536,14 +561,13 @@ const PIACalculator = () => {
                                     </span>
                                 )}
                             </Tab>
-                            <Tab 
-                                active={activeTab === 'spouse'} 
+                            <Tab
+                                active={activeTab === 'spouse'}
                                 onClick={() => setActiveTab('spouse')}
-                                className={`px-6 py-3 text-base font-bold rounded-lg transition-all ${
-                                    activeTab === 'spouse' 
-                                        ? 'bg-purple-600 text-white shadow-lg' 
+                                className={`px-6 py-3 text-base font-bold rounded-lg transition-all ${activeTab === 'spouse'
+                                        ? 'bg-purple-600 text-white shadow-lg'
                                         : 'bg-white text-gray-700 hover:bg-gray-100'
-                                }`}
+                                    }`}
                             >
                                 <span className="text-xl">💑</span> {spouseLabel}
                                 {spouseCalculatedResult && (
@@ -602,9 +626,8 @@ const PIACalculator = () => {
                             e.target.value = 1964;
                         }
                     }}
-                    className={`w-32 px-3 py-2 border-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        birthYear < 1937 ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                    }`}
+                    className={`w-32 px-3 py-2 border-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${birthYear < 1937 ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                        }`}
                 />
                 <p className="mt-2 text-xs text-gray-600">
                     Used to calculate wage indexing (at age 60) and bend points (at age 62). <strong className="text-blue-700">Current: {birthYear}</strong>
@@ -677,13 +700,13 @@ const PIACalculator = () => {
                         <span className="text-lg">ℹ️</span>
                         How to Download Your XML File from SSA.gov
                     </h4>
-                    
+
                     <div className="text-xs text-gray-700 space-y-3">
                         <p>
-                            To find your personal XML file from SSA.gov, you must log in to your "my Social Security" account. 
+                            To find your personal XML file from SSA.gov, you must log in to your "my Social Security" account.
                             This file, which contains your earnings record and benefit estimates, can be downloaded securely through your account.
                         </p>
-                        
+
                         <div className="bg-purple-50 p-3 rounded-md">
                             <p className="font-semibold text-gray-900 mb-2">How to download your XML file:</p>
                             <ol className="list-decimal list-inside space-y-1.5 ml-2">
@@ -704,13 +727,13 @@ const PIACalculator = () => {
                                 </li>
                             </ol>
                         </div>
-                        
+
                         <div className="flex items-center gap-2 pt-2">
                             <span className="text-purple-600">📹</span>
-                            <a 
-                                href="https://rssa.com/videos/rssa-roadmap-client-portal-tutorial/" 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
+                            <a
+                                href="https://rssa.com/videos/rssa-roadmap-client-portal-tutorial/"
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="text-purple-600 hover:text-purple-800 hover:underline font-semibold"
                             >
                                 Watch Video Tutorial →
@@ -736,25 +759,22 @@ const PIACalculator = () => {
                     <button
                         onClick={() => setUseCalculatedPIA(!useCalculatedPIA)}
                         disabled={!calculatedResult}
-                        className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors ${
-                            useCalculatedPIA && calculatedResult
+                        className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors ${useCalculatedPIA && calculatedResult
                                 ? 'bg-emerald-600'
                                 : 'bg-gray-300'
-                        } ${!calculatedResult ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                            } ${!calculatedResult ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                         <span
-                            className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                                useCalculatedPIA && calculatedResult ? 'translate-x-9' : 'translate-x-1'
-                            }`}
+                            className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${useCalculatedPIA && calculatedResult ? 'translate-x-9' : 'translate-x-1'
+                                }`}
                         />
                     </button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     {/* SSA PIA */}
-                    <div className={`p-4 bg-white rounded-lg border-2 ${
-                        !useCalculatedPIA ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'
-                    }`}>
+                    <div className={`p-4 bg-white rounded-lg border-2 ${!useCalculatedPIA ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'
+                        }`}>
                         <div className="text-xs font-semibold text-gray-500 uppercase mb-1">
                             SSA Estimate
                         </div>
@@ -770,9 +790,8 @@ const PIACalculator = () => {
                     </div>
 
                     {/* Calculated PIA */}
-                    <div className={`p-4 bg-white rounded-lg border-2 ${
-                        useCalculatedPIA && calculatedResult ? 'border-emerald-500 ring-2 ring-emerald-200' : 'border-gray-200'
-                    }`}>
+                    <div className={`p-4 bg-white rounded-lg border-2 ${useCalculatedPIA && calculatedResult ? 'border-emerald-500 ring-2 ring-emerald-200' : 'border-gray-200'
+                        }`}>
                         <div className="text-xs font-semibold text-gray-500 uppercase mb-1">
                             Calculated from Earnings
                         </div>
@@ -792,9 +811,8 @@ const PIACalculator = () => {
                     <div className="mt-4 p-3 bg-white rounded-lg border border-gray-200">
                         <div className="flex items-center justify-between text-sm">
                             <span className="font-medium text-gray-700">Difference:</span>
-                            <span className={`font-bold ${
-                                calculatedResult.pia > ssaPIA ? 'text-green-600' : 'text-red-600'
-                            }`}>
+                            <span className={`font-bold ${calculatedResult.pia > ssaPIA ? 'text-green-600' : 'text-red-600'
+                                }`}>
                                 {calculatedResult.pia > ssaPIA ? '+' : ''}
                                 {formatCurrency(calculatedResult.pia - ssaPIA)} per month
                             </span>
@@ -868,9 +886,8 @@ const PIACalculator = () => {
                                 {visibleEarnings.map((record) => (
                                     <tr
                                         key={record.year}
-                                        className={`hover:bg-gray-50 ${
-                                            record.is_projected ? 'bg-green-50' : ''
-                                        }`}
+                                        className={`hover:bg-gray-50 ${record.is_projected ? 'bg-green-50' : ''
+                                            }`}
                                     >
                                         <td className="px-4 py-2 text-sm font-medium text-gray-900">
                                             {record.year}
@@ -1024,27 +1041,24 @@ const PIACalculator = () => {
                         </div>
 
                         {/* Difference */}
-                        <div className={`p-4 rounded-lg ${
-                            whatIfResult.pia > calculatedResult.pia
+                        <div className={`p-4 rounded-lg ${whatIfResult.pia > calculatedResult.pia
                                 ? 'bg-green-50 border-2 border-green-500'
                                 : whatIfResult.pia < calculatedResult.pia
-                                ? 'bg-red-50 border-2 border-red-500'
-                                : 'bg-gray-50 border-2 border-gray-400'
-                        }`}>
-                            <div className="text-sm font-semibold text-gray-600 mb-2">Difference</div>
-                            <div className={`text-3xl font-bold mb-3 ${
-                                whatIfResult.pia > calculatedResult.pia ? 'text-green-700' :
-                                whatIfResult.pia < calculatedResult.pia ? 'text-red-700' : 'text-gray-700'
+                                    ? 'bg-red-50 border-2 border-red-500'
+                                    : 'bg-gray-50 border-2 border-gray-400'
                             }`}>
+                            <div className="text-sm font-semibold text-gray-600 mb-2">Difference</div>
+                            <div className={`text-3xl font-bold mb-3 ${whatIfResult.pia > calculatedResult.pia ? 'text-green-700' :
+                                    whatIfResult.pia < calculatedResult.pia ? 'text-red-700' : 'text-gray-700'
+                                }`}>
                                 {whatIfResult.pia > calculatedResult.pia ? '+' : ''}
                                 {formatCurrency(whatIfResult.pia - calculatedResult.pia)}
                                 <span className="text-sm font-normal text-gray-600">/month</span>
                             </div>
                             <div className="space-y-1 text-sm text-gray-700">
                                 <div className="font-semibold">Lifetime Impact (25 years):</div>
-                                <div className={`text-lg font-bold ${
-                                    whatIfResult.pia > calculatedResult.pia ? 'text-green-700' : 'text-red-700'
-                                }`}>
+                                <div className={`text-lg font-bold ${whatIfResult.pia > calculatedResult.pia ? 'text-green-700' : 'text-red-700'
+                                    }`}>
                                     {whatIfResult.pia > calculatedResult.pia ? '+' : ''}
                                     {formatCurrency((whatIfResult.pia - calculatedResult.pia) * 12 * 25)}
                                 </div>
@@ -1112,10 +1126,9 @@ const PIACalculator = () => {
                                             {whatIfEarnings.filter(e => e.visible).map((record) => (
                                                 <tr
                                                     key={record.year}
-                                                    className={`${
-                                                        record.is_projected ? 'bg-green-50' :
-                                                        record.earnings === 0 ? 'bg-red-50' : ''
-                                                    } hover:bg-blue-50`}
+                                                    className={`${record.is_projected ? 'bg-green-50' :
+                                                            record.earnings === 0 ? 'bg-red-50' : ''
+                                                        } hover:bg-blue-50`}
                                                 >
                                                     <td className="px-4 py-3 text-sm font-medium text-gray-900">
                                                         {record.year}

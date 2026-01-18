@@ -206,7 +206,10 @@ function OnboardingScreen({ devMode = null }) {
     marriageLength: '',
     dateOfDeath: '',
     // Children
-    children: []
+    children: [],
+    // Extended Info
+    partnerEmail: '',
+    isDisabled: false
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -321,9 +324,9 @@ function OnboardingScreen({ devMode = null }) {
     setFormData({ ...formData, children: newChildren });
   };
 
-  const updateChild = (index, dateOfBirth) => {
+  const updateChild = (index, field, value) => {
     const newChildren = [...formData.children];
-    newChildren[index] = { dateOfBirth };
+    newChildren[index] = { ...newChildren[index], [field]: value };
     setFormData({ ...formData, children: newChildren });
   };
 
@@ -366,7 +369,8 @@ function OnboardingScreen({ devMode = null }) {
         ever_divorced: formData.everDivorced === true,
         ever_widowed: formData.everWidowed === true,
         divorce_count: formData.divorceHistory.length,
-        widow_count: formData.widowHistory.length
+        widow_count: formData.widowHistory.length,
+        is_disabled: formData.isDisabled === true
       };
 
       // Add benefit details if receiving benefits
@@ -386,7 +390,8 @@ function OnboardingScreen({ devMode = null }) {
           firstName: formData.partnerFirstName || undefined,
           lastName: formData.partnerLastName || undefined,
           dateOfBirth: norm(formData.partnerDob),
-          alreadyReceivingBenefits: formData.partnerReceivingBenefits === true
+          alreadyReceivingBenefits: formData.partnerReceivingBenefits === true,
+          email: formData.partnerEmail || undefined // Capture email
         };
 
         // Add partner benefit details if receiving benefits
@@ -417,10 +422,15 @@ function OnboardingScreen({ devMode = null }) {
         for (const child of formData.children) {
           if (child.dateOfBirth) {
             // In dev mode, use the provided method, otherwise call API
+            const childPayload = {
+              dateOfBirth: norm(child.dateOfBirth),
+              isDisabled: child.isDisabled || false
+            };
+
             if (devMode && devMode.addChild) {
-              devMode.addChild({ date_of_birth: child.dateOfBirth });
+              devMode.addChild({ date_of_birth: childPayload.dateOfBirth, is_disabled: childPayload.isDisabled });
             } else {
-              await addChildApi({ dateOfBirth: norm(child.dateOfBirth) });
+              await addChildApi(childPayload);
             }
           }
         }
@@ -912,6 +922,38 @@ function OnboardingScreen({ devMode = null }) {
                 </div>
               </div>
 
+              {/* Disability Status */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Do you have a disability?
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, isDisabled: false })}
+                    className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${formData.isDisabled === false
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                      }`}
+                  >
+                    No
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, isDisabled: true })}
+                    className={`py-2.5 px-4 rounded-lg border-2 transition-all font-medium ${formData.isDisabled === true
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                      }`}
+                  >
+                    Yes
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  This helps us check eligibility for disability-related benefits (SSDI, Disabled Widow's, etc).
+                </p>
+              </div>
+
               {/* Benefit Details - Show if receiving benefits */}
               {formData.receivingBenefits === true && (
                 <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -1069,6 +1111,20 @@ function OnboardingScreen({ devMode = null }) {
                     value={formData.partnerDob}
                     onChange={(e) => setFormData({ ...formData, partnerDob: e.target.value })}
                     className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                {/* Partner Email */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Spouse Email (Recommended)
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.partnerEmail}
+                    onChange={(e) => setFormData({ ...formData, partnerEmail: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="spouse@email.com"
                   />
                 </div>
 
@@ -1254,11 +1310,10 @@ function OnboardingScreen({ devMode = null }) {
                   </>
                 )}
 
-                {/* Children Section */}
                 <div className="border-t pt-6 mt-2">
                   <div className="flex items-center justify-between mb-3">
                     <label className="text-sm font-medium text-slate-700">
-                      Children under 16 (optional)
+                      Children (Under 19 or Disabled)
                     </label>
                     <button
                       type="button"
@@ -1272,13 +1327,22 @@ function OnboardingScreen({ devMode = null }) {
                   {formData.children.length > 0 && (
                     <div className="space-y-2">
                       {formData.children.map((child, index) => (
-                        <div key={index} className="flex gap-2">
+                        <div key={index} className="flex gap-2 items-center">
                           <input
                             type="date"
                             value={child.dateOfBirth}
-                            onChange={(e) => updateChild(index, e.target.value)}
+                            onChange={(e) => updateChild(index, 'dateOfBirth', e.target.value)}
                             className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                           />
+                          <label className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-2 py-2 rounded border cursor-pointer hover:bg-slate-100">
+                            <input
+                              type="checkbox"
+                              checked={child.isDisabled || false}
+                              onChange={(e) => updateChild(index, 'isDisabled', e.target.checked)}
+                              className="rounded text-blue-600 focus:ring-blue-500"
+                            />
+                            Disabled?
+                          </label>
                           <button
                             type="button"
                             onClick={() => removeChild(index)}
@@ -1316,13 +1380,22 @@ function OnboardingScreen({ devMode = null }) {
                   {formData.children.length > 0 && (
                     <div className="space-y-2">
                       {formData.children.map((child, index) => (
-                        <div key={index} className="flex gap-2">
+                        <div key={index} className="flex gap-2 items-center">
                           <input
                             type="date"
                             value={child.dateOfBirth}
-                            onChange={(e) => updateChild(index, e.target.value)}
+                            onChange={(e) => updateChild(index, 'dateOfBirth', e.target.value)}
                             className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                           />
+                          <label className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-2 py-2 rounded border cursor-pointer hover:bg-slate-100">
+                            <input
+                              type="checkbox"
+                              checked={child.isDisabled || false}
+                              onChange={(e) => updateChild(index, 'isDisabled', e.target.checked)}
+                              className="rounded text-blue-600 focus:ring-blue-500"
+                            />
+                            Disabled?
+                          </label>
                           <button
                             type="button"
                             onClick={() => removeChild(index)}
@@ -1704,7 +1777,7 @@ function AppWithAuth() {
     return <LoginScreen />;
   }
 
-  if (!profile?.onboarding_completed) {
+  if (!profile?.onboarding_completed_at) {
     return <OnboardingScreen />;
   }
 
@@ -1799,7 +1872,7 @@ function AppWithDevMode() {
 
       {!user ? (
         <LoginScreenWithDevMode />
-      ) : !profile?.onboarding_completed ? (
+      ) : !profile?.onboarding_completed_at ? (
         <OnboardingScreenWithDevMode />
       ) : (
         <CalculatorApp />

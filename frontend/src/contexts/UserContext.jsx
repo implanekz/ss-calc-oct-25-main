@@ -62,6 +62,15 @@ export const UserProvider = ({ children }) => {
       const profileRes = await fetch(`${API_BASE_URL}/api/profiles/me/full`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+
+      if (profileRes.status === 401) {
+        // Token invalid/expired - force logout
+        await supabase.auth.signOut();
+        setUser(null);
+        setProfile(null);
+        return;
+      }
+
       const profileData = await profileRes.json();
       if (profileRes.ok) {
         // Normalize keys for front-end (camelCase) while preserving originals
@@ -245,7 +254,7 @@ export const UserProvider = ({ children }) => {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to update profile');
+      if (!response.ok) throw new Error(data.error || data.detail || 'Failed to update profile');
 
       setProfile(data.profile);
       return data;
@@ -301,7 +310,7 @@ export const UserProvider = ({ children }) => {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to update partner');
+      if (!response.ok) throw new Error(data.error || data.detail || 'Failed to update partner');
 
       setPartners(partners.map(p => p.id === partnerId ? data.partner : p));
       return data;

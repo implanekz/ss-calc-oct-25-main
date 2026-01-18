@@ -1625,8 +1625,8 @@ const ShowMeTheMoneyCalculator = () => {
     const navigate = useNavigate();
 
     // Get user context data
-    const { profile: realProfile, partners: realPartners } = useUser();
-    const { isDevMode, devProfile, devPartners } = useDevMode();
+    const { profile: realProfile, partners: realPartners, updateProfile, updatePartner } = useUser();
+    const { isDevMode, devProfile, devPartners, updateDevProfile, updateDevPartner } = useDevMode();
 
     // Use dev or real data based on mode
     const profile = isDevMode ? devProfile : realProfile;
@@ -1717,6 +1717,8 @@ const ShowMeTheMoneyCalculator = () => {
 
     // Force Sync with Profile/Partners Data
     // This ensures that if the user updates Onboarding, the calculator reflects it effectively.
+    // Force Sync with Profile/Partners Data
+    // This ensures that if the user updates Onboarding, the calculator reflects it effectively.
     useEffect(() => {
         if (!profile) return;
 
@@ -1732,16 +1734,26 @@ const ShowMeTheMoneyCalculator = () => {
             setSpouse1Dob(profileDob);
         }
 
-        // 3. Sync Spouse DOB
+        // 3. Sync Primary PIA
+        const profilePia = profile.pia_at_fra ?? profile.piaAtFra ?? profile.own_pia ?? profile.ownPia;
+        if (profilePia !== undefined && profilePia !== null && profilePia !== spouse1Pia) {
+            setSpouse1Pia(profilePia);
+        }
+
+        // 4. Sync Spouse Info
         if (partners && partners.length > 0) {
-            const partnerDob = partners[0].date_of_birth || partners[0].dateOfBirth;
-            // Only update if current DOB is default/wrong? Or always force sync?
-            // Force sync is safer to ensure it matches onboarding.
+            const partner = partners[0];
+            const partnerDob = partner.date_of_birth || partner.dateOfBirth;
             if (partnerDob && partnerDob !== spouse2Dob) {
                 setSpouse2Dob(partnerDob);
             }
+
+            const partnerPia = partner.pia_at_fra ?? partner.piaAtFra ?? partner.pia;
+            if (partnerPia !== undefined && partnerPia !== null && partnerPia !== spouse2Pia) {
+                setSpouse2Pia(partnerPia);
+            }
         }
-    }, [profile, partners, isMarried, spouse1Dob, spouse2Dob]);
+    }, [profile, partners]); // Dep on profile/partners strictly to avoid typing loops
 
     // Persist ALL state changes
     useEffect(() => {
@@ -3001,6 +3013,27 @@ const ShowMeTheMoneyCalculator = () => {
         setChartView('sscuts');
     };
 
+    const handlePiaBlur = () => {
+        const val = Number(spouse1Pia) || 0;
+        if (isDevMode) {
+            updateDevProfile({ own_pia: val });
+        } else {
+            // Backend expects piaAtFra
+            updateProfile({ piaAtFra: val });
+        }
+    };
+
+    const handleSpousePiaBlur = () => {
+        if (!partners?.[0]?.id) return;
+        const val = Number(spouse2Pia) || 0;
+        if (isDevMode) {
+            updateDevPartner(0, { pia: val });
+        } else {
+            // Backend expects piaAtFra
+            updatePartner(partners[0].id, { piaAtFra: val });
+        }
+    };
+
     const chartTabs = [
         { key: 'monthly', label: 'Monthly Benefit' },
         { key: 'cumulative', label: 'Cumulative Benefit' },
@@ -3088,6 +3121,7 @@ const ShowMeTheMoneyCalculator = () => {
                                                 type="number"
                                                 value={spouse1Pia}
                                                 onChange={e => setSpouse1Pia(e.target.value ? Number(e.target.value) : '')}
+                                                onBlur={handlePiaBlur}
                                                 className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                                                 placeholder="Insert PIA here"
                                             />
@@ -3172,6 +3206,7 @@ const ShowMeTheMoneyCalculator = () => {
                                                     type="number"
                                                     value={spouse2Pia}
                                                     onChange={e => setSpouse2Pia(e.target.value ? Number(e.target.value) : '')}
+                                                    onBlur={handleSpousePiaBlur}
                                                     className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                                                     placeholder="Insert PIA here"
                                                 />
