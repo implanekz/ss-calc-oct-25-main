@@ -1700,13 +1700,15 @@ const ShowMeTheMoneyCalculator = () => {
             hasLoadedPersistedState.current = true;
             // Removed: isMarried, spouse1Dob, spouse2Dob restoration 
             // We now rely on the active sync with Profile context below to ensure accuracy relative to Onboarding
-            if (persistedState.spouse1Pia !== undefined) setSpouse1Pia(persistedState.spouse1Pia);
-            if (persistedState.spouse1PreferredYear !== undefined) setSpouse1PreferredYear(persistedState.spouse1PreferredYear);
-            if (persistedState.spouse1PreferredMonth !== undefined) setSpouse1PreferredMonth(persistedState.spouse1PreferredMonth);
-            // Removed: spouse2Dob restoration
-            if (persistedState.spouse2Pia !== undefined) setSpouse2Pia(persistedState.spouse2Pia);
-            if (persistedState.spouse2PreferredYear !== undefined) setSpouse2PreferredYear(persistedState.spouse2PreferredYear);
-            if (persistedState.spouse2PreferredMonth !== undefined) setSpouse2PreferredMonth(persistedState.spouse2PreferredMonth);
+            // Removed: spouse1Pia and Preferred Ages - now handled by Sync with Profile
+            // if (persistedState.spouse1Pia !== undefined) setSpouse1Pia(persistedState.spouse1Pia);
+            // if (persistedState.spouse1PreferredYear !== undefined) setSpouse1PreferredYear(persistedState.spouse1PreferredYear);
+            // if (persistedState.spouse1PreferredMonth !== undefined) setSpouse1PreferredMonth(persistedState.spouse1PreferredMonth);
+
+            // Removed: spouse2Pia and Preferred Ages - now handled by Sync with Partner/Preferences
+            // if (persistedState.spouse2Pia !== undefined) setSpouse2Pia(persistedState.spouse2Pia);
+            // if (persistedState.spouse2PreferredYear !== undefined) setSpouse2PreferredYear(persistedState.spouse2PreferredYear);
+            // if (persistedState.spouse2PreferredMonth !== undefined) setSpouse2PreferredMonth(persistedState.spouse2PreferredMonth);
             if (persistedState.inflation !== undefined) setInflation(persistedState.inflation);
             if (persistedState.goGoEndAge !== undefined) setGoGoEndAge(persistedState.goGoEndAge);
             if (persistedState.slowGoEndAge !== undefined) setSlowGoEndAge(persistedState.slowGoEndAge);

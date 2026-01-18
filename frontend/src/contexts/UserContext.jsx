@@ -428,7 +428,7 @@ export const UserProvider = ({ children }) => {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to update preferences');
+      if (!response.ok) throw new Error(data.error || data.detail || 'Failed to update preferences');
 
       setPreferences(data.preferences);
       return data;

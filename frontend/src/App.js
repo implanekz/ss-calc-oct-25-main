@@ -1760,7 +1760,7 @@ function CalculatorApp() {
 
 // Main App wrapper with auth flow
 function AppWithAuth() {
-  const { user, profile, loading } = useUser();
+  const { user, profile, loading, error } = useUser();
 
   if (loading) {
     return (
@@ -1775,6 +1775,24 @@ function AppWithAuth() {
 
   if (!user) {
     return <LoginScreen />;
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full text-center">
+          <h2 className="text-red-600 text-xl font-bold mb-4">Connection Error</h2>
+          <p className="text-slate-700 mb-6">{error}</p>
+          <p className="text-sm text-slate-500 mb-6">Please check that the backend server is running.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded transition"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (!profile?.onboarding_completed_at) {
