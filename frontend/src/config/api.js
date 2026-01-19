@@ -3,40 +3,34 @@
  * Centralizes backend API URL selection for local development and production
  */
 
-const REMOTE_API_URL =
-  process.env.REACT_APP_API_URL_REMOTE ||
-  process.env.REACT_APP_API_URL ||
-  'https://api.ret1re.com';
+// 1. Explicit override from environment (Highest Priority)
+const ENV_API_URL = process.env.REACT_APP_API_URL;
 
-const LOCAL_API_URL = process.env.REACT_APP_API_URL_LOCAL || 'http://127.0.0.1:8000';
+// 2. Default Local URL
+const LOCAL_DEFAULT = 'http://127.0.0.1:8000';
 
-const forceRemote = process.env.REACT_APP_API_URL_FORCE_REMOTE === 'true';
-const forceLocal = process.env.REACT_APP_API_URL_FORCE_LOCAL === 'true';
-const nodeEnv = process.env.NODE_ENV;
+let resolvedUrl = LOCAL_DEFAULT;
 
-let resolvedApiUrl = REMOTE_API_URL;
-
-if (typeof window !== 'undefined') {
+if (ENV_API_URL) {
+  // If the environment variable is set (Cloudflare), use it!
+  resolvedUrl = ENV_API_URL;
+} else if (typeof window !== 'undefined') {
+  // Fallback logic for local dev without env vars
   const hostname = window.location.hostname;
   const isLocalHost =
     hostname === 'localhost' ||
     hostname === '127.0.0.1' ||
     hostname === '0.0.0.0' ||
     hostname.endsWith('.local');
-  const isDevBuild = nodeEnv !== 'production';
 
-  if ((isLocalHost || isDevBuild || forceLocal) && !forceRemote) {
-    resolvedApiUrl = LOCAL_API_URL;
-  }
-
-  if (isDevBuild) {
-    console.info(
-      `[api] Using ${resolvedApiUrl} (host=${hostname}, env=${nodeEnv}, forceRemote=${forceRemote}, forceLocal=${forceLocal})`
-    );
+  if (!isLocalHost) {
+    // If we are NOT on localhost, and no env var is set, default to a placeholder or empty
+    // But typically we should have an env var in production.
+    console.warn("Hosted environment detected but REACT_APP_API_URL is missing!");
   }
 }
 
-const API_BASE_URL = resolvedApiUrl;
+const API_BASE_URL = resolvedUrl;
 
-export { API_BASE_URL, LOCAL_API_URL, REMOTE_API_URL };
+export { API_BASE_URL };
 export default API_BASE_URL;
