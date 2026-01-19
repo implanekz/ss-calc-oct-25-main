@@ -1,0 +1,10 @@
+name = "ss-calc-backend"
+main = "main.py"
+compatibility_date = "2024-03-20"
+compatibility_flags = ["python_workers"]
+
+# [observability]
+# enabled = true
+
+# [vars]
+# You will set SUPABASE_URL and SUPABASE_KEY in the Cloudflare Dashboard (Secrets)

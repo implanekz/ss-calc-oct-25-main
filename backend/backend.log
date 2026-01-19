@@ -1,0 +1,457 @@
+INFO:     Will watch for changes in these directories: ['/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend']
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [70094] using StatReload
+INFO:core.integrated_ss_api:CORS allowed_origins=['*']
+INFO:     Started server process [70170]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:core.integrated_ss_api:SSDI calculation error: 'SSDICalculator' object has no attribute 'fra_age_years'
+INFO:     127.0.0.1:56669 - "POST /calculate-ssdi HTTP/1.1" 400 Bad Request
+WARNING:  StatReload detected changes in 'core/ssdi_calculator.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [70170]
+INFO:core.integrated_ss_api:CORS allowed_origins=['*']
+INFO:     Started server process [71095]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:56681 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56688 - "OPTIONS /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56688 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57098 - "OPTIONS /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57098 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57179 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57182 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57185 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57232 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57236 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57326 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'core/ssdi_calculator.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [71095]
+INFO:core.integrated_ss_api:CORS allowed_origins=['*']
+INFO:     Started server process [73076]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'core/ssdi_calculator.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [73076]
+INFO:core.integrated_ss_api:CORS allowed_origins=['*']
+INFO:     Started server process [73096]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:57447 - "OPTIONS /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57447 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57469 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57471 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57471 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57488 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57619 - "OPTIONS /calculate-divorced HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57619 - "POST /calculate-divorced HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58514 - "OPTIONS /calculate-divorced HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58514 - "POST /calculate-divorced HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58526 - "OPTIONS /calculate-widow HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58526 - "POST /calculate-widow HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58617 - "POST /calculate-widow HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58811 - "OPTIONS /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58811 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58849 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'core/ssdi_calculator.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [73096]
+INFO:core.integrated_ss_api:CORS allowed_origins=['*']
+INFO:     Started server process [77596]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:58924 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'core/ssdi_calculator.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [77596]
+INFO:core.integrated_ss_api:CORS allowed_origins=['*']
+INFO:     Started server process [77780]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:59006 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59079 - "OPTIONS /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59079 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59083 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59799 - "OPTIONS /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59799 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59817 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59832 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'core/ssa_xml_processor.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [77780]
+INFO:core.integrated_ss_api:CORS allowed_origins=['*']
+INFO:     Started server process [82079]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'core/integrated_ss_api.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [82079]
+INFO:core.integrated_ss_api:CORS allowed_origins=['*']
+INFO:     Started server process [82104]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:core.integrated_ss_api:Calculating Disability PIA with onset 2026-01-17
+DEBUG: Found 41 EarningsRecord elements (SSA format)
+DEBUG: SSA format - Year: 1984, Earnings: 12500
+DEBUG: SSA format - Year: 1985, Earnings: 14200
+DEBUG: SSA format - Year: 1986, Earnings: 16500
+DEBUG: SSA format - Year: 1987, Earnings: 18000
+DEBUG: SSA format - Year: 1988, Earnings: 19500
+DEBUG: SSA format - Year: 1989, Earnings: 22000
+DEBUG: SSA format - Year: 1990, Earnings: 25000
+DEBUG: SSA format - Year: 1991, Earnings: 0
+DEBUG: SSA format - Year: 1992, Earnings: 0
+DEBUG: SSA format - Year: 1993, Earnings: 0
+DEBUG: SSA format - Year: 1994, Earnings: 0
+DEBUG: SSA format - Year: 1995, Earnings: 0
+DEBUG: SSA format - Year: 1996, Earnings: 32000
+DEBUG: SSA format - Year: 1997, Earnings: 34500
+DEBUG: SSA format - Year: 1998, Earnings: 38000
+DEBUG: SSA format - Year: 1999, Earnings: 41000
+DEBUG: SSA format - Year: 2000, Earnings: 44000
+DEBUG: SSA format - Year: 2001, Earnings: 46500
+DEBUG: SSA format - Year: 2002, Earnings: 49000
+DEBUG: SSA format - Year: 2003, Earnings: 52000
+DEBUG: SSA format - Year: 2004, Earnings: 54500
+DEBUG: SSA format - Year: 2005, Earnings: 58000
+DEBUG: SSA format - Year: 2006, Earnings: 62000
+DEBUG: SSA format - Year: 2007, Earnings: 65000
+DEBUG: SSA format - Year: 2008, Earnings: 67500
+DEBUG: SSA format - Year: 2009, Earnings: 69000
+DEBUG: SSA format - Year: 2010, Earnings: 71000
+DEBUG: SSA format - Year: 2011, Earnings: 73500
+DEBUG: SSA format - Year: 2012, Earnings: 76000
+DEBUG: SSA format - Year: 2013, Earnings: 78500
+DEBUG: SSA format - Year: 2014, Earnings: 81000
+DEBUG: SSA format - Year: 2015, Earnings: 83000
+DEBUG: SSA format - Year: 2016, Earnings: 85000
+DEBUG: SSA format - Year: 2017, Earnings: 86500
+DEBUG: SSA format - Year: 2018, Earnings: 88000
+DEBUG: SSA format - Year: 2019, Earnings: 90000
+DEBUG: SSA format - Year: 2020, Earnings: 92000
+DEBUG: SSA format - Year: 2021, Earnings: 94000
+DEBUG: SSA format - Year: 2022, Earnings: 96000
+DEBUG: SSA format - Year: 2023, Earnings: 98000
+DEBUG: SSA format - Year: 2024, Earnings: 100000
+DEBUG: Total earnings records created: 41
+INFO:     127.0.0.1:61053 - "POST /upload-ssa-xml HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61056 - "OPTIONS /calculate-ssdi HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61056 - "POST /calculate-ssdi HTTP/1.1" 200 OK
+DEBUG: Found 41 EarningsRecord elements (SSA format)
+DEBUG: SSA format - Year: 1984, Earnings: 12500
+DEBUG: SSA format - Year: 1985, Earnings: 14200
+DEBUG: SSA format - Year: 1986, Earnings: 16500
+DEBUG: SSA format - Year: 1987, Earnings: 18000
+DEBUG: SSA format - Year: 1988, Earnings: 19500
+DEBUG: SSA format - Year: 1989, Earnings: 22000
+DEBUG: SSA format - Year: 1990, Earnings: 25000
+DEBUG: SSA format - Year: 1991, Earnings: 0
+DEBUG: SSA format - Year: 1992, Earnings: 0
+DEBUG: SSA format - Year: 1993, Earnings: 0
+DEBUG: SSA format - Year: 1994, Earnings: 0
+DEBUG: SSA format - Year: 1995, Earnings: 0
+DEBUG: SSA format - Year: 1996, Earnings: 32000
+DEBUG: SSA format - Year: 1997, Earnings: 34500
+DEBUG: SSA format - Year: 1998, Earnings: 38000
+DEBUG: SSA format - Year: 1999, Earnings: 41000
+DEBUG: SSA format - Year: 2000, Earnings: 44000
+DEBUG: SSA format - Year: 2001, Earnings: 46500
+DEBUG: SSA format - Year: 2002, Earnings: 49000
+DEBUG: SSA format - Year: 2003, Earnings: 52000
+DEBUG: SSA format - Year: 2004, Earnings: 54500
+DEBUG: SSA format - Year: 2005, Earnings: 58000
+DEBUG: SSA format - Year: 2006, Earnings: 62000
+DEBUG: SSA format - Year: 2007, Earnings: 65000
+DEBUG: SSA format - Year: 2008, Earnings: 67500
+DEBUG: SSA format - Year: 2009, Earnings: 69000
+DEBUG: SSA format - Year: 2010, Earnings: 71000
+DEBUG: SSA format - Year: 2011, Earnings: 73500
+DEBUG: SSA format - Year: 2012, Earnings: 76000
+DEBUG: SSA format - Year: 2013, Earnings: 78500
+DEBUG: SSA format - Year: 2014, Earnings: 81000
+DEBUG: SSA format - Year: 2015, Earnings: 83000
+DEBUG: SSA format - Year: 2016, Earnings: 85000
+DEBUG: SSA format - Year: 2017, Earnings: 86500
+DEBUG: SSA format - Year: 2018, Earnings: 88000
+DEBUG: SSA format - Year: 2019, Earnings: 90000
+DEBUG: SSA format - Year: 2020, Earnings: 92000
+DEBUG: SSA format - Year: 2021, Earnings: 94000
+DEBUG: SSA format - Year: 2022, Earnings: 96000
+DEBUG: SSA format - Year: 2023, Earnings: 98000
+DEBUG: SSA format - Year: 2024, Earnings: 100000
+DEBUG: Total earnings records created: 41
+INFO:     127.0.0.1:61068 - "POST /upload-ssa-xml HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61068 - "OPTIONS /calculate-pia-from-earnings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61068 - "POST /calculate-pia-from-earnings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61080 - "POST /calculate-pia-from-earnings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61095 - "POST /calculate-pia-from-earnings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61501 - "OPTIONS /api/auth/login HTTP/1.1" 200 OK
+Login error: [Errno 8] nodename nor servname provided, or not known
+INFO:     127.0.0.1:61501 - "POST /api/auth/login HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:61513 - "OPTIONS /api/auth/signup HTTP/1.1" 200 OK
+Traceback (most recent call last):
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 72, in map_httpcore_exceptions
+    yield
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 236, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_sync/connection.py", line 101, in handle_request
+    raise exc
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_sync/connection.py", line 78, in handle_request
+    stream = self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_sync/connection.py", line 124, in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_backends/sync.py", line 207, in connect_tcp
+    with map_exceptions(exc_map):
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 8] nodename nor servname provided, or not known
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/gotrue/_sync/gotrue_base_api.py", line 113, in _request
+    response = self._http_client.request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_client.py", line 837, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_client.py", line 926, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_client.py", line 954, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_client.py", line 991, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_client.py", line 1027, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 235, in handle_request
+    with map_httpcore_exceptions():
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 89, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 8] nodename nor servname provided, or not known
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/api/auth.py", line 77, in signup
+    auth_response = supabase.auth.sign_up({
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/gotrue/_sync/gotrue_client.py", line 218, in sign_up
+    response = self._request(
+               ^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/gotrue/_sync/gotrue_base_api.py", line 125, in _request
+    raise handle_exception(e)
+gotrue.errors.AuthRetryableError: [Errno 8] nodename nor servname provided, or not known
+Signup error: [Errno 8] nodename nor servname provided, or not known
+INFO:     127.0.0.1:61513 - "POST /api/auth/signup HTTP/1.1" 500 Internal Server Error
+Traceback (most recent call last):
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 72, in map_httpcore_exceptions
+    yield
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 236, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_sync/connection.py", line 101, in handle_request
+    raise exc
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_sync/connection.py", line 78, in handle_request
+    stream = self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_sync/connection.py", line 124, in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_backends/sync.py", line 207, in connect_tcp
+    with map_exceptions(exc_map):
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 8] nodename nor servname provided, or not known
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/gotrue/_sync/gotrue_base_api.py", line 113, in _request
+    response = self._http_client.request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_client.py", line 837, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_client.py", line 926, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_client.py", line 954, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_client.py", line 991, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_client.py", line 1027, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 235, in handle_request
+    with map_httpcore_exceptions():
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 89, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 8] nodename nor servname provided, or not known
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/api/auth.py", line 77, in signup
+    auth_response = supabase.auth.sign_up({
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/gotrue/_sync/gotrue_client.py", line 218, in sign_up
+    response = self._request(
+               ^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/gotrue/_sync/gotrue_base_api.py", line 125, in _request
+    raise handle_exception(e)
+gotrue.errors.AuthRetryableError: [Errno 8] nodename nor servname provided, or not known
+Signup error: [Errno 8] nodename nor servname provided, or not known
+INFO:     127.0.0.1:61516 - "POST /api/auth/signup HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:58327 - "OPTIONS /api/auth/login HTTP/1.1" 200 OK
+Login error: [Errno 8] nodename nor servname provided, or not known
+INFO:     127.0.0.1:58327 - "POST /api/auth/login HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:58679 - "OPTIONS /api/auth/signup HTTP/1.1" 200 OK
+Traceback (most recent call last):
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 72, in map_httpcore_exceptions
+    yield
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 236, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_sync/connection.py", line 101, in handle_request
+    raise exc
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_sync/connection.py", line 78, in handle_request
+    stream = self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_sync/connection.py", line 124, in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_backends/sync.py", line 207, in connect_tcp
+    with map_exceptions(exc_map):
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 8] nodename nor servname provided, or not known
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/gotrue/_sync/gotrue_base_api.py", line 113, in _request
+    response = self._http_client.request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_client.py", line 837, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_client.py", line 926, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_client.py", line 954, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_client.py", line 991, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_client.py", line 1027, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 235, in handle_request
+    with map_httpcore_exceptions():
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 89, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 8] nodename nor servname provided, or not known
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/api/auth.py", line 77, in signup
+    auth_response = supabase.auth.sign_up({
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/gotrue/_sync/gotrue_client.py", line 218, in sign_up
+    response = self._request(
+               ^^^^^^^^^^^^^^
+  File "/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend/venv/lib/python3.12/site-packages/gotrue/_sync/gotrue_base_api.py", line 125, in _request
+    raise handle_exception(e)
+gotrue.errors.AuthRetryableError: [Errno 8] nodename nor servname provided, or not known
+Signup error: [Errno 8] nodename nor servname provided, or not known
+INFO:     127.0.0.1:58679 - "POST /api/auth/signup HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:59465 - "OPTIONS /api/auth/signup HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/signup "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/profiles "HTTP/2 201 Created"
+INFO:httpx:HTTP Request: POST https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences "HTTP/2 201 Created"
+INFO:     127.0.0.1:59465 - "POST /api/auth/signup HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59471 - "OPTIONS /api/profiles/me/full HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59471 - "GET /api/profiles/me/full HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59491 - "OPTIONS /api/profiles/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59491 - "PUT /api/profiles/me HTTP/1.1" 404 Not Found
+WARNING:  StatReload detected changes in 'api/profiles.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [82104]
+INFO:core.integrated_ss_api:CORS allowed_origins=['*']
+INFO:     Started server process [936]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'api/partners.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [936]
+INFO:core.integrated_ss_api:CORS allowed_origins=['*']
+INFO:     Started server process [972]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'api/children.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [972]
+INFO:core.integrated_ss_api:CORS allowed_origins=['*']
+INFO:     Started server process [980]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
