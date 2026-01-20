@@ -113,29 +113,52 @@ async def update_preferences(request: Request):
         
         # If we have calculator states to update, fetch current states and merge
         if calculator_states_update:
-            # Get current calculator_states
-            current_response = supabase.table('calculator_preferences').select('calculator_states').eq('user_id', user_id).single().execute()
-            current_states = current_response.data.get('calculator_states') or {} if current_response.data else {}
-            
-            # Merge new states with current states
-            merged_states = {**current_states, **calculator_states_update}
-            update_data['calculator_states'] = merged_states
+            try:
+                # Get current calculator_states
+                current_response = supabase.table('calculator_preferences').select('calculator_states').eq('user_id', user_id).single().execute()
+                current_states = current_response.data.get('calculator_states') or {} if current_response.data else {}
+                
+                # Merge new states with current states
+                merged_states = {**current_states, **calculator_states_update}
+                update_data['calculator_states'] = merged_states
+            except Exception as e:
+                 # Check for missing column error (PostgREST error 42703)
+                if '42703' in str(e) or 'does not exist' in str(e):
+                    print("WARNING: 'calculator_states' column missing in DB. Skipping state persistence. Please run migration 002.")
+                else:
+                    raise e
         
         if not update_data:
              # Even if no updates, maybe create the record if missing?
              # But usually frontend sends data.
-             pass 
+             return {'success': True, 'preferences': {}} # Return empty success if nothing to update
         
         # First check if record exists
         check = supabase.table('calculator_preferences').select('id').eq('user_id', user_id).execute()
         
-        if check.data:
-            # Update
-            response = supabase.table('calculator_preferences').update(update_data).eq('user_id', user_id).execute()
-        else:
-            # Insert
-            update_data['user_id'] = user_id
-            response = supabase.table('calculator_preferences').insert(update_data).execute()
+        try:
+            if check.data:
+                # Update
+                response = supabase.table('calculator_preferences').update(update_data).eq('user_id', user_id).execute()
+            else:
+                # Insert
+                update_data['user_id'] = user_id
+                response = supabase.table('calculator_preferences').insert(update_data).execute()
+        except Exception as e:
+            # Check for missing column error on insert/update if we missed it above
+            if ('42703' in str(e) or 'does not exist' in str(e)) and 'calculator_states' in update_data:
+                print("WARNING: 'calculator_states' column missing. Retrying update without it.")
+                del update_data['calculator_states']
+                if not update_data: # If that was the only update
+                     return {'success': True, 'preferences': {}}
+
+                if check.data:
+                    response = supabase.table('calculator_preferences').update(update_data).eq('user_id', user_id).execute()
+                else:
+                    update_data['user_id'] = user_id
+                    response = supabase.table('calculator_preferences').insert(update_data).execute()
+            else:
+                raise e
             
         if not response.data:
              raise HTTPException(status_code=400, detail="Failed to update preferences")
