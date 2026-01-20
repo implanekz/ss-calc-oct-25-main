@@ -17,19 +17,107 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  /**
+   * Load all user data from API
+   */
+  const loadUserData = useCallback(async (userId) => {
+    if (!userId) return;
+
+    try {
+      const token = await getAuthToken();
+      if (!token) {
+        throw new Error("No auth token available");
+      }
+
+      // Create a timeout signal to prevent indefinite hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds max
+
+      let profileRes;
+      try {
+        profileRes = await fetch(`${API_BASE_URL}/api/profiles/me/full`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+          signal: controller.signal
+        });
+      } catch (e) {
+        if (e.name === 'AbortError') {
+          throw new Error("Connection timed out. The server took too long to respond.");
+        }
+        throw e;
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
+      if (profileRes.status === 401) {
+        // Token invalid/expired - force logout
+        console.warn("Token expired, signing out...");
+        await supabase.auth.signOut();
+        setUser(null);
+        setProfile(null);
+        return;
+      }
+
+      if (!profileRes.ok) {
+        // Try to read error message
+        try {
+          const errData = await profileRes.json();
+          throw new Error(errData.detail || `Server error: ${profileRes.status}`);
+        } catch (e) {
+          throw new Error(`Server error: ${profileRes.status}`);
+        }
+      }
+
+      const profileData = await profileRes.json();
+
+      // Normalize keys for front-end (camelCase) while preserving originals
+      const p = profileData.profile || {};
+      const normalizedProfile = {
+        ...p,
+        firstName: p.firstName ?? p.first_name,
+        lastName: p.lastName ?? p.last_name,
+        dateOfBirth: p.dateOfBirth ?? p.date_of_birth,
+        relationshipStatus: p.relationshipStatus ?? p.relationship_status,
+      };
+      setProfile(normalizedProfile);
+
+      const partnerList = (profileData.partners || []).map((pt) => ({
+        ...pt,
+        firstName: pt.firstName ?? pt.first_name,
+        lastName: pt.lastName ?? pt.last_name,
+        dateOfBirth: pt.dateOfBirth ?? pt.date_of_birth,
+      }));
+      setPartners(partnerList);
+      setUserChildren(profileData.children || []);
+      setPreferences(profileData.preferences);
+
+    } catch (err) {
+      console.error('Error loading user data:', err);
+      // We do NOT setError here if we can avoid it, because it might just be a temporary network blip.
+      // But if it's critical, we usually set error. 
+      // For now, let's set error so UI knows something failed.
+      setError(err.message);
+    }
+  }, []);
+
   // Initialize auth listener
   useEffect(() => {
+    let mounted = true;
+
     const initAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await loadUserData(session.user.id);
+
+        if (mounted) {
+          setUser(session?.user ?? null);
+          if (session?.user) {
+            await loadUserData(session.user.id);
+          }
         }
       } catch (err) {
-        setError(err.message);
+        console.error("Auth Init Error:", err);
+        if (mounted) setError(err.message);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
@@ -37,68 +125,38 @@ export const UserProvider = ({ children }) => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await loadUserData(session.user.id);
-      } else {
-        setProfile(null);
-        setPartners([]);
-        setUserChildren([]);
-        setPreferences(null);
+      console.log("Auth State Change:", event, session?.user?.email);
+
+      if (mounted) {
+        setUser(session?.user ?? null);
+
+        if (session?.user) {
+          // Only reload if we don't have profile yet or user changed
+          // But usually we want to ensure freshness.
+          // CAREFUL: Calling loadUserData inside listener might not update 'loading' state if logic depends on it.
+          // But here, 'initAuth' handles the initial loading screen. 
+          // If a change happens later, we usually don't want to show full screen loader unless switching users.
+
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            // Optionally fetch data again
+            await loadUserData(session.user.id);
+          }
+        } else {
+          setProfile(null);
+          setPartners([]);
+          setUserChildren([]);
+          setPreferences(null);
+          // If signed out, ensure loading is off
+          setLoading(false);
+        }
       }
     });
 
-    return () => subscription?.unsubscribe();
-  }, []);
-
-  /**
-   * Load all user data from API
-   */
-  const loadUserData = useCallback(async (userId) => {
-    try {
-      const token = await getAuthToken();
-      if (!token) return;
-
-      const profileRes = await fetch(`${API_BASE_URL}/api/profiles/me/full`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (profileRes.status === 401) {
-        // Token invalid/expired - force logout
-        await supabase.auth.signOut();
-        setUser(null);
-        setProfile(null);
-        return;
-      }
-
-      const profileData = await profileRes.json();
-      if (profileRes.ok) {
-        // Normalize keys for front-end (camelCase) while preserving originals
-        const p = profileData.profile || {};
-        const normalizedProfile = {
-          ...p,
-          firstName: p.firstName ?? p.first_name,
-          lastName: p.lastName ?? p.last_name,
-          dateOfBirth: p.dateOfBirth ?? p.date_of_birth,
-          relationshipStatus: p.relationshipStatus ?? p.relationship_status,
-        };
-        setProfile(normalizedProfile);
-
-        const partnerList = (profileData.partners || []).map((pt) => ({
-          ...pt,
-          firstName: pt.firstName ?? pt.first_name,
-          lastName: pt.lastName ?? pt.last_name,
-          dateOfBirth: pt.dateOfBirth ?? pt.date_of_birth,
-        }));
-        setPartners(partnerList);
-        setUserChildren(profileData.children || []);
-        setPreferences(profileData.preferences);
-      }
-    } catch (err) {
-      console.error('Error loading user data:', err);
-      setError(err.message);
-    }
-  }, []);
+    return () => {
+      mounted = false;
+      subscription?.unsubscribe();
+    };
+  }, [loadUserData]);
 
   /**
    * Sign up new user
