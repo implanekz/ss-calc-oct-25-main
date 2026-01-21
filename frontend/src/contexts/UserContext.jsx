@@ -18,6 +18,7 @@ export const UserProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   /**
+  /**
    * Load all user data from API
    */
   const loadUserData = useCallback(async (userId) => {
@@ -102,21 +103,49 @@ export const UserProvider = ({ children }) => {
   // Initialize auth listener
   useEffect(() => {
     let mounted = true;
+    console.log("[UserContext] useEffect mounted");
 
     const initAuth = async () => {
+      console.log("[UserContext] initAuth started");
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        // Create a timeout promise
+        const timeoutPromise = new Promise((resolve) => {
+          setTimeout(() => resolve({ timeOut: true }), 3000); // 3 seconds timeout
+        });
+
+        const sessionPromise = supabase.auth.getSession();
+
+        const result = await Promise.race([sessionPromise, timeoutPromise]);
+
+        if (result.timeOut) {
+          console.warn("[UserContext] Supabase getSession timed out! Assuming no session.");
+          // Fallback: Check localStorage manually? 
+          // If we assume no session, and there IS a token, the user will be asked to login.
+          // This is better than hanging.
+          if (mounted) {
+            setLoading(false);
+          }
+          return;
+        }
+
+        const { data: { session }, error } = result;
+
+        console.log("[UserContext] getSession result:", session ? "Session found" : "No session");
+        if (error) throw error;
 
         if (mounted) {
           setUser(session?.user ?? null);
           if (session?.user) {
+            console.log("[UserContext] Calling loadUserData form initAuth");
             await loadUserData(session.user.id);
+            console.log("[UserContext] loadUserData completed");
           }
         }
       } catch (err) {
-        console.error("Auth Init Error:", err);
+        console.error("[UserContext] Auth Init Error:", err);
         if (mounted) setError(err.message);
       } finally {
+        console.log("[UserContext] initAuth finally block - setting loading to false");
         if (mounted) setLoading(false);
       }
     };
@@ -125,20 +154,16 @@ export const UserProvider = ({ children }) => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth State Change:", event, session?.user?.email);
+      console.log("[UserContext] Auth State Change:", event, session?.user?.email);
 
       if (mounted) {
+        // Update user state immediately
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Only reload if we don't have profile yet or user changed
-          // But usually we want to ensure freshness.
-          // CAREFUL: Calling loadUserData inside listener might not update 'loading' state if logic depends on it.
-          // But here, 'initAuth' handles the initial loading screen. 
-          // If a change happens later, we usually don't want to show full screen loader unless switching users.
-
-          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-            // Optionally fetch data again
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+            // Reload profile data on sign in
+            console.log("[UserContext] Calling loadUserData from onAuthStateChange");
             await loadUserData(session.user.id);
           }
         } else {
@@ -146,13 +171,14 @@ export const UserProvider = ({ children }) => {
           setPartners([]);
           setUserChildren([]);
           setPreferences(null);
-          // If signed out, ensure loading is off
+          console.log("[UserContext] Signed out, setting loading false");
           setLoading(false);
         }
       }
     });
 
     return () => {
+      console.log("[UserContext] useEffect cleanup");
       mounted = false;
       subscription?.unsubscribe();
     };
