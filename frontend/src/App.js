@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, Link } from 'react-router-dom';
 import ShowMeTheMoneyCalculator from './components/ShowMeTheMoneyCalculator.jsx';
 import DivorcedCalculator from './components/DivorcedCalculator.jsx';
 import SSDICalculator from './components/SSDICalculator.jsx';
@@ -1489,12 +1489,12 @@ function CalculatorApp() {
                     <h1 className="text-xl font-bold text-white whitespace-nowrap">
                       RISE and SHINE Method
                     </h1>
-                    <a
-                      href="/"
+                    <Link
+                      to="/"
                       className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
                     >
                       💰 Social Security Calculator
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -1513,12 +1513,12 @@ function CalculatorApp() {
                     <h1 className="text-xl font-bold text-white whitespace-nowrap">
                       RISE and SHINE Method
                     </h1>
-                    <a
-                      href="/"
+                    <Link
+                      to="/"
                       className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
                     >
                       💰 Social Security Calculator
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -1537,12 +1537,12 @@ function CalculatorApp() {
                     <h1 className="text-xl font-bold text-white whitespace-nowrap">
                       RISE and SHINE Method
                     </h1>
-                    <a
-                      href="/"
+                    <Link
+                      to="/"
                       className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
                     >
                       💰 Social Security Calculator
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -1561,12 +1561,12 @@ function CalculatorApp() {
                     <h1 className="text-xl font-bold text-white whitespace-nowrap">
                       RISE and SHINE Method
                     </h1>
-                    <a
-                      href="/"
+                    <Link
+                      to="/"
                       className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
                     >
                       💰 Social Security Calculator
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -1585,12 +1585,12 @@ function CalculatorApp() {
                     <h1 className="text-xl font-bold text-white whitespace-nowrap">
                       RISE and SHINE Method
                     </h1>
-                    <a
-                      href="/"
+                    <Link
+                      to="/"
                       className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
                     >
                       💰 Social Security Calculator
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -1609,12 +1609,12 @@ function CalculatorApp() {
                     <h1 className="text-xl font-bold text-white whitespace-nowrap">
                       Start-Stop-Start Strategy
                     </h1>
-                    <a
-                      href="/"
+                    <Link
+                      to="/"
                       className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
                     >
                       💰 Social Security Calculator
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
