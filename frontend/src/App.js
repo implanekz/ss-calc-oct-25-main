@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, Link, useLocation } from 'react-router-dom';
 import ShowMeTheMoneyCalculator from './components/ShowMeTheMoneyCalculator.jsx';
 import DivorcedCalculator from './components/DivorcedCalculator.jsx';
 import SSDICalculator from './components/SSDICalculator.jsx';
@@ -1477,284 +1477,282 @@ function CalculatorApp() {
   ];
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/pia-calculator" element={
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-            <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center h-16">
-                  <div className="flex items-center gap-3">
-                    <h1 className="text-xl font-bold text-white whitespace-nowrap">
-                      RISE and SHINE Method
-                    </h1>
-                    <Link
-                      to="/"
-                      className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
-                    >
-                      💰 Social Security Calculator
-                    </Link>
-                  </div>
+    <Routes>
+      <Route path="/settings" element={<Settings />} />
+      <Route path="/pia-calculator" element={
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+          <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center h-16">
+                <div className="flex items-center gap-3">
+                  <h1 className="text-xl font-bold text-white whitespace-nowrap">
+                    RISE and SHINE Method
+                  </h1>
+                  <Link
+                    to="/"
+                    className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
+                  >
+                    💰 Social Security Calculator
+                  </Link>
                 </div>
               </div>
-            </nav>
-            <main className="animate-fade-in">
-              <PIACalculator />
-            </main>
-          </div>
-        } />
-        <Route path="/sequence-risk" element={
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-            <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center h-16">
-                  <div className="flex items-center gap-3">
-                    <h1 className="text-xl font-bold text-white whitespace-nowrap">
-                      RISE and SHINE Method
-                    </h1>
-                    <Link
-                      to="/"
-                      className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
-                    >
-                      💰 Social Security Calculator
-                    </Link>
-                  </div>
+            </div>
+          </nav>
+          <main className="animate-fade-in">
+            <PIACalculator />
+          </main>
+        </div>
+      } />
+      <Route path="/sequence-risk" element={
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+          <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center h-16">
+                <div className="flex items-center gap-3">
+                  <h1 className="text-xl font-bold text-white whitespace-nowrap">
+                    RISE and SHINE Method
+                  </h1>
+                  <Link
+                    to="/"
+                    className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
+                  >
+                    💰 Social Security Calculator
+                  </Link>
                 </div>
               </div>
-            </nav>
-            <main className="animate-fade-in">
-              <SequenceOfReturnsApp />
-            </main>
-          </div>
-        } />
-        <Route path="/longevity-spending" element={
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-            <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center h-16">
-                  <div className="flex items-center gap-3">
-                    <h1 className="text-xl font-bold text-white whitespace-nowrap">
-                      RISE and SHINE Method
-                    </h1>
-                    <Link
-                      to="/"
-                      className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
-                    >
-                      💰 Social Security Calculator
-                    </Link>
-                  </div>
+            </div>
+          </nav>
+          <main className="animate-fade-in">
+            <SequenceOfReturnsApp />
+          </main>
+        </div>
+      } />
+      <Route path="/longevity-spending" element={
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+          <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center h-16">
+                <div className="flex items-center gap-3">
+                  <h1 className="text-xl font-bold text-white whitespace-nowrap">
+                    RISE and SHINE Method
+                  </h1>
+                  <Link
+                    to="/"
+                    className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
+                  >
+                    💰 Social Security Calculator
+                  </Link>
                 </div>
               </div>
-            </nav>
-            <main className="animate-fade-in">
-              <RetirementSpendingApp />
-            </main>
-          </div>
-        } />
-        <Route path="/income-target" element={
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-            <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center h-16">
-                  <div className="flex items-center gap-3">
-                    <h1 className="text-xl font-bold text-white whitespace-nowrap">
-                      RISE and SHINE Method
-                    </h1>
-                    <Link
-                      to="/"
-                      className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
-                    >
-                      💰 Social Security Calculator
-                    </Link>
-                  </div>
+            </div>
+          </nav>
+          <main className="animate-fade-in">
+            <RetirementSpendingApp />
+          </main>
+        </div>
+      } />
+      <Route path="/income-target" element={
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+          <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center h-16">
+                <div className="flex items-center gap-3">
+                  <h1 className="text-xl font-bold text-white whitespace-nowrap">
+                    RISE and SHINE Method
+                  </h1>
+                  <Link
+                    to="/"
+                    className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
+                  >
+                    💰 Social Security Calculator
+                  </Link>
                 </div>
               </div>
-            </nav>
-            <main className="animate-fade-in">
-              <RetirementIncomeNeedsApp />
-            </main>
-          </div>
-        } />
-        <Route path="/budget-worksheet" element={
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-            <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center h-16">
-                  <div className="flex items-center gap-3">
-                    <h1 className="text-xl font-bold text-white whitespace-nowrap">
-                      RISE and SHINE Method
-                    </h1>
-                    <Link
-                      to="/"
-                      className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
-                    >
-                      💰 Social Security Calculator
-                    </Link>
-                  </div>
+            </div>
+          </nav>
+          <main className="animate-fade-in">
+            <RetirementIncomeNeedsApp />
+          </main>
+        </div>
+      } />
+      <Route path="/budget-worksheet" element={
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+          <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center h-16">
+                <div className="flex items-center gap-3">
+                  <h1 className="text-xl font-bold text-white whitespace-nowrap">
+                    RISE and SHINE Method
+                  </h1>
+                  <Link
+                    to="/"
+                    className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
+                  >
+                    💰 Social Security Calculator
+                  </Link>
                 </div>
               </div>
-            </nav>
-            <main className="animate-fade-in">
-              <RetirementBudgetWorksheet />
-            </main>
-          </div>
-        } />
-        <Route path="/start-stop-start" element={
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-            <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center h-16">
-                  <div className="flex items-center gap-3">
-                    <h1 className="text-xl font-bold text-white whitespace-nowrap">
-                      Start-Stop-Start Strategy
-                    </h1>
-                    <Link
-                      to="/"
-                      className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
-                    >
-                      💰 Social Security Calculator
-                    </Link>
-                  </div>
+            </div>
+          </nav>
+          <main className="animate-fade-in">
+            <RetirementBudgetWorksheet />
+          </main>
+        </div>
+      } />
+      <Route path="/start-stop-start" element={
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+          <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center h-16">
+                <div className="flex items-center gap-3">
+                  <h1 className="text-xl font-bold text-white whitespace-nowrap">
+                    Start-Stop-Start Strategy
+                  </h1>
+                  <Link
+                    to="/"
+                    className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
+                  >
+                    💰 Social Security Calculator
+                  </Link>
                 </div>
               </div>
-            </nav>
-            <main className="animate-fade-in">
-              <StartStopStartCalculator />
-            </main>
-          </div>
-        } />
-        <Route path="/*" element={
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-            {/* Navigation Bar */}
-            <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center h-16">
-                  {/* Logo/Brand and Navigation Items - All on left */}
-                  <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide flex-nowrap">
-                    <h1 className="text-xl font-bold text-white whitespace-nowrap">
-                      RISE and SHINE Method
-                    </h1>
+            </div>
+          </nav>
+          <main className="animate-fade-in">
+            <StartStopStartCalculator />
+          </main>
+        </div>
+      } />
+      <Route path="/*" element={
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+          {/* Navigation Bar */}
+          <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center h-16">
+                {/* Logo/Brand and Navigation Items - All on left */}
+                <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide flex-nowrap">
+                  <h1 className="text-xl font-bold text-white whitespace-nowrap">
+                    RISE and SHINE Method
+                  </h1>
 
-                    {/* Social Security Planner Button */}
-                    {navItems.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => setActiveApp(item.id)}
-                        className={`
+                  {/* Social Security Planner Button */}
+                  {navItems.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setActiveApp(item.id)}
+                      className={`
                     px-3 sm:px-4 py-2 rounded-full font-semibold text-sm transition-all duration-200 whitespace-nowrap
                     ${activeApp === item.id
-                            ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/30 scale-105'
-                            : 'bg-slate-700 text-slate-200 hover:bg-slate-600 hover:text-white'
-                          }
+                          ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/30 scale-105'
+                          : 'bg-slate-700 text-slate-200 hover:bg-slate-600 hover:text-white'
+                        }
                   `}
-                        aria-label={item.label}
-                        aria-current={activeApp === item.id ? 'page' : undefined}
+                      aria-label={item.label}
+                      aria-current={activeApp === item.id ? 'page' : undefined}
+                    >
+                      <span className="sm:hidden">{item.icon}</span>
+                      <span className="hidden sm:inline">{item.label}</span>
+                    </button>
+                  ))}
+
+                  {/* Calculator Type Dropdown - Only show when SS is active */}
+                  {activeApp === 'ss' && (
+                    <>
+                      <select
+                        value={calculatorType}
+                        onChange={(e) => setCalculatorType(e.target.value)}
+                        className="px-3 py-2 bg-slate-700 text-slate-200 rounded-full font-semibold text-sm border border-slate-600 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
                       >
-                        <span className="sm:hidden">{item.icon}</span>
-                        <span className="hidden sm:inline">{item.label}</span>
+                        {calculatorTypes.map((type) => (
+                          <option key={type.id} value={type.id} disabled={type.disabled}>
+                            {type.icon} {type.label}
+                          </option>
+                        ))}
+                      </select>
+
+                      {/* Simple guidance - only shows when SS is active */}
+                      <button
+                        onClick={() => setShowHelpDropdown(!showHelpDropdown)}
+                        className="text-xs text-slate-300 hover:text-white flex items-center gap-1 px-2 py-1 cursor-pointer transition-colors"
+                      >
+                        <span className="text-[10px]">💡</span> Need help choosing?
                       </button>
-                    ))}
-
-                    {/* Calculator Type Dropdown - Only show when SS is active */}
-                    {activeApp === 'ss' && (
-                      <>
-                        <select
-                          value={calculatorType}
-                          onChange={(e) => setCalculatorType(e.target.value)}
-                          className="px-3 py-2 bg-slate-700 text-slate-200 rounded-full font-semibold text-sm border border-slate-600 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        >
-                          {calculatorTypes.map((type) => (
-                            <option key={type.id} value={type.id} disabled={type.disabled}>
-                              {type.icon} {type.label}
-                            </option>
-                          ))}
-                        </select>
-
-                        {/* Simple guidance - only shows when SS is active */}
-                        <button
-                          onClick={() => setShowHelpDropdown(!showHelpDropdown)}
-                          className="text-xs text-slate-300 hover:text-white flex items-center gap-1 px-2 py-1 cursor-pointer transition-colors"
-                        >
-                          <span className="text-[10px]">💡</span> Need help choosing?
-                        </button>
-                      </>
-                    )}
-                  </div>
+                    </>
+                  )}
                 </div>
               </div>
-            </nav>
+            </div>
+          </nav>
 
-            {/* Help Modal - Centered floating modal */}
-            {showHelpDropdown && (
-              <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4">
-                {/* Backdrop */}
-                <div
-                  className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+          {/* Help Modal - Centered floating modal */}
+          {showHelpDropdown && (
+            <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4">
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+                onClick={() => setShowHelpDropdown(false)}
+              />
+              {/* Modal Content */}
+              <div className="relative bg-slate-800 rounded-xl shadow-2xl border border-slate-600 p-6 w-full max-w-md animate-fade-in">
+                <button
                   onClick={() => setShowHelpDropdown(false)}
-                />
-                {/* Modal Content */}
-                <div className="relative bg-slate-800 rounded-xl shadow-2xl border border-slate-600 p-6 w-full max-w-md animate-fade-in">
-                  <button
-                    onClick={() => setShowHelpDropdown(false)}
-                    className="absolute top-4 right-4 text-slate-400 hover:text-white transition"
-                  >
-                    ✕
-                  </button>
-                  <h3 className="text-xl font-bold text-slate-200 mb-4">💡 Calculator Selection Guide</h3>
-                  <div className="space-y-3">
-                    <div className="bg-slate-700/50 rounded-lg p-3">
-                      <p className="text-slate-300 font-semibold mb-1">Married or single?</p>
-                      <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Married/Single</strong> calculator</p>
-                    </div>
-                    <div className="bg-slate-700/50 rounded-lg p-3">
-                      <p className="text-slate-300 font-semibold mb-1">Divorced (ex-spouse alive)?</p>
-                      <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Divorced</strong> calculator</p>
-                    </div>
-                    <div className="bg-slate-700/50 rounded-lg p-3">
-                      <p className="text-slate-300 font-semibold mb-1">Divorced (ex-spouse deceased)?</p>
-                      <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Widowed</strong> calculator</p>
-                    </div>
-                    <div className="bg-slate-700/50 rounded-lg p-3">
-                      <p className="text-slate-300 font-semibold mb-1">Widowed?</p>
-                      <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Widowed</strong> calculator</p>
-                    </div>
-                    <div className="bg-slate-700/50 rounded-lg p-3">
-                      <p className="text-slate-300 font-semibold mb-1">Considering Disability (SSDI)?</p>
-                      <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Disability</strong> calculator</p>
-                    </div>
+                  className="absolute top-4 right-4 text-slate-400 hover:text-white transition"
+                >
+                  ✕
+                </button>
+                <h3 className="text-xl font-bold text-slate-200 mb-4">💡 Calculator Selection Guide</h3>
+                <div className="space-y-3">
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <p className="text-slate-300 font-semibold mb-1">Married or single?</p>
+                    <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Married/Single</strong> calculator</p>
                   </div>
-                  <div className="mt-4 p-3 bg-blue-900/30 border border-blue-700/50 rounded-lg">
-                    <p className="text-xs text-blue-200 italic">
-                      💡 Tip: If your ex-spouse is deceased, you may qualify for survivor benefits (not ex-spouse benefits)
-                    </p>
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <p className="text-slate-300 font-semibold mb-1">Divorced (ex-spouse alive)?</p>
+                    <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Divorced</strong> calculator</p>
+                  </div>
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <p className="text-slate-300 font-semibold mb-1">Divorced (ex-spouse deceased)?</p>
+                    <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Widowed</strong> calculator</p>
+                  </div>
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <p className="text-slate-300 font-semibold mb-1">Widowed?</p>
+                    <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Widowed</strong> calculator</p>
+                  </div>
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <p className="text-slate-300 font-semibold mb-1">Considering Disability (SSDI)?</p>
+                    <p className="text-slate-400 text-sm">→ Use <strong className="text-white">Disability</strong> calculator</p>
                   </div>
                 </div>
+                <div className="mt-4 p-3 bg-blue-900/30 border border-blue-700/50 rounded-lg">
+                  <p className="text-xs text-blue-200 italic">
+                    💡 Tip: If your ex-spouse is deceased, you may qualify for survivor benefits (not ex-spouse benefits)
+                  </p>
+                </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Main Content Area */}
-            <main className="animate-fade-in">
-              {activeApp === 'ss' && (
-                <>
-                  {calculatorType === 'married' && <ShowMeTheMoneyCalculator />}
-                  {calculatorType === 'divorced' && <DivorcedCalculator onSwitchToMarried={() => setCalculatorType('married')} />}
-                  {calculatorType === 'widowed' && <WidowCalculator />}
-                  {calculatorType === 'ssdi' && <SSDICalculator />}
-                </>
-              )}
-              {activeApp === 'start-stop-start' && <StartStopStartCalculator />}
-              {activeApp === 'pia' && <PIACalculator />}
-              {activeApp === 'helper-spending' && <RetirementSpendingApp />}
-              {activeApp === 'helper-income' && <RetirementIncomeNeedsApp />}
-              {activeApp === 'sequence' && <SequenceOfReturnsApp />}
-              {activeApp === 'budget' && <RetirementBudgetWorksheet />}
-            </main>
-          </div>
-        } />
-      </Routes>
-    </Router>
+          {/* Main Content Area */}
+          <main className="animate-fade-in">
+            {activeApp === 'ss' && (
+              <>
+                {calculatorType === 'married' && <ShowMeTheMoneyCalculator />}
+                {calculatorType === 'divorced' && <DivorcedCalculator onSwitchToMarried={() => setCalculatorType('married')} />}
+                {calculatorType === 'widowed' && <WidowCalculator />}
+                {calculatorType === 'ssdi' && <SSDICalculator />}
+              </>
+            )}
+            {activeApp === 'start-stop-start' && <StartStopStartCalculator />}
+            {activeApp === 'pia' && <PIACalculator />}
+            {activeApp === 'helper-spending' && <RetirementSpendingApp />}
+            {activeApp === 'helper-income' && <RetirementIncomeNeedsApp />}
+            {activeApp === 'sequence' && <SequenceOfReturnsApp />}
+            {activeApp === 'budget' && <RetirementBudgetWorksheet />}
+          </main>
+        </div>
+      } />
+    </Routes>
   );
 }
 
@@ -1805,11 +1803,13 @@ function AppWithAuth() {
 // Root App with Providers
 function App() {
   return (
-    <DevModeProvider>
-      <UserProvider>
-        <AppWithDevMode />
-      </UserProvider>
-    </DevModeProvider>
+    <Router>
+      <DevModeProvider>
+        <UserProvider>
+          <AppWithDevMode />
+        </UserProvider>
+      </DevModeProvider>
+    </Router>
   );
 }
 
@@ -1817,11 +1817,23 @@ function App() {
 function AppWithDevMode() {
   const { isDevMode, devUser, devProfile, toggleDevMode, devResetOnboarding, devClearAll, testScenarios, loadTestScenario } = useDevMode();
   const { user: realUser, profile: realProfile, loading: realLoading } = useUser();
+  const location = useLocation();
 
   // Use dev or real data based on mode
   const user = isDevMode ? devUser : realUser;
   const profile = isDevMode ? devProfile : realProfile;
   const loading = isDevMode ? false : realLoading;
+
+  // Helper app routes that should bypass onboarding (but still require auth)
+  const helperAppRoutes = [
+    '/sequence-risk',
+    '/longevity-spending',
+    '/income-target',
+    '/budget-worksheet',
+    '/pia-calculator',
+    '/start-stop-start'
+  ];
+  const isHelperRoute = helperAppRoutes.some(route => location.pathname.startsWith(route));
 
   // Dev Mode Banner and Controls
   const DevModeBanner = () => (
@@ -1883,14 +1895,33 @@ function AppWithDevMode() {
     );
   }
 
+  // If not logged in, show login (regardless of route)
+  if (!user) {
+    return (
+      <>
+        {!isDevMode && <DevModeToggle />}
+        <LoginScreenWithDevMode />
+      </>
+    );
+  }
+
+  // If on a helper route, skip onboarding check and go directly to CalculatorApp (which handles routing)
+  if (isHelperRoute) {
+    return (
+      <>
+        {isDevMode && <DevModeBanner />}
+        <CalculatorApp />
+      </>
+    );
+  }
+
+  // For main app routes, require onboarding completion
   return (
     <>
       {isDevMode && <DevModeBanner />}
       {!isDevMode && !user && <DevModeToggle />}
 
-      {!user ? (
-        <LoginScreenWithDevMode />
-      ) : !profile?.onboarding_completed_at ? (
+      {!profile?.onboarding_completed_at ? (
         <OnboardingScreenWithDevMode />
       ) : (
         <CalculatorApp />
