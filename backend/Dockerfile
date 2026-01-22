@@ -11,14 +11,11 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application files explicitly
-COPY main.py .
-COPY api ./api
-COPY core ./core
-COPY config ./config
+# Copy everything
+COPY . .
 
-# Debug: List files to ensure they are present
-RUN echo "Listing files in /app:" && ls -R .
+# Debug: List files to ensure main.py is here
+RUN echo "Listing files in /app:" && ls -la
 
 # Expose the port
 EXPOSE 8000
