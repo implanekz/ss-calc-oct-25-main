@@ -58,6 +58,7 @@ async def get_profile(request: Request):
 async def get_full_profile(request: Request):
     """
     Get current user's profile with all relations (partner, children, preferences)
+    Auto-creates profile if one doesn't exist (for users created via Supabase Auth directly)
     """
     try:
         user_id = get_user_id_from_token_sync(request)
@@ -68,10 +69,29 @@ async def get_full_profile(request: Request):
         profile_response = supabase.table('profiles').select('*').eq('id', user_id).single().execute()
         
         if not profile_response.data:
-            # If profile not found in "full", return 404 so frontend knows to init
-            raise HTTPException(status_code=404, detail="Profile not found")
-        
-        profile = profile_response.data
+            # Profile not found - auto-create one with placeholder values
+            # These will be updated during onboarding
+            print(f"[profiles] Profile not found for user {user_id}, creating placeholder profile")
+            
+            try:
+                create_response = supabase.table('profiles').insert({
+                    'id': user_id,
+                    'first_name': '',  # Will be set during onboarding
+                    'last_name': '',   # Will be set during onboarding
+                    'date_of_birth': '1970-01-01',  # Placeholder, will be updated
+                    'relationship_status': 'single'  # Default, will be updated
+                }).execute()
+                
+                if create_response.data:
+                    profile = create_response.data[0]
+                    print(f"[profiles] Created placeholder profile for user {user_id}")
+                else:
+                    raise HTTPException(status_code=500, detail="Failed to create profile")
+            except Exception as create_error:
+                print(f"[profiles] Error creating profile: {create_error}")
+                raise HTTPException(status_code=500, detail=f"Failed to create profile: {str(create_error)}")
+        else:
+            profile = profile_response.data
         
         # Get partner(s)
         partners_response = supabase.table('partners').select('*').eq('user_id', user_id).execute()
@@ -81,9 +101,20 @@ async def get_full_profile(request: Request):
         children_response = supabase.table('children').select('*').eq('user_id', user_id).execute()
         children = children_response.data if children_response.data else []
         
-        # Get preferences
+        # Get preferences (create if not exists)
         prefs_response = supabase.table('calculator_preferences').select('*').eq('user_id', user_id).single().execute()
-        preferences = prefs_response.data if prefs_response.data else {}
+        if not prefs_response.data:
+            # Create default preferences
+            try:
+                prefs_create = supabase.table('calculator_preferences').insert({
+                    'user_id': user_id,
+                    'inflation_rate': 0.025
+                }).execute()
+                preferences = prefs_create.data[0] if prefs_create.data else {}
+            except:
+                preferences = {}
+        else:
+            preferences = prefs_response.data
         
         return {
             'profile': profile,
@@ -118,10 +149,20 @@ async def update_profile(request: Request):
         
         if 'firstName' in data:
             update_data['first_name'] = data['firstName']
+        if 'first_name' in data:
+            update_data['first_name'] = data['first_name']
         if 'lastName' in data:
             update_data['last_name'] = data['lastName']
+        if 'last_name' in data:
+            update_data['last_name'] = data['last_name']
         if 'relationshipStatus' in data:
             update_data['relationship_status'] = data['relationshipStatus']
+        if 'relationship_status' in data:
+            update_data['relationship_status'] = data['relationship_status']
+        if 'dateOfBirth' in data:
+            update_data['date_of_birth'] = data['dateOfBirth']
+        if 'date_of_birth' in data:
+            update_data['date_of_birth'] = data['date_of_birth']
         if 'piaAtFra' in data:
             update_data['pia_at_fra'] = data['piaAtFra']
         if 'alreadyReceivingBenefits' in data:
@@ -164,10 +205,7 @@ async def update_profile(request: Request):
         if 'is_disabled' in data:
             update_data['is_disabled'] = data['is_disabled']
         
-        # Allow DOB updates (requested by product requirements)
-        if 'dateOfBirth' in data:
-            update_data['date_of_birth'] = data['dateOfBirth']
-        
+        # Note: dateOfBirth/date_of_birth is handled above with the other basic profile fields
         if not update_data:
             raise HTTPException(status_code=400, detail="No valid fields to update")
         
