@@ -1905,15 +1905,21 @@ function AppWithDevMode() {
     </div>
   );
 
-  // Dev Mode Toggle (when not in dev mode)
-  const DevModeToggle = () => (
+  // Dev Mode Toggle (when not in dev mode) - only show on localhost
+  const isLocalhost = typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === '0.0.0.0'
+  );
+
+  const DevModeToggle = () => isLocalhost ? (
     <button
       onClick={toggleDevMode}
       className="fixed top-4 right-4 z-50 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-slate-900 rounded-lg text-sm font-semibold shadow-lg transition"
     >
       🔧 Enable Dev Mode
     </button>
-  );
+  ) : null;
 
   if (loading) {
     return (
