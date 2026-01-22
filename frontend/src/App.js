@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, Link, useLocation } from 'react-router-dom';
 import ShowMeTheMoneyCalculator from './components/ShowMeTheMoneyCalculator.jsx';
 import DivorcedCalculator from './components/DivorcedCalculator.jsx';
@@ -219,7 +219,38 @@ function OnboardingScreen({ devMode = null }) {
   // Use dev mode handlers if provided, otherwise use real User context
   const realUserContext = useUser();
   // Alias context addChild to avoid clashing with local UI helper addChild()
-  const { profile, completeOnboarding, updateProfile, addPartner, addChild: addChildApi } = devMode || realUserContext;
+  const { profile, partners, completeOnboarding, updateProfile, addPartner, addChild: addChildApi } = devMode || realUserContext;
+
+  // Pre-populate form with existing profile/partner data if available
+  useEffect(() => {
+    if (profile) {
+      setFormData(prev => ({
+        ...prev,
+        firstName: profile.firstName || profile.first_name || prev.firstName,
+        lastName: profile.lastName || profile.last_name || prev.lastName,
+        dateOfBirth: profile.dateOfBirth || profile.date_of_birth || prev.dateOfBirth,
+        relationshipStatus: profile.relationshipStatus || profile.relationship_status || prev.relationshipStatus,
+        receivingBenefits: profile.already_receiving_benefits ?? profile.alreadyReceivingBenefits ?? prev.receivingBenefits,
+        benefitAmount: profile.current_monthly_benefit || profile.currentMonthlyBenefit || prev.benefitAmount,
+        everDivorced: profile.ever_divorced ?? profile.everDivorced ?? prev.everDivorced,
+        everWidowed: profile.ever_widowed ?? profile.everWidowed ?? prev.everWidowed,
+        isDisabled: profile.is_disabled ?? profile.isDisabled ?? prev.isDisabled,
+      }));
+    }
+
+    // Pre-populate partner data if available
+    if (partners && partners.length > 0) {
+      const p = partners[0];
+      setFormData(prev => ({
+        ...prev,
+        partnerFirstName: p.firstName || p.first_name || prev.partnerFirstName,
+        partnerLastName: p.lastName || p.last_name || prev.partnerLastName,
+        partnerDob: p.dateOfBirth || p.date_of_birth || prev.partnerDob,
+        partnerReceivingBenefits: p.already_receiving_benefits ?? p.alreadyReceivingBenefits ?? prev.partnerReceivingBenefits,
+        partnerBenefitAmount: p.current_monthly_benefit || p.currentMonthlyBenefit || prev.partnerBenefitAmount,
+      }));
+    }
+  }, [profile, partners]);
 
   const addChild = () => {
     setFormData({
