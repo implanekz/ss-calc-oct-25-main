@@ -7,15 +7,15 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements
-COPY requirements.txt .
+# Copy requirements from backend folder
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application files explicitly
-COPY main.py .
-COPY api ./api
-COPY core ./core
-COPY config ./config
+# Copy application files explicitly from backend folder
+COPY backend/main.py .
+COPY backend/api ./api
+COPY backend/core ./core
+COPY backend/config ./config
 
 # Debug: List files to ensure they are present
 RUN echo "Listing files in /app:" && ls -R .
