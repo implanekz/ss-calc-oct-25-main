@@ -18,48 +18,23 @@ export const UserProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   /**
-  /**
-   * Load all user data from API
+   * Load all user data from API (using provided token)
    */
-  const loadUserData = useCallback(async (userId) => {
-    console.log("[UserContext] loadUserData called with userId:", userId);
-    if (!userId) {
-      console.warn("[UserContext] loadUserData: No userId provided!");
+  const loadUserDataWithToken = useCallback(async (userId, token) => {
+    console.log("[UserContext] loadUserDataWithToken called for userId:", userId);
+    if (!userId || !token) {
+      console.warn("[UserContext] loadUserDataWithToken: Missing userId or token!");
       return;
     }
 
     try {
-      console.log("[UserContext] Getting auth token...");
-      const token = await getAuthToken();
-      if (!token) {
-        console.error("[UserContext] No auth token available!");
-        throw new Error("No auth token available");
-      }
-      console.log("[UserContext] Got auth token, fetching profile...");
-
-      // Create a timeout signal to prevent indefinite hanging
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds max
-
-      let profileRes;
-      try {
-        console.log("[UserContext] Calling", `${API_BASE_URL}/api/profiles/me/full`);
-        profileRes = await fetch(`${API_BASE_URL}/api/profiles/me/full`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-          signal: controller.signal
-        });
-        console.log("[UserContext] Profile response status:", profileRes.status);
-      } catch (e) {
-        if (e.name === 'AbortError') {
-          throw new Error("Connection timed out. The server took too long to respond.");
-        }
-        throw e;
-      } finally {
-        clearTimeout(timeoutId);
-      }
+      console.log("[UserContext] Fetching profile from API...");
+      const profileRes = await fetch(`${API_BASE_URL}/api/profiles/me/full`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      console.log("[UserContext] Profile response status:", profileRes.status);
 
       if (profileRes.status === 401) {
-        // Token invalid/expired - force logout
         console.warn("Token expired, signing out...");
         await supabase.auth.signOut();
         setUser(null);
@@ -68,13 +43,8 @@ export const UserProvider = ({ children }) => {
       }
 
       if (!profileRes.ok) {
-        // Try to read error message
-        try {
-          const errData = await profileRes.json();
-          throw new Error(errData.detail || `Server error: ${profileRes.status}`);
-        } catch (e) {
-          throw new Error(`Server error: ${profileRes.status}`);
-        }
+        const errData = await profileRes.json().catch(() => ({}));
+        throw new Error(errData.detail || `Server error: ${profileRes.status}`);
       }
 
       const profileData = await profileRes.json();
@@ -99,59 +69,59 @@ export const UserProvider = ({ children }) => {
       setPartners(partnerList);
       setUserChildren(profileData.children || []);
       setPreferences(profileData.preferences);
+      console.log("[UserContext] Profile loaded successfully");
 
     } catch (err) {
       console.error('Error loading user data:', err);
-      // We do NOT setError here if we can avoid it, because it might just be a temporary network blip.
-      // But if it's critical, we usually set error. 
-      // For now, let's set error so UI knows something failed.
       setError(err.message);
     }
   }, []);
+
+  /**
+   * Load all user data from API (gets token automatically)
+   */
+  const loadUserData = useCallback(async (userId) => {
+    console.log("[UserContext] loadUserData called with userId:", userId);
+    const token = await getAuthToken();
+    if (!token) {
+      console.error("[UserContext] No auth token available!");
+      throw new Error("No auth token available");
+    }
+    await loadUserDataWithToken(userId, token);
+  }, [loadUserDataWithToken]);
 
   // Initialize auth listener
   useEffect(() => {
     let mounted = true;
     console.log("[UserContext] useEffect mounted");
 
+    // Simple auth initialization - no complex timeouts
     const initAuth = async () => {
       console.log("[UserContext] initAuth started");
       try {
-        // Create a timeout promise - increased to 10 seconds
-        const timeoutPromise = new Promise((resolve) => {
-          setTimeout(() => resolve({ timeOut: true }), 10000); // 10 seconds timeout
-        });
+        const { data: { session }, error } = await supabase.auth.getSession();
 
-        const sessionPromise = supabase.auth.getSession();
-
-        const result = await Promise.race([sessionPromise, timeoutPromise]);
-
-        if (result.timeOut) {
-          console.warn("[UserContext] Supabase getSession timed out! Will wait for auth state change.");
-          // Don't set loading=false here - let the auth state change listener handle it
-          // The onAuthStateChange will fire with INITIAL_SESSION event
-          return;
+        if (error) {
+          console.error("[UserContext] getSession error:", error);
+          throw error;
         }
 
-        const { data: { session }, error } = result;
-
-        console.log("[UserContext] getSession result:", session ? "Session found" : "No session");
-        if (error) throw error;
+        console.log("[UserContext] getSession result:", session ? `Session found for ${session.user?.email}` : "No session");
 
         if (mounted) {
           setUser(session?.user ?? null);
-          if (session?.user) {
-            console.log("[UserContext] Calling loadUserData form initAuth");
-            await loadUserData(session.user.id);
-            console.log("[UserContext] loadUserData completed");
+          if (session?.user && session.access_token) {
+            // Pass the token directly - don't call getSession again
+            await loadUserDataWithToken(session.user.id, session.access_token);
           }
+          setLoading(false);
         }
       } catch (err) {
         console.error("[UserContext] Auth Init Error:", err);
-        if (mounted) setError(err.message);
-      } finally {
-        console.log("[UserContext] initAuth finally block - setting loading to false");
-        if (mounted) setLoading(false);
+        if (mounted) {
+          setError(err.message);
+          setLoading(false);
+        }
       }
     };
 
@@ -162,15 +132,16 @@ export const UserProvider = ({ children }) => {
       console.log("[UserContext] Auth State Change:", event, session?.user?.email);
 
       if (mounted) {
-        // Update user state immediately
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-            // Reload profile data on sign in
-            console.log("[UserContext] Calling loadUserData from onAuthStateChange");
-            await loadUserData(session.user.id);
-            console.log("[UserContext] loadUserData completed from onAuthStateChange, setting loading false");
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            console.log("[UserContext] Loading user data after", event);
+            try {
+              await loadUserDataWithToken(session.user.id, session.access_token);
+            } catch (err) {
+              console.error("[UserContext] loadUserData failed:", err);
+            }
             setLoading(false);
           }
         } else {
@@ -178,7 +149,6 @@ export const UserProvider = ({ children }) => {
           setPartners([]);
           setUserChildren([]);
           setPreferences(null);
-          console.log("[UserContext] Signed out, setting loading false");
           setLoading(false);
         }
       }
