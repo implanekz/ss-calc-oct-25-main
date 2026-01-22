@@ -22,13 +22,20 @@ export const UserProvider = ({ children }) => {
    * Load all user data from API
    */
   const loadUserData = useCallback(async (userId) => {
-    if (!userId) return;
+    console.log("[UserContext] loadUserData called with userId:", userId);
+    if (!userId) {
+      console.warn("[UserContext] loadUserData: No userId provided!");
+      return;
+    }
 
     try {
+      console.log("[UserContext] Getting auth token...");
       const token = await getAuthToken();
       if (!token) {
+        console.error("[UserContext] No auth token available!");
         throw new Error("No auth token available");
       }
+      console.log("[UserContext] Got auth token, fetching profile...");
 
       // Create a timeout signal to prevent indefinite hanging
       const controller = new AbortController();
@@ -36,10 +43,12 @@ export const UserProvider = ({ children }) => {
 
       let profileRes;
       try {
+        console.log("[UserContext] Calling", `${API_BASE_URL}/api/profiles/me/full`);
         profileRes = await fetch(`${API_BASE_URL}/api/profiles/me/full`, {
           headers: { 'Authorization': `Bearer ${token}` },
           signal: controller.signal
         });
+        console.log("[UserContext] Profile response status:", profileRes.status);
       } catch (e) {
         if (e.name === 'AbortError') {
           throw new Error("Connection timed out. The server took too long to respond.");
@@ -108,9 +117,9 @@ export const UserProvider = ({ children }) => {
     const initAuth = async () => {
       console.log("[UserContext] initAuth started");
       try {
-        // Create a timeout promise
+        // Create a timeout promise - increased to 10 seconds
         const timeoutPromise = new Promise((resolve) => {
-          setTimeout(() => resolve({ timeOut: true }), 3000); // 3 seconds timeout
+          setTimeout(() => resolve({ timeOut: true }), 10000); // 10 seconds timeout
         });
 
         const sessionPromise = supabase.auth.getSession();
@@ -118,13 +127,9 @@ export const UserProvider = ({ children }) => {
         const result = await Promise.race([sessionPromise, timeoutPromise]);
 
         if (result.timeOut) {
-          console.warn("[UserContext] Supabase getSession timed out! Assuming no session.");
-          // Fallback: Check localStorage manually? 
-          // If we assume no session, and there IS a token, the user will be asked to login.
-          // This is better than hanging.
-          if (mounted) {
-            setLoading(false);
-          }
+          console.warn("[UserContext] Supabase getSession timed out! Will wait for auth state change.");
+          // Don't set loading=false here - let the auth state change listener handle it
+          // The onAuthStateChange will fire with INITIAL_SESSION event
           return;
         }
 
@@ -165,6 +170,8 @@ export const UserProvider = ({ children }) => {
             // Reload profile data on sign in
             console.log("[UserContext] Calling loadUserData from onAuthStateChange");
             await loadUserData(session.user.id);
+            console.log("[UserContext] loadUserData completed from onAuthStateChange, setting loading false");
+            setLoading(false);
           }
         } else {
           setProfile(null);
