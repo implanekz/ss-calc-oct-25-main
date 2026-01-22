@@ -304,7 +304,7 @@ export const UserProvider = ({ children }) => {
   const completeOnboarding = useCallback(async () => {
     try {
       const token = await getAuthToken();
-      if (!token) return;
+      if (!token) throw new Error('No authentication token available');
 
       const response = await fetch(`${API_BASE_URL}/api/profiles/me/onboarding-complete`, {
         method: 'POST',
@@ -326,7 +326,9 @@ export const UserProvider = ({ children }) => {
   const updateProfile = useCallback(async (updates) => {
     try {
       const token = await getAuthToken();
-      if (!token) return;
+      if (!token) {
+        throw new Error('No authentication token available. Please log in again.');
+      }
 
       const response = await fetch(`${API_BASE_URL}/api/profiles/me`, {
         method: 'PUT',
@@ -363,7 +365,7 @@ export const UserProvider = ({ children }) => {
   const addPartner = useCallback(async (partnerData) => {
     try {
       const token = await getAuthToken();
-      if (!token) return;
+      if (!token) throw new Error('No authentication token available');
 
       const response = await fetch(`${API_BASE_URL}/api/partners`, {
         method: 'POST',
@@ -391,7 +393,7 @@ export const UserProvider = ({ children }) => {
   const updatePartner = useCallback(async (partnerId, updates) => {
     try {
       const token = await getAuthToken();
-      if (!token) return;
+      if (!token) throw new Error('No authentication token available');
 
       const response = await fetch(`${API_BASE_URL}/api/partners/${partnerId}`, {
         method: 'PUT',
