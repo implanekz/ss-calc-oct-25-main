@@ -28,6 +28,7 @@ const Settings = () => {
     const [spouseHasStartedSS, setSpouseHasStartedSS] = useState(false);
     const [spouseSSBenefit, setSpouseSSBenefit] = useState('');
     const [spousePIA, setSpousePIA] = useState('');
+    const [spouseEmail, setSpouseEmail] = useState('');
     const [divorceDate, setDivorceDate] = useState('');
     const [marriageDurationYears, setMarriageDurationYears] = useState('');
     const [deathDate, setDeathDate] = useState('');
@@ -90,6 +91,7 @@ const Settings = () => {
             setSpouseHasStartedSS(p.already_receiving_benefits || p.has_started_ss || false);
             setSpouseSSBenefit(p.current_monthly_benefit || p.ss_benefit || '');
             setSpousePIA(p.pia_at_fra || p.pia || '');
+            setSpouseEmail(p.email || '');
         }
 
         // Load children data
@@ -213,6 +215,7 @@ const Settings = () => {
                     alreadyReceivingBenefits: spouseHasStartedSS,
                     currentMonthlyBenefit: spouseHasStartedSS ? parseFloat(spouseSSBenefit) || null : null,
                     piaAtFra: spousePIA ? parseFloat(spousePIA) : null,
+                    email: spouseEmail || null,
                     // Divorced specific
                     divorceDate: relationshipStatus === 'divorced' ? divorceDate : null,
                     marriageLengthYears: relationshipStatus === 'divorced' ? parseInt(marriageDurationYears) || null : null,
@@ -443,6 +446,17 @@ const Settings = () => {
                                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400"
                                     />
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                                    <input
+                                        type="email"
+                                        value={spouseEmail}
+                                        onChange={(e) => setSpouseEmail(e.target.value)}
+                                        placeholder="spouse@email.com"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400"
+                                    />
+                                    <p className="mt-1 text-xs text-gray-500">For inviting them to their own SS K.I.N.D. account</p>
+                                </div>
                                 {isDivorced && (
                                     <>
                                         <div>
@@ -628,59 +642,6 @@ const Settings = () => {
                                     ))}
                                 </div>
                             )}
-                        </div>
-                    </div>
-
-                    {/* Planning & Assumptions */}
-                    <div className="bg-white rounded-2xl shadow-sm p-8">
-                        <h2 className="text-xl font-semibold text-gray-800 mb-6">Planning & Assumptions</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Employment Status</label>
-                                <select
-                                    value={employmentStatus}
-                                    onChange={(e) => setEmploymentStatus(e.target.value)}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400"
-                                >
-                                    <option value="employed">Employed</option>
-                                    <option value="self-employed">Self-Employed</option>
-                                    <option value="retired">Retired</option>
-                                    <option value="unemployed">Unemployed</option>
-                                    <option value="na">N/A</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Expected Retirement Date</label>
-                                <input
-                                    type="date"
-                                    value={expectedRetirementDate}
-                                    onChange={(e) => setExpectedRetirementDate(e.target.value)}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Longevity Age (for planning)</label>
-                                <input
-                                    type="number"
-                                    min="70"
-                                    max="120"
-                                    value={longevityAge}
-                                    onChange={(e) => setLongevityAge(Number(e.target.value))}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Inflation Rate (%)</label>
-                                <input
-                                    type="number"
-                                    step="0.1"
-                                    min="0"
-                                    max="10"
-                                    value={inflationRate}
-                                    onChange={(e) => setInflationRate(Number(e.target.value))}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400"
-                                />
-                            </div>
                         </div>
                     </div>
 
