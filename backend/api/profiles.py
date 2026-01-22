@@ -165,10 +165,16 @@ async def update_profile(request: Request):
             update_data['date_of_birth'] = data['date_of_birth']
         if 'piaAtFra' in data:
             update_data['pia_at_fra'] = data['piaAtFra']
+        if 'pia_at_fra' in data:
+            update_data['pia_at_fra'] = data['pia_at_fra']
         if 'alreadyReceivingBenefits' in data:
             update_data['already_receiving_benefits'] = data['alreadyReceivingBenefits']
+        if 'already_receiving_benefits' in data:
+            update_data['already_receiving_benefits'] = data['already_receiving_benefits']
         if 'currentMonthlyBenefit' in data:
             update_data['current_monthly_benefit'] = data['currentMonthlyBenefit']
+        if 'current_monthly_benefit' in data:
+            update_data['current_monthly_benefit'] = data['current_monthly_benefit']
         if 'filedAgeYears' in data:
             update_data['filed_age_years'] = data['filedAgeYears']
         if 'filedAgeMonths' in data:

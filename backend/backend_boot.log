@@ -402,3 +402,123 @@ INFO:httpx:HTTP Request: POST https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/t
 INFO:httpx:HTTP Request: POST https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/token?grant_type=refresh_token "HTTP/2 200 OK"
 INFO:httpx:HTTP Request: POST https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/token?grant_type=refresh_token "HTTP/2 200 OK"
 INFO:httpx:HTTP Request: POST https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/token?grant_type=refresh_token "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/token?grant_type=refresh_token "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/token?grant_type=refresh_token "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/token?grant_type=refresh_token "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/token?grant_type=refresh_token "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/token?grant_type=refresh_token "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/token?grant_type=refresh_token "HTTP/2 200 OK"
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [12785]
+INFO:     Will watch for changes in these directories: ['/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend']
+ERROR:    [Errno 48] Address already in use
+INFO:     Will watch for changes in these directories: ['/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [48635] using StatReload
+ERROR:    Error loading ASGI app. Could not import module "core.init".
+INFO:     Will watch for changes in these directories: ['/Users/kurtzahner/Desktop/ss-calc-oct-25-main/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [49447] using StatReload
+INFO:core.integrated_ss_api:CORS allowed_origins=['*']
+INFO:     Started server process [49523]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:54486 - "GET /health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54488 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54523 - "OPTIONS /api/auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/token?grant_type=password "HTTP/2 200 OK"
+INFO:     127.0.0.1:54523 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54523 - "OPTIONS /api/profiles/me/full HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/user "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/profiles?select=%2A&id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/partners?select=%2A&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/children?select=%2A&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=%2A&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54523 - "GET /api/profiles/me/full HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54523 - "OPTIONS /api/preferences HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/user "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=calculator_states&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=id&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: PATCH https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54523 - "PUT /api/preferences HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/user "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=calculator_states&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=id&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: PATCH https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54527 - "PUT /api/preferences HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/user "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=calculator_states&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=id&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: PATCH https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54527 - "PUT /api/preferences HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/user "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=calculator_states&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=id&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: PATCH https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54527 - "PUT /api/preferences HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/user "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=calculator_states&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=id&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: PATCH https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54527 - "PUT /api/preferences HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/user "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=calculator_states&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=id&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: PATCH https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54544 - "PUT /api/preferences HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/user "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=calculator_states&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=id&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: PATCH https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54544 - "PUT /api/preferences HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/user "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=calculator_states&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=id&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: PATCH https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54544 - "PUT /api/preferences HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/user "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=calculator_states&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=id&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: PATCH https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54544 - "PUT /api/preferences HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/user "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=calculator_states&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=id&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: PATCH https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54544 - "PUT /api/preferences HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/user "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=calculator_states&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=id&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: PATCH https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54544 - "PUT /api/preferences HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/user "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=calculator_states&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=id&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: PATCH https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54544 - "PUT /api/preferences HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/user "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=calculator_states&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=id&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: PATCH https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54544 - "PUT /api/preferences HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/user "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=calculator_states&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=id&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: PATCH https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54544 - "PUT /api/preferences HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/auth/v1/user "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=calculator_states&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?select=id&user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: PATCH https://jtpbkdzlwvtydpbjmjxc.supabase.co/rest/v1/calculator_preferences?user_id=eq.66786e49-143f-40c0-bb32-3a10f50ab609 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54544 - "PUT /api/preferences HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'api/profiles.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [49523]
+INFO:core.integrated_ss_api:CORS allowed_origins=['*']
+INFO:     Started server process [51138]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

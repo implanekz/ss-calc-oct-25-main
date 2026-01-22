@@ -3,11 +3,12 @@ import { useUser } from '../contexts/UserContext';
 import { useDevMode } from '../contexts/DevModeContext';
 
 const Settings = () => {
-    const { profile: realProfile, partners: realPartners, updateProfile, updatePartner } = useUser();
-    const { isDevMode, devProfile, devPartners, updateDevProfile, updateDevPartner } = useDevMode();
+    const { user, profile: realProfile, partners: realPartners, children: realChildren, updateProfile, updatePartner, addPartner } = useUser();
+    const { isDevMode, devProfile, devPartners, devChildren, updateDevProfile, updateDevPartner } = useDevMode();
 
     const profile = isDevMode ? devProfile : realProfile;
     const partners = isDevMode ? devPartners : realPartners;
+    const children = isDevMode ? devChildren : realChildren;
 
     // State
     const [firstName, setFirstName] = useState('');
@@ -47,23 +48,24 @@ const Settings = () => {
     const [saveMessage, setSaveMessage] = useState('');
 
     useEffect(() => {
+        // Load email from user object (auth data)
+        if (user) {
+            setEmail(user.email || '');
+        }
+
         if (profile) {
             setFirstName(profile.firstName || profile.first_name || '');
             setLastName(profile.lastName || profile.last_name || '');
             setDateOfBirth(profile.dateOfBirth || profile.date_of_birth || '');
-            setEmail(profile.email || '');
             setRelationshipStatus(profile.relationshipStatus || profile.relationship_status || 'single');
             setEverDivorced(profile.everDivorced || profile.ever_divorced || false);
             setDivorceCount(profile.divorceCount || profile.divorce_count || 1);
             setEverWidowed(profile.everWidowed || profile.ever_widowed || false);
             setWidowedCount(profile.widowedCount || profile.widowed_count || 1);
-            setHasStartedSS(profile.has_started_ss || false);
-            setSSStartDate(profile.ss_start_date || '');
-            setCurrentSSBenefit(profile.current_ss_benefit || '');
-            setOwnPIA(profile.own_pia || '');
-            setHasChildrenUnder16(profile.has_children_under_16 || false);
-            setChildrenCount(profile.children_count || 1);
-            setChildrenBirthDates(profile.children_birth_dates || ['']);
+            setHasStartedSS(profile.already_receiving_benefits || profile.has_started_ss || false);
+            setSSStartDate(profile.ss_start_date || profile.benefit_filing_date || '');
+            setCurrentSSBenefit(profile.current_monthly_benefit || profile.current_ss_benefit || '');
+            setOwnPIA(profile.pia_at_fra || profile.own_pia || '');
             setEmploymentStatus(profile.employment_status || 'employed');
             setExpectedRetirementDate(profile.expected_retirement_date || '');
             setLongevityAge(profile.longevity_age || 95);
@@ -74,17 +76,34 @@ const Settings = () => {
             setRemarried(profile.remarried || false);
             setRemarriageDate(profile.remarriage_date || '');
         }
+
+        // Load partner data
         if (partners && partners.length > 0) {
             const p = partners[0];
-            const pName = p.name || (p.firstName && p.lastName ? `${p.firstName} ${p.lastName}` : '') || p.firstName || '';
+            // Build full name from first_name + last_name or use name field
+            const pFirstName = p.firstName || p.first_name || '';
+            const pLastName = p.lastName || p.last_name || '';
+            const pName = p.name || (pFirstName && pLastName ? `${pFirstName} ${pLastName}` : pFirstName) || '';
             setSpouseName(pName);
             setSpouseDateOfBirth(p.dateOfBirth || p.date_of_birth || '');
             setMarriageDate(p.marriage_date || '');
-            setSpouseHasStartedSS(p.has_started_ss || false);
-            setSpouseSSBenefit(p.ss_benefit || '');
-            setSpousePIA(p.pia || '');
+            setSpouseHasStartedSS(p.already_receiving_benefits || p.has_started_ss || false);
+            setSpouseSSBenefit(p.current_monthly_benefit || p.ss_benefit || '');
+            setSpousePIA(p.pia_at_fra || p.pia || '');
         }
-    }, [profile, partners]);
+
+        // Load children data
+        if (children && children.length > 0) {
+            setHasChildrenUnder16(true);
+            setChildrenCount(children.length);
+            const birthDates = children.map(c => c.date_of_birth || c.dateOfBirth || '');
+            setChildrenBirthDates(birthDates);
+        } else {
+            setHasChildrenUnder16(false);
+            setChildrenCount(1);
+            setChildrenBirthDates(['']);
+        }
+    }, [user, profile, partners, children]);
 
     const calculateAge = (dob) => {
         if (!dob) return null;
@@ -147,25 +166,25 @@ const Settings = () => {
                 display_name: displayName,
                 first_name: firstName,
                 last_name: lastName,
-                email,
                 relationship_status: relationshipStatus,
                 ever_divorced: everDivorced,
                 divorce_count: everDivorced ? divorceCount : 0,
                 ever_widowed: everWidowed,
                 widowed_count: everWidowed ? widowedCount : 0,
-                has_started_ss: hasStartedSS,
-                ss_start_date: hasStartedSS ? ssStartDate : null,
-                current_ss_benefit: hasStartedSS ? currentSSBenefit : null,
-                own_pia: ownPIA || null,
-                has_children_under_16: hasChildrenUnder16,
-                children_count: hasChildrenUnder16 ? childrenCount : 0,
-                children_birth_dates: hasChildrenUnder16 ? childrenBirthDates : [],
+                // SS fields - map to database column names
+                alreadyReceivingBenefits: hasStartedSS,
+                already_receiving_benefits: hasStartedSS,
+                currentMonthlyBenefit: hasStartedSS ? parseFloat(currentSSBenefit) || null : null,
+                current_monthly_benefit: hasStartedSS ? parseFloat(currentSSBenefit) || null : null,
+                piaAtFra: ownPIA ? parseFloat(ownPIA) : null,
+                pia_at_fra: ownPIA ? parseFloat(ownPIA) : null,
+                // Other Planning fields
                 employment_status: employmentStatus,
                 expected_retirement_date: expectedRetirementDate || null,
                 longevity_age: longevityAge,
                 inflation_rate: inflationRate,
                 divorce_date: relationshipStatus === 'divorced' ? divorceDate : null,
-                marriage_duration_years: relationshipStatus === 'divorced' ? marriageDurationYears : null,
+                marriage_duration_years: relationshipStatus === 'divorced' ? parseInt(marriageDurationYears) || null : null,
                 death_date: relationshipStatus === 'widowed' ? deathDate : null,
                 remarried: remarried,
                 remarriage_date: remarried ? remarriageDate : null,
@@ -177,19 +196,38 @@ const Settings = () => {
                 await updateProfile(profileUpdate);
             }
 
+            // Handle spouse/partner data
             if (relationshipStatus === 'married' || relationshipStatus === 'divorced' || relationshipStatus === 'widowed') {
-                const partnerUpdate = {
-                    name: spouseName,
+                // Parse the spouse name into first and last
+                const nameParts = spouseName.trim().split(' ');
+                const spouseFirstName = nameParts[0] || '';
+                const spouseLastName = nameParts.slice(1).join(' ') || '';
+
+                const partnerData = {
+                    firstName: spouseFirstName,
+                    lastName: spouseLastName,
+                    dateOfBirth: spouseDateOfBirth || null,
+                    relationshipType: relationshipStatus === 'married' ? 'spouse' :
+                        relationshipStatus === 'divorced' ? 'ex_spouse' : 'deceased_spouse',
                     marriage_date: marriageDate || null,
-                    has_started_ss: spouseHasStartedSS,
-                    ss_benefit: spouseHasStartedSS ? spouseSSBenefit : null,
-                    pia: spousePIA || null,
+                    alreadyReceivingBenefits: spouseHasStartedSS,
+                    currentMonthlyBenefit: spouseHasStartedSS ? parseFloat(spouseSSBenefit) || null : null,
+                    piaAtFra: spousePIA ? parseFloat(spousePIA) : null,
+                    // Divorced specific
+                    divorceDate: relationshipStatus === 'divorced' ? divorceDate : null,
+                    marriageLengthYears: relationshipStatus === 'divorced' ? parseInt(marriageDurationYears) || null : null,
+                    // Widowed specific
+                    dateOfDeath: relationshipStatus === 'widowed' ? deathDate : null,
                 };
 
                 if (isDevMode) {
-                    updateDevPartner(0, partnerUpdate);
+                    updateDevPartner(0, partnerData);
                 } else if (partners && partners.length > 0) {
-                    await updatePartner(partners[0].id, partnerUpdate);
+                    // Update existing partner
+                    await updatePartner(partners[0].id, partnerData);
+                } else if (spouseName || spouseDateOfBirth) {
+                    // Create new partner if we have spouse info but no partner exists
+                    await addPartner(partnerData);
                 }
             }
 
@@ -300,8 +338,8 @@ const Settings = () => {
                                             key={status}
                                             onClick={() => setRelationshipStatus(status)}
                                             className={`px-4 py-3 rounded-xl border-2 transition-all ${relationshipStatus === status
-                                                    ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium'
-                                                    : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300'
+                                                ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium'
+                                                : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300'
                                                 }`}
                                         >
                                             {status.charAt(0).toUpperCase() + status.slice(1)}
