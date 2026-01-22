@@ -7,12 +7,18 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first to leverage cache
+# Copy requirements
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application
-COPY . .
+# Copy application files explicitly
+COPY main.py .
+COPY api ./api
+COPY core ./core
+COPY config ./config
+
+# Debug: List files to ensure they are present
+RUN echo "Listing files in /app:" && ls -R .
 
 # Expose the port
 EXPOSE 8000
