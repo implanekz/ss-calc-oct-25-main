@@ -39,7 +39,7 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
     const [showExSpousePiaModal, setShowExSpousePiaModal] = useState(false);
     const [hoveredStrategyIndex, setHoveredStrategyIndex] = useState(null);
     const [detailPanelOffset, setDetailPanelOffset] = useState(0);
-    
+
     // Scenario comparison state
     const [selectedScenarios, setSelectedScenarios] = useState([]);
     const [showComparisonModal, setShowComparisonModal] = useState(false);
@@ -102,14 +102,14 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
 
     const updateDetailPanelPosition = (cardIndex) => {
         if (cardIndex === null) return;
-        
+
         const cardElement = document.getElementById(`strategy-card-${cardIndex}`);
         const detailElement = document.getElementById('inline-detail-chart');
-        
+
         if (cardElement && detailElement) {
             const cardRect = cardElement.getBoundingClientRect();
             const detailRect = detailElement.getBoundingClientRect();
-            
+
             // Calculate how far the detail panel should move to align with the card
             const offset = cardRect.top - detailRect.top;
             setDetailPanelOffset(offset);
@@ -118,15 +118,15 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
 
     useEffect(() => {
         if (hoveredStrategyIndex === null) return;
-        
+
         // Update position on scroll
         const handleScroll = () => {
             updateDetailPanelPosition(hoveredStrategyIndex);
         };
-        
+
         // Add scroll listener
         window.addEventListener('scroll', handleScroll, { passive: true });
-        
+
         // Also update on animation frame for smooth tracking
         let animationFrameId;
         const trackPosition = () => {
@@ -134,7 +134,7 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
             animationFrameId = requestAnimationFrame(trackPosition);
         };
         animationFrameId = requestAnimationFrame(trackPosition);
-        
+
         return () => {
             window.removeEventListener('scroll', handleScroll);
             if (animationFrameId) {
@@ -151,7 +151,7 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
             ...strategy,
             description: describeStrategy(strategy)
         });
-        
+
         // Calculate initial offset to align detail panel with hovered card
         if (cardIndex !== null) {
             updateDetailPanelPosition(cardIndex);
@@ -174,9 +174,9 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
         try {
             const response = await axios.post(`${API_BASE_URL}/calculate-divorced`, {
                 birth_date: birthDate,
-                own_pia: ownPia,
-                ex_spouse_pia: exSpousePia,
-                marriage_duration_years: marriageDurationYears,
+                own_pia: ownPia === '' ? 0 : Number(ownPia),
+                ex_spouse_pia: exSpousePia === '' ? 0 : Number(exSpousePia),
+                marriage_duration_years: marriageDurationYears === '' ? 0 : Number(marriageDurationYears),
                 divorce_date: divorceDate,
                 is_remarried: isRemarried,
                 has_child_under_16: hasChildUnder16,
@@ -189,7 +189,7 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
         } catch (err) {
             // Handle validation errors from FastAPI (array format)
             let errorMessage = 'Calculation failed. Please check your inputs.';
-            
+
             // Check if this is a network/connection error
             if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED' || err.message?.includes('Network Error')) {
                 errorMessage = '⚠️ Cannot connect to the calculation server. Please make sure the backend server is running on port 8000. Run: cd backend && python3 -m uvicorn core.integrated_ss_api:app --reload --port 8000';
@@ -316,7 +316,7 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                     <input
                                         type="number"
                                         value={ownPia}
-                                        onChange={(e) => setOwnPia(Number(e.target.value))}
+                                        onChange={(e) => setOwnPia(e.target.value === '' ? '' : Number(e.target.value))}
                                         className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
@@ -344,7 +344,7 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                     <input
                                         type="number"
                                         value={exSpousePia}
-                                        onChange={(e) => setExSpousePia(Number(e.target.value))}
+                                        onChange={(e) => setExSpousePia(e.target.value === '' ? '' : Number(e.target.value))}
                                         className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
@@ -362,7 +362,7 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                 <input
                                     type="number"
                                     value={marriageDurationYears}
-                                    onChange={(e) => setMarriageDurationYears(Number(e.target.value))}
+                                    onChange={(e) => setMarriageDurationYears(e.target.value === '' ? '' : Number(e.target.value))}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                                 {marriageDurationYears < 10 && (
@@ -502,8 +502,8 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                                     Your Own Benefit is Higher
                                                 </h2>
                                                 <p className="text-blue-800 mb-4 leading-relaxed">
-                                                    Your Social Security retirement benefit (${ownPia.toLocaleString()}) is larger than 50% of your ex-spouse's benefit 
-                                                    (${(exSpousePia * 0.5).toLocaleString()}). Due to Social Security's <strong>deemed filing rule</strong>, 
+                                                    Your Social Security retirement benefit (${ownPia.toLocaleString()}) is larger than 50% of your ex-spouse's benefit
+                                                    (${(exSpousePia * 0.5).toLocaleString()}). Due to Social Security's <strong>deemed filing rule</strong>,
                                                     you will always receive your own higher benefit, not the ex-spousal amount.
                                                 </p>
                                                 <div className="bg-white bg-opacity-70 rounded-lg p-4 mb-4">
@@ -529,7 +529,7 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                                 </div>
                                                 <div className="bg-blue-100 rounded-lg p-4 mb-4">
                                                     <p className="text-sm text-blue-900">
-                                                        <strong>💡 What This Means:</strong> You should focus on optimizing your own Social Security claiming strategy 
+                                                        <strong>💡 What This Means:</strong> You should focus on optimizing your own Social Security claiming strategy
                                                         rather than considering ex-spouse benefits. The Married/Single calculator is better suited for your situation.
                                                     </p>
                                                 </div>
@@ -822,7 +822,7 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                                 💡 <strong>Compare Scenarios:</strong> Select any 2 strategies using the checkboxes to see a side-by-side comparison chart.
                                             </p>
                                         </div>
-                                        
+
                                         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 relative">
                                             {/* Strategy Cards - Left Side (40%) */}
                                             <div className="lg:col-span-2 space-y-3">
@@ -844,7 +844,7 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                                                 className="mt-1 h-5 w-5 text-purple-600 focus:ring-purple-500 border-gray-300 rounded cursor-pointer"
                                                                 aria-label={`Select ${strategy.strategy} for comparison`}
                                                             />
-                                                            <div 
+                                                            <div
                                                                 className="flex-1 cursor-pointer"
                                                                 role="button"
                                                                 tabIndex={0}
@@ -862,10 +862,10 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                                             >
                                                                 <div className="flex justify-between items-start">
                                                                     <div className="flex-1">
-                                                                <p className="font-semibold text-gray-900">
-                                                                    {index === 0 && '👑 '}
-                                                                    {getStrategyIcon(strategy.type)} {strategy.strategy}
-                                                                </p>
+                                                                        <p className="font-semibold text-gray-900">
+                                                                            {index === 0 && '👑 '}
+                                                                            {getStrategyIcon(strategy.type)} {strategy.strategy}
+                                                                        </p>
                                                                         <p className="text-sm text-gray-600 mt-1">
                                                                             Initial: {formatCurrency(strategy.initial_monthly)}/month
                                                                             {strategy.switched_monthly && (
@@ -893,8 +893,8 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                             </div>
 
                                             {/* Detail Chart - Right Side (60%) - Sticky with dynamic positioning */}
-                                            <div 
-                                                id="inline-detail-chart" 
+                                            <div
+                                                id="inline-detail-chart"
                                                 className="lg:col-span-3 flex items-start sticky top-6 self-start transition-transform duration-150 ease-out"
                                                 style={{
                                                     transform: `translateY(${detailPanelOffset}px)`
@@ -932,12 +932,12 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                                 };
                                                 const colorIndex = hoveredStrategyIndex % 5;
                                                 const color = cardColors[colorIndex];
-                                                
+
                                                 return (
                                                     <svg
                                                         className="absolute inset-0 pointer-events-none"
-                                                        style={{ 
-                                                            width: '100%', 
+                                                        style={{
+                                                            width: '100%',
                                                             height: '100%',
                                                             zIndex: 10
                                                         }}
@@ -953,29 +953,29 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                                                 const cardElement = document.getElementById(`strategy-card-${hoveredStrategyIndex}`);
                                                                 const detailElement = document.getElementById('inline-detail-chart');
                                                                 const containerElement = cardElement?.closest('.grid');
-                                                                
+
                                                                 if (!cardElement || !detailElement || !containerElement) return null;
-                                                                
+
                                                                 const cardRect = cardElement.getBoundingClientRect();
                                                                 const detailRect = detailElement.getBoundingClientRect();
                                                                 const containerRect = containerElement.getBoundingClientRect();
-                                                                
+
                                                                 // Start from right edge of card
                                                                 const startX = cardRect.right - containerRect.left;
                                                                 const startY = cardRect.top + cardRect.height / 2 - containerRect.top;
-                                                                
+
                                                                 // End at left edge of detail chart
                                                                 const endX = detailRect.left - containerRect.left;
                                                                 const endYTop = detailRect.top - containerRect.top;
                                                                 const endYBottom = detailRect.bottom - containerRect.top;
-                                                                
+
                                                                 // Create flowing path with varying widths (Sankey style)
                                                                 const midX = (startX + endX) / 2;
-                                                                
+
                                                                 // Path data for area (filled shape)
                                                                 const topPath = `M ${startX},${cardRect.top - containerRect.top} C ${startX + 60},${cardRect.top - containerRect.top} ${midX - 60},${endYTop} ${endX},${endYTop}`;
                                                                 const bottomPath = `L ${endX},${endYBottom} C ${midX - 60},${endYBottom} ${startX + 60},${cardRect.bottom - containerRect.top} ${startX},${cardRect.bottom - containerRect.top}`;
-                                                                
+
                                                                 return (
                                                                     <>
                                                                         {/* Sankey flow area */}
@@ -1061,21 +1061,19 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                     <div className="flex bg-gray-100 rounded-lg p-1">
                                         <button
                                             onClick={() => setComparisonViewMode('monthly')}
-                                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                                                comparisonViewMode === 'monthly'
-                                                    ? 'bg-white text-purple-700 shadow'
-                                                    : 'text-gray-600 hover:text-gray-900'
-                                            }`}
+                                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${comparisonViewMode === 'monthly'
+                                                ? 'bg-white text-purple-700 shadow'
+                                                : 'text-gray-600 hover:text-gray-900'
+                                                }`}
                                         >
                                             Monthly
                                         </button>
                                         <button
                                             onClick={() => setComparisonViewMode('annual')}
-                                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                                                comparisonViewMode === 'annual'
-                                                    ? 'bg-white text-purple-700 shadow'
-                                                    : 'text-gray-600 hover:text-gray-900'
-                                            }`}
+                                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${comparisonViewMode === 'annual'
+                                                ? 'bg-white text-purple-700 shadow'
+                                                : 'text-gray-600 hover:text-gray-900'
+                                                }`}
                                         >
                                             Annual
                                         </button>
@@ -1104,7 +1102,7 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                         if (age < currentAge) {
                                             return null; // N/A for past ages
                                         }
-                                        
+
                                         // Find benefit for this age from timeline
                                         const timelineEntry = strategy.benefit_timeline?.find(entry => entry.age === age);
                                         return timelineEntry ? timelineEntry.monthly_benefit * multiplier : null;
@@ -1113,7 +1111,7 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
 
                                 const data1 = getData(scenario1);
                                 const data2 = getData(scenario2);
-                                
+
                                 // Find max value for scaling
                                 const allValues = [...data1, ...data2].filter(v => v !== null);
                                 const maxValue = Math.max(...allValues);
@@ -1312,7 +1310,7 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                         ⏱️ The 10-Year Rule
                                     </h3>
                                     <p className="text-purple-800">
-                                        The dates on your marriage certificate and divorce decree must be <strong>10 years or more apart</strong> to qualify for divorced spouse benefits. 
+                                        The dates on your marriage certificate and divorce decree must be <strong>10 years or more apart</strong> to qualify for divorced spouse benefits.
                                         Social Security will verify this when you provide the documents.
                                     </p>
                                 </div>
@@ -1333,7 +1331,7 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                         ⏰ Start Early
                                     </h3>
                                     <p className="text-orange-800">
-                                        With current resource constraints at Social Security, obtaining this information may take time. 
+                                        With current resource constraints at Social Security, obtaining this information may take time.
                                         It's best to <strong>start the process early</strong> to ensure you have accurate numbers for your planning.
                                     </p>
                                 </div>

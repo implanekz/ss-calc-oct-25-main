@@ -1694,6 +1694,14 @@ const ShowMeTheMoneyCalculator = () => {
     // Track if we've loaded initial persisted state to prevent infinite loop
     const hasLoadedPersistedState = useRef(false);
 
+    // Track previous server values to prevent overwriting local edits
+    const lastProfilePia = useRef(null);
+    const lastPartnerPia = useRef(null);
+    const lastSpouse1PreferredYear = useRef(null);
+    const lastSpouse1PreferredMonth = useRef(null);
+    const lastSpouse2PreferredYear = useRef(null);
+    const lastSpouse2PreferredMonth = useRef(null);
+
     // Load persisted state when it becomes available (only once on mount)
     useEffect(() => {
         if (isLoaded && persistedState && !hasLoadedPersistedState.current) {
@@ -1739,8 +1747,13 @@ const ShowMeTheMoneyCalculator = () => {
 
         // 3. Sync Primary PIA
         const profilePia = profile.pia_at_fra ?? profile.piaAtFra ?? profile.own_pia ?? profile.ownPia;
-        if (profilePia !== undefined && profilePia !== null && profilePia !== spouse1Pia) {
-            setSpouse1Pia(profilePia);
+        if (profilePia !== undefined && profilePia !== null) {
+            // Only update local state if the SERVER value has changed from what we last saw
+            // This prevents overwriting local edits when unrelated profile fields update
+            if (lastProfilePia.current !== profilePia) {
+                setSpouse1Pia(profilePia);
+                lastProfilePia.current = profilePia;
+            }
         }
 
         // 4. Sync Spouse Info
@@ -1752,23 +1765,51 @@ const ShowMeTheMoneyCalculator = () => {
             }
 
             const partnerPia = partner.pia_at_fra ?? partner.piaAtFra ?? partner.pia;
-            if (partnerPia !== undefined && partnerPia !== null && partnerPia !== spouse2Pia) {
-                setSpouse2Pia(partnerPia);
+            if (partnerPia !== undefined && partnerPia !== null) {
+                // Only update local state if the SERVER value has changed
+                if (lastPartnerPia.current !== partnerPia) {
+                    setSpouse2Pia(partnerPia);
+                    lastPartnerPia.current = partnerPia;
+                }
             }
         }
 
         // 5. Sync Preferred Ages (Primary)
         const pYear = profile.preferred_claiming_age_years ?? profile.preferredClaimingAgeYears;
         const pMonth = profile.preferred_claiming_age_months ?? profile.preferredClaimingAgeMonths;
-        if (pYear !== undefined && pYear !== null && pYear !== spouse1PreferredYear) setSpouse1PreferredYear(pYear);
-        if (pMonth !== undefined && pMonth !== null && pMonth !== spouse1PreferredMonth) setSpouse1PreferredMonth(pMonth);
+
+        if (pYear !== undefined && pYear !== null) {
+            if (lastSpouse1PreferredYear.current !== pYear) {
+                setSpouse1PreferredYear(pYear);
+                lastSpouse1PreferredYear.current = pYear;
+            }
+        }
+
+        if (pMonth !== undefined && pMonth !== null) {
+            if (lastSpouse1PreferredMonth.current !== pMonth) {
+                setSpouse1PreferredMonth(pMonth);
+                lastSpouse1PreferredMonth.current = pMonth;
+            }
+        }
 
         // 6. Sync Preferred Ages (Spouse - from Preferences)
         if (preferences) {
             const sYear = preferences.spouse_preferred_claiming_age_years ?? preferences.spousePreferredClaimingAgeYears;
             const sMonth = preferences.spouse_preferred_claiming_age_months ?? preferences.spousePreferredClaimingAgeMonths;
-            if (sYear !== undefined && sYear !== null && sYear !== spouse2PreferredYear) setSpouse2PreferredYear(sYear);
-            if (sMonth !== undefined && sMonth !== null && sMonth !== spouse2PreferredMonth) setSpouse2PreferredMonth(sMonth);
+
+            if (sYear !== undefined && sYear !== null) {
+                if (lastSpouse2PreferredYear.current !== sYear) {
+                    setSpouse2PreferredYear(sYear);
+                    lastSpouse2PreferredYear.current = sYear;
+                }
+            }
+
+            if (sMonth !== undefined && sMonth !== null) {
+                if (lastSpouse2PreferredMonth.current !== sMonth) {
+                    setSpouse2PreferredMonth(sMonth);
+                    lastSpouse2PreferredMonth.current = sMonth;
+                }
+            }
         }
     }, [profile, partners, preferences]); // Dep on profile/partners strictly to avoid typing loops
 

@@ -473,7 +473,7 @@ async def analyze_earnings_changes(request: XMLAnalysisRequest):
         raise HTTPException(status_code=400, detail=f"Error analyzing changes: {str(e)}")
 
 @app.post("/calculate", response_model=CalculationResponse)
-async def calculate_benefits(request: EnhancedCalculationRequest):
+def calculate_benefits(request: EnhancedCalculationRequest):
     """
     Run full optimization analysis using provided or XML-derived PIA
     Integrates the XML-derived PIA with the main optimization engine
@@ -575,7 +575,7 @@ async def calculate_benefits(request: EnhancedCalculationRequest):
         raise HTTPException(status_code=400, detail=f"Calculation failed: {str(e)}")
 
 @app.post("/monthly-optimization", response_model=MonthlyOptimizationResponse)
-async def monthly_optimization(request: MonthlyOptimizationRequest):
+def monthly_optimization(request: MonthlyOptimizationRequest):
     """
     Calculate the value of waiting one more month to claim
     Implements the "one day at a time" decision making
@@ -731,7 +731,7 @@ def _calculate_survivor_impact(spouse1_calc: IndividualSSCalculator, spouse2_cal
     }
 
 @app.post("/calculate-divorced", response_model=DivorcedCalculationResponse)
-async def calculate_divorced(request: DivorcedCalculationRequest):
+def calculate_divorced(request: DivorcedCalculationRequest):
     """
     Calculate optimal strategy for divorced individual
     Compares own benefits, ex-spouse benefits, and switching strategies
@@ -769,7 +769,7 @@ async def calculate_divorced(request: DivorcedCalculationRequest):
         raise HTTPException(status_code=400, detail=f"Divorced calculation failed: {str(e)}")
 
 @app.post("/calculate-widow", response_model=WidowCalculationResponse)
-async def calculate_widow(request: WidowCalculationRequest):
+def calculate_widow(request: WidowCalculationRequest):
     """
     Calculate optimal strategy for widowed individual
     Compares own benefits, survivor benefits, and crossover strategies
