@@ -331,12 +331,13 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                     <button
                                         type="button"
                                         onClick={() => setShowExSpousePiaModal(true)}
-                                        className="text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full p-0.5"
+                                        className="flex items-center gap-1 text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 rounded p-0.5 transition-colors"
                                         aria-label="How to get ex-spouse's PIA information"
                                     >
                                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                                         </svg>
+                                        <span className="text-xs font-bold underline decoration-dotted">Important information</span>
                                     </button>
                                 </div>
                                 <div className="relative">
@@ -1241,13 +1242,16 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
 
             {/* Ex-Spouse PIA Info Modal */}
             {showExSpousePiaModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6">
-                            <div className="flex justify-between items-start mb-4">
-                                <h2 className="text-2xl font-bold text-gray-900">
-                                    📋 How to Get Your Ex-Spouse's PIA Information
-                                </h2>
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-8">
+                            <div className="flex justify-between items-start mb-6">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-gray-900">
+                                        📋 How to Get Your Ex-Spouse's PIA Information
+                                    </h2>
+                                    <p className="text-gray-600 mt-1">Everything you need to know about the "Secret" PIA Rule and requirements.</p>
+                                </div>
                                 <button
                                     onClick={() => setShowExSpousePiaModal(false)}
                                     className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1"
@@ -1259,90 +1263,122 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                 </button>
                             </div>
 
-                            <div className="space-y-4">
-                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                                    <h3 className="text-lg font-semibold text-amber-900 mb-2">
-                                        ⚠️ Important: Social Security Won't Tell You Directly
+                            <div className="space-y-6">
+                                {/* 1. The "Secret" PIA Rule */}
+                                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 shadow-sm">
+                                    <h3 className="flex items-center text-lg font-bold text-blue-900 mb-3">
+                                        <span className="text-2xl mr-2">🤫</span> 1. The "Secret" PIA Rule (Privacy Loophole)
                                     </h3>
-                                    <p className="text-amber-800">
-                                        Social Security will <strong>NOT</strong> disclose your ex-spouse's actual PIA amount to you due to privacy regulations.
+                                    <p className="text-blue-800 mb-4 leading-relaxed">
+                                        You are correct about the "loophole." In practice, SSA claims specialists often will not explicitly state,
+                                        "Your ex-husband's PIA is $3,000." However, by giving you your potential divorced spouse benefit
+                                        (e.g., $1,500), they are mathematically revealing it.
                                     </p>
-                                </div>
 
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                    <h3 className="text-lg font-semibold text-blue-900 mb-3">
-                                        ✅ What You CAN Ask For
-                                    </h3>
-                                    <p className="text-blue-800 mb-3">
-                                        Instead, ask Social Security this specific question:
-                                    </p>
-                                    <div className="bg-white rounded-lg p-4 border-l-4 border-blue-500">
-                                        <p className="text-blue-900 font-semibold italic">
-                                            "If I were to file for divorced spouse benefits at my full retirement age, what would that monthly benefit amount be?"
+                                    <div className="bg-white bg-opacity-80 rounded-lg p-4 border-l-4 border-blue-500 mb-4">
+                                        <p className="text-sm text-blue-900 font-medium mb-1">THE TECHNICAL NUANCE</p>
+                                        <p className="text-sm text-gray-700 italic mb-2">
+                                            "We may disclose the NH’s [Number Holder's] PIA to his wife... so she can determine whether she would be entitled to a wife's benefit..."
+                                            <span className="text-xs text-gray-500 ml-1 block mt-1">— SSA Policy POM GN 03316.110</span>
                                         </p>
                                     </div>
-                                    <p className="text-blue-800 mt-3 text-sm">
-                                        Social Security will tell you this amount, which is 50% of your ex-spouse's PIA. You can then multiply by 2 to calculate the ex-spouse's actual PIA.
+
+                                    <p className="text-sm text-blue-800">
+                                        Despite this, many agents are conservative. The result is the same: you get the number you need to do the math.
+                                        <strong> (Benefit × 2 = Ex-Spouse PIA)</strong>.
                                     </p>
                                 </div>
 
-                                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                    <h3 className="text-lg font-semibold text-green-900 mb-3">
-                                        📄 Required Documentation
+                                {/* 2. Document Requirements */}
+                                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-5 shadow-sm">
+                                    <h3 className="flex items-center text-lg font-bold text-amber-900 mb-3">
+                                        <span className="text-2xl mr-2">📑</span> 2. Document Requirements ("Price of Admission")
                                     </h3>
-                                    <p className="text-green-800 mb-3">
-                                        When contacting Social Security, you'll need to provide:
+                                    <p className="text-amber-800 mb-3">
+                                        To get this number, you typically cannot just walk in and ask. You must prove you are a potential claimant
+                                        by providing <strong>certified copies</strong> of two key documents:
                                     </p>
-                                    <ul className="space-y-2 text-green-800">
-                                        <li className="flex items-start gap-2">
-                                            <span className="text-green-600 mt-0.5">•</span>
-                                            <span><strong>Certified copy of marriage certificate</strong></span>
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <span className="text-green-600 mt-0.5">•</span>
-                                            <span><strong>Certified copy of divorce decree</strong></span>
-                                        </li>
-                                    </ul>
-                                </div>
 
-                                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                                    <h3 className="text-lg font-semibold text-purple-900 mb-2">
-                                        ⏱️ The 10-Year Rule
-                                    </h3>
-                                    <p className="text-purple-800">
-                                        The dates on your marriage certificate and divorce decree must be <strong>10 years or more apart</strong> to qualify for divorced spouse benefits.
-                                        Social Security will verify this when you provide the documents.
+                                    <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                        <div className="bg-white p-3 rounded-lg border border-amber-100">
+                                            <p className="font-semibold text-amber-900">1. Marriage Certificate</p>
+                                            <p className="text-sm text-gray-600">Must prove the marriage lasted at least <strong>10 years</strong>.</p>
+                                        </div>
+                                        <div className="bg-white p-3 rounded-lg border border-amber-100">
+                                            <p className="font-semibold text-amber-900">2. Divorce Decree</p>
+                                            <p className="text-sm text-gray-600">Must prove the marriage is legally ended.</p>
+                                        </div>
+                                    </div>
+
+                                    <p className="text-xs text-amber-800 bg-amber-100 inline-block px-2 py-1 rounded">
+                                        ⚠️ "Certified" means it has the raised seal or official stamp. Photocopies are generally rejected.
                                     </p>
-                                </div>
 
-                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                                        💡 Quick Calculation Example
-                                    </h3>
-                                    <div className="space-y-2 text-sm text-gray-700">
-                                        <p>If Social Security tells you that your divorced spouse benefit at FRA would be <strong>$1,400/month</strong>:</p>
-                                        <p className="pl-4">→ Your ex-spouse's PIA = $1,400 × 2 = <strong className="text-blue-600">$2,800</strong></p>
-                                        <p className="pl-4 text-gray-600 italic">Enter $2,800 in the "Ex-Spouse's PIA at FRA" field above</p>
+                                    <div className="mt-4">
+                                        <p className="text-sm font-semibold text-amber-900 mb-2">Exceptions where you might NOT need papers:</p>
+                                        <ul className="text-sm text-amber-800 space-y-1 ml-4 list-disc">
+                                            <li><strong>Evidence Already on File:</strong> If you received spousal benefits <em>before</em> the divorce.</li>
+                                            <li><strong>Ex-Spouse Claimed You:</strong> If they listed you on a past application.</li>
+                                        </ul>
+                                    </div>
+
+                                    {/* Source for Exceptions */}
+                                    <div className="mt-2 text-xs text-amber-700 italic">
+                                        Sources: POMS RS 00202.070, RS 00202.100
                                     </div>
                                 </div>
 
-                                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                                    <h3 className="text-lg font-semibold text-orange-900 mb-2">
-                                        ⏰ Start Early
+                                {/* 3. Basic Eligibility Cheat Sheet */}
+                                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-5 shadow-sm">
+                                    <h3 className="flex items-center text-lg font-bold text-green-900 mb-3">
+                                        <span className="text-2xl mr-2">✅</span> 3. Basic Eligibility "Cheat Sheet"
                                     </h3>
-                                    <p className="text-orange-800">
-                                        With current resource constraints at Social Security, obtaining this information may take time.
-                                        It's best to <strong>start the process early</strong> to ensure you have accurate numbers for your planning.
-                                    </p>
+                                    <div className="grid md:grid-cols-2 gap-x-6 gap-y-3">
+                                        <div className="flex items-start gap-2">
+                                            <span className="text-green-600 text-lg">💍</span>
+                                            <div>
+                                                <p className="font-semibold text-gray-900 text-sm">Marriage Length</p>
+                                                <p className="text-sm text-gray-600">Married for <strong>10 continuous years</strong> or more.</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start gap-2">
+                                            <span className="text-green-600 text-lg">👤</span>
+                                            <div>
+                                                <p className="font-semibold text-gray-900 text-sm">Current Status</p>
+                                                <p className="text-sm text-gray-600">Currently <strong>unmarried</strong> (unless remarried after 60).</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start gap-2">
+                                            <span className="text-green-600 text-lg">🎂</span>
+                                            <div>
+                                                <p className="font-semibold text-gray-900 text-sm">Your Age</p>
+                                                <p className="text-sm text-gray-600">You must be at least <strong>62</strong>.</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start gap-2">
+                                            <span className="text-green-600 text-lg">⏳</span>
+                                            <div>
+                                                <p className="font-semibold text-gray-900 text-sm">Divorce Timing</p>
+                                                <p className="text-sm text-gray-600">If ex isn't collecting yet, you must be divorced <strong>2+ years</strong>.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 pt-4 border-t border-green-200">
+                                        <p className="text-sm text-green-900">
+                                            <strong>🎓 Expert Note:</strong> Your benefit is 50% of their <em>FRA Benefit</em> (PIA), not 50% of what they visibly receive.
+                                            If they claimed early/late, it doesn't hurt your base calculation.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="mt-6 flex justify-end">
+                            <div className="mt-8 flex justify-end">
                                 <button
                                     onClick={() => setShowExSpousePiaModal(false)}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+                                    className="bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 px-8 rounded-lg shadow-lg transition-all transform hover:scale-105"
                                 >
-                                    Got It
+                                    I Understand
                                 </button>
                             </div>
                         </div>
