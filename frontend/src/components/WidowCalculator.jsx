@@ -339,7 +339,7 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                     <input
                                         type="number"
                                         value={ownPia}
-                                        onChange={(e) => setOwnPia(Number(e.target.value))}
+                                        onChange={(e) => setOwnPia(e.target.value === '' ? '' : Number(e.target.value))}
                                         className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
@@ -371,7 +371,7 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                     <input
                                         type="number"
                                         value={deceasedSpousePia}
-                                        onChange={(e) => setDeceasedSpousePia(Number(e.target.value))}
+                                        onChange={(e) => setDeceasedSpousePia(e.target.value === '' ? '' : Number(e.target.value))}
                                         className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
@@ -1208,8 +1208,8 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                         <button
                                             onClick={() => setComparisonViewMode('monthly')}
                                             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${comparisonViewMode === 'monthly'
-                                                    ? 'bg-white text-purple-700 shadow'
-                                                    : 'text-gray-600 hover:text-gray-900'
+                                                ? 'bg-white text-purple-700 shadow'
+                                                : 'text-gray-600 hover:text-gray-900'
                                                 }`}
                                         >
                                             Monthly
@@ -1217,8 +1217,8 @@ const WidowCalculator = ({ onSwitchToMarried }) => {
                                         <button
                                             onClick={() => setComparisonViewMode('annual')}
                                             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${comparisonViewMode === 'annual'
-                                                    ? 'bg-white text-purple-700 shadow'
-                                                    : 'text-gray-600 hover:text-gray-900'
+                                                ? 'bg-white text-purple-700 shadow'
+                                                : 'text-gray-600 hover:text-gray-900'
                                                 }`}
                                         >
                                             Annual
