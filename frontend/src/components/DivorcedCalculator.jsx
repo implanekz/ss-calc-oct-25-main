@@ -1337,6 +1337,15 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                         ⚠️ "Certified" means it has the raised seal or official stamp. Photocopies are generally rejected.
                                     </p>
 
+                                    <div className="mt-3 bg-red-50 border-l-4 border-red-500 p-3 rounded-lg text-sm text-red-900">
+                                        <p className="font-bold mb-1">⚠️ The Dates are Determinative</p>
+                                        <p>
+                                            The 10-year rule is strict. If you were married for 9 years and 364 days, you do not qualify.
+                                            Cohabitation ("living as married") before the legal marriage date does not count.
+                                            <strong>Only the exact dates on your certificates matter.</strong>
+                                        </p>
+                                    </div>
+
                                     <div className="mt-4">
                                         <p className="text-sm font-semibold text-amber-900 mb-2">Exceptions where you might NOT need papers:</p>
                                         <ul className="text-sm text-amber-800 space-y-1 ml-4 list-disc">
