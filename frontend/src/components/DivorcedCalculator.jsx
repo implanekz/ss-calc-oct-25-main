@@ -1270,7 +1270,7 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                         <span className="text-2xl mr-2">🤫</span> 1. The "Secret" PIA Rule (Privacy Loophole)
                                     </h3>
                                     <p className="text-blue-800 mb-4 leading-relaxed">
-                                        You are correct about the "loophole." In practice, SSA claims specialists often will not explicitly state,
+                                        In practice, SSA claims specialists often will not explicitly state,
                                         "Your ex-husband's PIA is $3,000." However, by giving you your potential divorced spouse benefit
                                         (e.g., $1,500), they are mathematically revealing it.
                                     </p>
@@ -1292,11 +1292,34 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                 {/* 2. Document Requirements */}
                                 <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-5 shadow-sm">
                                     <h3 className="flex items-center text-lg font-bold text-amber-900 mb-3">
-                                        <span className="text-2xl mr-2">📑</span> 2. Document Requirements ("Price of Admission")
+                                        <span className="text-2xl mr-2">📑</span> 2. Document & Information Requirements
                                     </h3>
+
+                                    <div className="bg-white p-4 rounded-lg border border-amber-100 mb-4">
+                                        <p className="font-semibold text-amber-900 mb-1">Do I need my ex-spouse's Social Security Number?</p>
+                                        <p className="text-amber-800">
+                                            You <strong>do not need to know</strong> their SSN to apply, but having it speeds up the process.
+                                            Social Security can look it up if you provide:
+                                        </p>
+                                        <ul className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-amber-900">
+                                            <li className="flex items-center gap-2"><span className="text-amber-500">✓</span> Full Name (including during marriage)</li>
+                                            <li className="flex items-center gap-2"><span className="text-amber-500">✓</span> Date of Birth (or close estimate)</li>
+                                            <li className="flex items-center gap-2"><span className="text-amber-500">✓</span> Place of Birth (City/State)</li>
+                                            <li className="flex items-center gap-2"><span className="text-amber-500">✓</span> Parents' Names (critical tie-breaker)</li>
+                                        </ul>
+                                    </div>
+
+                                    <div className="bg-amber-100 rounded-lg p-3 mb-4">
+                                        <h4 className="text-sm font-bold text-amber-900 mb-1">🔍 What Happens Behind the Scenes</h4>
+                                        <ol className="list-decimal list-inside text-sm text-amber-800 space-y-1">
+                                            <li><strong>The Search:</strong> Specialist uses your data to search the "Alpha-Index" system.</li>
+                                            <li><strong>Verification:</strong> They verify the match against your marriage/divorce data.</li>
+                                            <li><strong>Privacy Protocol:</strong> Even if found, they will <strong>not</strong> read the SSN to you. They attach it internally.</li>
+                                        </ol>
+                                    </div>
+
                                     <p className="text-amber-800 mb-3">
-                                        To get this number, you typically cannot just walk in and ask. You must prove you are a potential claimant
-                                        by providing <strong>certified copies</strong> of two key documents:
+                                        You typically must also prove you are a potential claimant by providing <strong>certified copies</strong> of two key documents:
                                     </p>
 
                                     <div className="grid md:grid-cols-2 gap-4 mb-4">
@@ -1325,6 +1348,9 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
                                     {/* Source for Exceptions */}
                                     <div className="mt-2 text-xs text-amber-700 italic">
                                         Sources: POMS RS 00202.070, RS 00202.100
+                                    </div>
+                                    <div className="text-sm bg-white/50 p-3 rounded border-l-4 border-amber-400">
+                                        <span className="font-bold text-amber-900">🎓 Expert Tip:</span> If you have an old joint tax return or mortgage document, the SSN is often listed there. Bringing that is better than relying on a search.
                                     </div>
                                 </div>
 
