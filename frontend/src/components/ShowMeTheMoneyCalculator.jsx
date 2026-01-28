@@ -3339,6 +3339,46 @@ const ShowMeTheMoneyCalculator = () => {
                                     </div>
                                 )}
 
+                                {/* Inflation - Moved Here */}
+                                <div className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm mb-4">
+                                    <h3 className="text-sm font-semibold text-gray-900 mb-2">Inflation Assumption</h3>
+                                    <div className="space-y-2">
+                                        <div className="pt-2">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <div className="flex items-center gap-1">
+                                                    <label className="text-xs font-medium text-gray-700">Annual COLA</label>
+                                                    <div className="group relative">
+                                                        <svg className="w-3.5 h-3.5 text-gray-400 cursor-help" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                                        </svg>
+                                                        <div className="hidden group-hover:block absolute left-0 bottom-full mb-2 w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-50">
+                                                            <div className="font-semibold mb-1">How COLA is Applied:</div>
+                                                            <ul className="space-y-1 text-xs">
+                                                                <li>• <span className="font-medium">Before age 60:</span> Applied annually</li>
+                                                                <li>• <span className="font-medium">Ages 60-61:</span> Frozen at 0%</li>
+                                                                <li>• <span className="font-medium">Age 62 onward:</span> Your rate applies annually</li>
+                                                                <li>• <span className="font-medium">After claiming:</span> Continues annually</li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <span className="text-xs font-semibold text-primary-600">
+                                                    {(inflation * 100).toFixed(1)}%
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                value={inflation}
+                                                onChange={e => setInflation(Number(e.target.value))}
+                                                min="0"
+                                                max="0.1"
+                                                step="0.001"
+                                                className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {/* Show Me Just This Single Year - Between Spouse and Options */}
                                 <div className="border border-gray-200 rounded-lg p-3 bg-white">
                                     <h3 className="text-sm font-semibold text-gray-900 mb-2">Show Me Just This Single Year</h3>
@@ -3394,11 +3434,11 @@ const ShowMeTheMoneyCalculator = () => {
                                     </div>
                                 </div>
 
-                                {/* Options - Compact */}
-                                <div className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm">
-                                    <h3 className="text-sm font-semibold text-gray-900 mb-2">Options</h3>
-                                    <div className="space-y-2">
-                                        {isMarried && (
+                                {/* Options - Compact (Only if Married for Premature Death) */}
+                                {isMarried && (
+                                    <div className="border border-gray-200 rounded-lg p-3 bg-white shadow-sm mt-4">
+                                        <h3 className="text-sm font-semibold text-gray-900 mb-2">Options</h3>
+                                        <div className="space-y-2">
                                             <div className="space-y-2">
                                                 <Checkbox
                                                     label={<span className="text-xs">Potential Premature Death</span>}
@@ -3436,43 +3476,9 @@ const ShowMeTheMoneyCalculator = () => {
                                                     </div>
                                                 )}
                                             </div>
-                                        )}
-
-                                        <div className="pt-2">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <div className="flex items-center gap-1">
-                                                    <label className="text-xs font-medium text-gray-700">Inflation (COLA)</label>
-                                                    <div className="group relative">
-                                                        <svg className="w-3.5 h-3.5 text-gray-400 cursor-help" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                                                        </svg>
-                                                        <div className="hidden group-hover:block absolute left-0 bottom-full mb-2 w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-50">
-                                                            <div className="font-semibold mb-1">How COLA is Applied:</div>
-                                                            <ul className="space-y-1 text-xs">
-                                                                <li>• <span className="font-medium">Before age 60:</span> Applied annually</li>
-                                                                <li>• <span className="font-medium">Ages 60-61:</span> Frozen at 0%</li>
-                                                                <li>• <span className="font-medium">Age 62 onward:</span> Your rate applies annually</li>
-                                                                <li>• <span className="font-medium">After claiming:</span> Continues annually</li>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <span className="text-xs font-semibold text-primary-600">
-                                                    {(inflation * 100).toFixed(1)}%
-                                                </span>
-                                            </div>
-                                            <input
-                                                type="range"
-                                                value={inflation}
-                                                onChange={e => setInflation(Number(e.target.value))}
-                                                min="0"
-                                                max="0.1"
-                                                step="0.001"
-                                                className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
-                                            />
                                         </div>
                                     </div>
-                                </div>
+                                )}
 
                                 {/* Separator */}
                                 <div className="relative py-4">

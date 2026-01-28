@@ -70,7 +70,7 @@ function LoginScreen() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">💼 SS K.I.N.D.</h1>
+          <h1 className="text-4xl font-bold text-slate-900 mb-2">💼 Lifelong Navigator</h1>
           <p className="text-slate-600">Social Security Optimization Platform</p>
         </div>
 
@@ -481,7 +481,7 @@ function OnboardingScreen({ devMode = null }) {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Let's personalize SS K.I.N.D.</h1>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Let's personalize Lifelong Navigator</h1>
           <p className="text-slate-600">We use your information to provide the most accurate Social Security analysis</p>
         </div>
 
@@ -1517,7 +1517,7 @@ function CalculatorApp() {
               <div className="flex items-center h-16">
                 <div className="flex items-center gap-3">
                   <h1 className="text-xl font-bold text-white whitespace-nowrap">
-                    RISE and SHINE Method
+                    Lifelong Navigator
                   </h1>
                   <Link
                     to="/"
@@ -1541,7 +1541,7 @@ function CalculatorApp() {
               <div className="flex items-center h-16">
                 <div className="flex items-center gap-3">
                   <h1 className="text-xl font-bold text-white whitespace-nowrap">
-                    RISE and SHINE Method
+                    Lifelong Navigator
                   </h1>
                   <Link
                     to="/"
@@ -1565,7 +1565,7 @@ function CalculatorApp() {
               <div className="flex items-center h-16">
                 <div className="flex items-center gap-3">
                   <h1 className="text-xl font-bold text-white whitespace-nowrap">
-                    RISE and SHINE Method
+                    Lifelong Navigator
                   </h1>
                   <Link
                     to="/"
@@ -1589,7 +1589,7 @@ function CalculatorApp() {
               <div className="flex items-center h-16">
                 <div className="flex items-center gap-3">
                   <h1 className="text-xl font-bold text-white whitespace-nowrap">
-                    RISE and SHINE Method
+                    Lifelong Navigator
                   </h1>
                   <Link
                     to="/"
@@ -1613,7 +1613,7 @@ function CalculatorApp() {
               <div className="flex items-center h-16">
                 <div className="flex items-center gap-3">
                   <h1 className="text-xl font-bold text-white whitespace-nowrap">
-                    RISE and SHINE Method
+                    Lifelong Navigator
                   </h1>
                   <Link
                     to="/"
@@ -1663,7 +1663,7 @@ function CalculatorApp() {
                 {/* Logo/Brand and Navigation Items - All on left */}
                 <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide flex-nowrap">
                   <h1 className="text-xl font-bold text-white whitespace-nowrap">
-                    RISE and SHINE Method
+                    Lifelong Navigator
                   </h1>
 
                   {/* Social Security Planner Button */}
@@ -1796,7 +1796,7 @@ function AppWithAuth() {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4"></div>
-          <p className="text-white text-lg">Loading SS KIND Profile...</p>
+          <p className="text-white text-lg">Loading Lifelong Navigator Profile...</p>
         </div>
       </div>
     );
@@ -1977,7 +1977,7 @@ function LoginScreenWithDevMode() {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-slate-900 mb-2">💼 SS K.I.N.D.</h1>
+            <h1 className="text-4xl font-bold text-slate-900 mb-2">💼 Lifelong Navigator</h1>
             <p className="text-slate-600">Social Security Optimization Platform</p>
             <p className="text-sm text-yellow-600 mt-2 font-semibold">🔧 Development Mode</p>
           </div>

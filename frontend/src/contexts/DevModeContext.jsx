@@ -54,7 +54,7 @@ export const DevModeProvider = ({ children }) => {
   const [isDevMode, setIsDevMode] = useState(() => {
     return localStorage.getItem('devMode') === 'true';
   });
-  
+
   const [devUser, setDevUser] = useState(() => {
     const saved = localStorage.getItem('devUser');
     return saved ? JSON.parse(saved) : null;
@@ -110,7 +110,7 @@ export const DevModeProvider = ({ children }) => {
       email: userData.email,
       created_at: new Date().toISOString()
     };
-    
+
     const profile = {
       id: 'dev-user-id',
       first_name: userData.firstName,
@@ -137,7 +137,8 @@ export const DevModeProvider = ({ children }) => {
   const devCompleteOnboarding = () => {
     setDevProfile(prev => ({
       ...prev,
-      onboarding_completed: true
+      onboarding_completed: true,
+      onboarding_completed_at: new Date().toISOString()
     }));
   };
 
@@ -172,6 +173,16 @@ export const DevModeProvider = ({ children }) => {
     return partner;
   };
 
+  const updateDevPartner = (index, updates) => {
+    setDevPartners(prev => {
+      const newPartners = [...prev];
+      if (newPartners[index]) {
+        newPartners[index] = { ...newPartners[index], ...updates };
+      }
+      return newPartners;
+    });
+  };
+
   const devAddChild = (childData) => {
     const child = {
       id: `dev-child-${Date.now()}`,
@@ -204,11 +215,12 @@ export const DevModeProvider = ({ children }) => {
     devLogin,
     devSignup,
     devLogout,
-    devUpdateProfile,
+    updateDevProfile: devUpdateProfile,
     devCompleteOnboarding,
     devResetOnboarding,
     devClearAll,
     devAddPartner,
+    updateDevPartner,
     devAddChild,
     loadTestScenario,
 
