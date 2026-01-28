@@ -4538,12 +4538,13 @@ const ShowMeTheMoneyCalculator = () => {
                                 })()}
                             </div>
 
+
                             {/* Summary comparison */}
                             <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                                 <p className="text-sm font-semibold text-blue-900 mb-2">
                                     💡 Key Insight
                                 </p>
-                                <p className="text-sm text-blue-800">
+                                <div className="text-sm text-blue-800">
                                     {(() => {
                                         const primaryBirthYear = new Date(spouse1Dob).getFullYear();
                                         const calendarYear = primaryBirthYear + selectedYearAge;
@@ -4554,24 +4555,54 @@ const ShowMeTheMoneyCalculator = () => {
                                                 ? scenarioData.spouseProjections
                                                 : scenarioData.combinedProjections;
 
+                                        // Monthly Calculation
                                         const monthly62 = projections.age62.monthly[calendarYear] || 0;
                                         const monthly70 = projections.age70.monthly[calendarYear] || 0;
 
+                                        // Annual Calculation
+                                        // Annual received in this calendar year = delta of cumulative between this year and prior year
+                                        const prevYear = calendarYear - 1;
+
+                                        const cumThis70 = projections.age70.cumulative[calendarYear] || 0;
+                                        const cumPrev70 = projections.age70.cumulative[prevYear] || 0;
+                                        const annual70 = Math.max(0, cumThis70 - cumPrev70);
+
+                                        const cumThis62 = projections.age62.cumulative[calendarYear] || 0;
+                                        const cumPrev62 = projections.age62.cumulative[prevYear] || 0;
+                                        const annual62 = Math.max(0, cumThis62 - cumPrev62);
+
+                                        // Cumulative Since 70 Calculation
+                                        const age69CalendarYear = primaryBirthYear + 69;
+                                        const cumSince70_70 = selectedYearAge < 70 ? 0 : Math.max(0, cumThis70 - (projections.age70.cumulative[age69CalendarYear] || 0));
+                                        const cumSince70_62 = selectedYearAge < 70 ? 0 : Math.max(0, cumThis62 - (projections.age62.cumulative[age69CalendarYear] || 0));
+
+
                                         if (selectedYearAge < 62) {
-                                            return "No benefits are available before age 62.";
+                                            return <p>No benefits are available before age 62.</p>;
                                         } else if (selectedYearAge < 67) {
-                                            return "Only early filing (age 62) provides income at this age. Later filing strategies require waiting longer.";
-                                        } else if (selectedYearAge < 70) {
-                                            return "File at 70 strategy hasn't started yet. Early and preferred filing age provide income now.";
+                                            return <p>Only early filing (age 62) provides income at this age. Later filing strategies require waiting longer.</p>;
                                         } else if (monthly70 > monthly62) {
-                                            const difference = monthly70 - monthly62;
-                                            const percentIncrease = ((difference / monthly62) * 100).toFixed(0);
-                                            return `Filing at 70 provides ${currencyFormatter.format(Math.round(difference))} more per month (${percentIncrease}% increase) compared to filing at 62.`;
+                                            const monthlyDiff = monthly70 - monthly62;
+                                            const annualDiff = annual70 - annual62;
+                                            const cumSince70Diff = cumSince70_70 - cumSince70_62;
+                                            const percentIncrease = ((monthlyDiff / monthly62) * 100).toFixed(0);
+
+                                            return (
+                                                <>
+                                                    <p className="mb-1">Filing at 70 provides:</p>
+                                                    <ul className="list-disc pl-5 space-y-1">
+                                                        <li>{currencyFormatter.format(Math.round(monthlyDiff))} more per month ({percentIncrease}% increase) compared to filing at 62.</li>
+                                                        <li>{currencyFormatter.format(Math.round(annualDiff))} more per year compared to filing at 62.</li>
+                                                        <li>{currencyFormatter.format(Math.round(cumSince70Diff))} more since age 70 compared to filing at 62.</li>
+                                                    </ul>
+                                                </>
+                                            );
                                         } else {
-                                            return "All filing strategies are now providing benefits.";
+                                            // Fallback for cases where 70 isn't higher yet (e.g. before age 70)
+                                            return <p>File at 70 strategy hasn't started full payments yet.</p>;
                                         }
                                     })()}
-                                </p>
+                                </div>
                             </div>
 
                             <div className="flex justify-end mt-6">
@@ -4581,171 +4612,33 @@ const ShowMeTheMoneyCalculator = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div >
             )}
 
             {/* Already Filed Modal */}
-            {showAlreadyFiledModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6">
-                            <div className="flex justify-between items-start mb-4">
-                                <h2 className="text-2xl font-bold text-gray-900">Already Receiving Benefits?</h2>
-                                <button
-                                    onClick={() => setShowAlreadyFiledModal(false)}
-                                    className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
-                                >
-                                    ×
-                                </button>
-                            </div>
-
-                            {/* What We Do */}
-                            <div className="mb-6">
-                                <h3 className="text-xl font-semibold text-primary-600 mb-3">How This Works</h3>
-                                <p className="text-gray-700 mb-4">
-                                    When you're already receiving Social Security benefits, we use a different calculation approach:
-                                </p>
-
-                                <div className="space-y-3">
-                                    <div className="flex items-start gap-3">
-                                        <div className="flex-shrink-0 mt-1">
-                                            <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-semibold text-gray-900">We use your actual current monthly amount</p>
-                                            <p className="text-sm text-gray-600">No need to calculate from PIA - we start with what you're receiving now</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-start gap-3">
-                                        <div className="flex-shrink-0 mt-1">
-                                            <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-semibold text-gray-900">We adjust it forward for COLA/inflation</p>
-                                            <p className="text-sm text-gray-600">Your benefit grows with cost-of-living adjustments over time</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-start gap-3">
-                                        <div className="flex-shrink-0 mt-1">
-                                            <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-semibold text-gray-900">Filing age helps us calculate survivor benefits</p>
-                                            <p className="text-sm text-gray-600">If married/widowed, we need to know when you filed for accurate planning</p>
-                                        </div>
-                                    </div>
+            {
+                showAlreadyFiledModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                            <div className="p-6">
+                                <div className="flex justify-between items-start mb-4">
+                                    <h2 className="text-2xl font-bold text-gray-900">Already Receiving Benefits?</h2>
+                                    <button
+                                        onClick={() => setShowAlreadyFiledModal(false)}
+                                        className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                                    >
+                                        ×
+                                    </button>
                                 </div>
-                            </div>
 
-                            {/* Where to Find Current Benefit */}
-                            <div className="mb-6">
-                                <h3 className="text-xl font-semibold text-primary-600 mb-3">Where to Find Your Current Benefit</h3>
-                                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                                    <p className="text-sm text-gray-700"><strong>1. Check your bank statement</strong> - Look for the monthly direct deposit from Social Security</p>
-                                    <p className="text-sm text-gray-700"><strong>2. Log in to{' '}
-                                        <a
-                                            href="https://www.ssa.gov"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-primary-600 hover:text-primary-700 underline"
-                                        >
-                                            SSA.gov
-                                        </a>
-                                    </strong> - Your benefit details are in your "my Social Security" account</p>
-                                    <p className="text-sm text-gray-700"><strong>3. Review your Social Security statement</strong> - The mailed or online statement shows your current benefit</p>
-                                </div>
-                            </div>
+                                {/* What We Do */}
+                                <div className="mb-6">
+                                    <h3 className="text-xl font-semibold text-primary-600 mb-3">How This Works</h3>
+                                    <p className="text-gray-700 mb-4">
+                                        When you're already receiving Social Security benefits, we use a different calculation approach:
+                                    </p>
 
-                            {/* Important Note */}
-                            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded mb-4">
-                                <div className="flex">
-                                    <div className="flex-shrink-0">
-                                        <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                                        </svg>
-                                    </div>
-                                    <div className="ml-3">
-                                        <p className="text-sm font-semibold text-gray-900">Important: Use Gross Amount</p>
-                                        <p className="text-sm text-gray-700 mt-1">
-                                            Enter the gross amount BEFORE any deductions (Medicare premiums, taxes, etc.). We want your full Social Security benefit amount.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end mt-6">
-                                <Button onClick={() => setShowAlreadyFiledModal(false)} variant="primary">
-                                    Got It
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Preferred Filing Age Modal */}
-            {showPreferredFilingModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6">
-                            <div className="flex justify-between items-start mb-4">
-                                <h2 className="text-2xl font-bold text-gray-900">About Preferred Filing Age</h2>
-                                <button
-                                    onClick={() => setShowPreferredFilingModal(false)}
-                                    className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
-                                >
-                                    ×
-                                </button>
-                            </div>
-
-                            {/* What is it? */}
-                            <div className="mb-6">
-                                <h3 className="text-xl font-semibold text-primary-600 mb-3">What is Preferred Filing Age?</h3>
-                                <p className="text-gray-700 mb-3">
-                                    This is when you plan to start claiming your Social Security benefits. You can choose <strong>any age from 62 to 70</strong>, and even specify a particular month.
-                                </p>
-                                <p className="text-gray-700 mb-4">
-                                    This choice directly affects how much you'll receive each month - the longer you wait, the higher your monthly benefit.
-                                </p>
-                            </div>
-
-                            {/* Flexibility */}
-                            <div className="mb-6">
-                                <h3 className="text-xl font-semibold text-primary-600 mb-3">Complete Flexibility</h3>
-                                <div className="space-y-3">
-                                    <div className="flex items-start gap-3">
-                                        <div className="flex-shrink-0 mt-1">
-                                            <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-semibold text-gray-900">Change it anytime</p>
-                                            <p className="text-sm text-gray-600">Explore different scenarios by adjusting these values whenever you want</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-start gap-3">
-                                        <div className="flex-shrink-0 mt-1">
-                                            <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-semibold text-gray-900">Choose any year AND month</p>
-                                            <p className="text-sm text-gray-600">You have precise control - file at 65 years 3 months, 68 years 7 months, or any combination</p>
-                                        </div>
-                                    </div>
-
-                                    {isMarried && (
+                                    <div className="space-y-3">
                                         <div className="flex items-start gap-3">
                                             <div className="flex-shrink-0 mt-1">
                                                 <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -4753,51 +4646,193 @@ const ShowMeTheMoneyCalculator = () => {
                                                 </svg>
                                             </div>
                                             <div>
-                                                <p className="text-sm font-semibold text-gray-900">Each spouse files independently</p>
-                                                <p className="text-sm text-gray-600">You don't have to file at the same time - each person can choose their own optimal timing</p>
+                                                <p className="text-sm font-semibold text-gray-900">We use your actual current monthly amount</p>
+                                                <p className="text-sm text-gray-600">No need to calculate from PIA - we start with what you're receiving now</p>
                                             </div>
                                         </div>
-                                    )}
+
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex-shrink-0 mt-1">
+                                                <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-gray-900">We adjust it forward for COLA/inflation</p>
+                                                <p className="text-sm text-gray-600">Your benefit grows with cost-of-living adjustments over time</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex-shrink-0 mt-1">
+                                                <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-gray-900">Filing age helps us calculate survivor benefits</p>
+                                                <p className="text-sm text-gray-600">If married/widowed, we need to know when you filed for accurate planning</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* How it affects the chart */}
-                            <div className="mb-6">
-                                <h3 className="text-xl font-semibold text-primary-600 mb-3">How This Impacts the Charts</h3>
-                                <p className="text-gray-700 mb-3">
-                                    The <strong className="text-blue-600">blue bar</strong> in the charts shows what happens with your chosen filing age(s).
-                                </p>
-                                <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-                                    <p className="text-sm text-gray-700 mb-2">
-                                        <strong>The calculation considers:</strong>
-                                    </p>
-                                    <ul className="space-y-1 text-sm text-gray-700">
-                                        <li>• Your PIA (monthly benefit at FRA)</li>
-                                        <li>• Your chosen filing age (year and month)</li>
-                                        <li>• Your current age and birth date</li>
-                                        {isMarried && <li>• Both spouses' individual choices (when married)</li>}
-                                        <li>• Inflation/COLA adjustments over time</li>
-                                    </ul>
+                                {/* Where to Find Current Benefit */}
+                                <div className="mb-6">
+                                    <h3 className="text-xl font-semibold text-primary-600 mb-3">Where to Find Your Current Benefit</h3>
+                                    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                                        <p className="text-sm text-gray-700"><strong>1. Check your bank statement</strong> - Look for the monthly direct deposit from Social Security</p>
+                                        <p className="text-sm text-gray-700"><strong>2. Log in to{' '}
+                                            <a
+                                                href="https://www.ssa.gov"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-primary-600 hover:text-primary-700 underline"
+                                            >
+                                                SSA.gov
+                                            </a>
+                                        </strong> - Your benefit details are in your "my Social Security" account</p>
+                                        <p className="text-sm text-gray-700"><strong>3. Review your Social Security statement</strong> - The mailed or online statement shows your current benefit</p>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Why it matters */}
-                            <div className="mb-6">
-                                <h3 className="text-xl font-semibold text-primary-600 mb-3">Why This Matters</h3>
-                                <p className="text-gray-700">
-                                    Every month you delay filing (up to age 70) permanently increases your monthly benefit. The blue bar helps you see the long-term impact of your timing choice compared to filing at 62 (red) or 70 (green).
-                                </p>
-                            </div>
+                                {/* Important Note */}
+                                <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded mb-4">
+                                    <div className="flex">
+                                        <div className="flex-shrink-0">
+                                            <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div className="ml-3">
+                                            <p className="text-sm font-semibold text-gray-900">Important: Use Gross Amount</p>
+                                            <p className="text-sm text-gray-700 mt-1">
+                                                Enter the gross amount BEFORE any deductions (Medicare premiums, taxes, etc.). We want your full Social Security benefit amount.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
 
-                            <div className="flex justify-end mt-6">
-                                <Button onClick={() => setShowPreferredFilingModal(false)} variant="primary">
-                                    Got It
-                                </Button>
+                                <div className="flex justify-end mt-6">
+                                    <Button onClick={() => setShowAlreadyFiledModal(false)} variant="primary">
+                                        Got It
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
+
+            {/* Preferred Filing Age Modal */}
+            {
+                showPreferredFilingModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                            <div className="p-6">
+                                <div className="flex justify-between items-start mb-4">
+                                    <h2 className="text-2xl font-bold text-gray-900">About Preferred Filing Age</h2>
+                                    <button
+                                        onClick={() => setShowPreferredFilingModal(false)}
+                                        className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+
+                                {/* What is it? */}
+                                <div className="mb-6">
+                                    <h3 className="text-xl font-semibold text-primary-600 mb-3">What is Preferred Filing Age?</h3>
+                                    <p className="text-gray-700 mb-3">
+                                        This is when you plan to start claiming your Social Security benefits. You can choose <strong>any age from 62 to 70</strong>, and even specify a particular month.
+                                    </p>
+                                    <p className="text-gray-700 mb-4">
+                                        This choice directly affects how much you'll receive each month - the longer you wait, the higher your monthly benefit.
+                                    </p>
+                                </div>
+
+                                {/* Flexibility */}
+                                <div className="mb-6">
+                                    <h3 className="text-xl font-semibold text-primary-600 mb-3">Complete Flexibility</h3>
+                                    <div className="space-y-3">
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex-shrink-0 mt-1">
+                                                <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-gray-900">Change it anytime</p>
+                                                <p className="text-sm text-gray-600">Explore different scenarios by adjusting these values whenever you want</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex-shrink-0 mt-1">
+                                                <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-gray-900">Choose any year AND month</p>
+                                                <p className="text-sm text-gray-600">You have precise control - file at 65 years 3 months, 68 years 7 months, or any combination</p>
+                                            </div>
+                                        </div>
+
+                                        {isMarried && (
+                                            <div className="flex items-start gap-3">
+                                                <div className="flex-shrink-0 mt-1">
+                                                    <svg className="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-semibold text-gray-900">Each spouse files independently</p>
+                                                    <p className="text-sm text-gray-600">You don't have to file at the same time - each person can choose their own optimal timing</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* How it affects the chart */}
+                                <div className="mb-6">
+                                    <h3 className="text-xl font-semibold text-primary-600 mb-3">How This Impacts the Charts</h3>
+                                    <p className="text-gray-700 mb-3">
+                                        The <strong className="text-blue-600">blue bar</strong> in the charts shows what happens with your chosen filing age(s).
+                                    </p>
+                                    <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+                                        <p className="text-sm text-gray-700 mb-2">
+                                            <strong>The calculation considers:</strong>
+                                        </p>
+                                        <ul className="space-y-1 text-sm text-gray-700">
+                                            <li>• Your PIA (monthly benefit at FRA)</li>
+                                            <li>• Your chosen filing age (year and month)</li>
+                                            <li>• Your current age and birth date</li>
+                                            {isMarried && <li>• Both spouses' individual choices (when married)</li>}
+                                            <li>• Inflation/COLA adjustments over time</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                {/* Why it matters */}
+                                <div className="mb-6">
+                                    <h3 className="text-xl font-semibold text-primary-600 mb-3">Why This Matters</h3>
+                                    <p className="text-gray-700">
+                                        Every month you delay filing (up to age 70) permanently increases your monthly benefit. The blue bar helps you see the long-term impact of your timing choice compared to filing at 62 (red) or 70 (green).
+                                    </p>
+                                </div>
+
+                                <div className="flex justify-end mt-6">
+                                    <Button onClick={() => setShowPreferredFilingModal(false)} variant="primary">
+                                        Got It
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
 
             {/* One Month at a Time Modal */}
             <OneMonthAtATimeModal
@@ -4838,7 +4873,7 @@ const ShowMeTheMoneyCalculator = () => {
                 })()}
                 spouseBirthYear={new Date(spouse2Dob).getFullYear()}
             />
-        </div>
+        </div >
     );
 };
 
