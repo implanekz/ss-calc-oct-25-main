@@ -11,6 +11,7 @@ import RetirementIncomeNeedsApp from './components/helperApps/RetirementIncomeNe
 import SequenceOfReturnsApp from './components/helperApps/SequenceOfReturnsApp.jsx';
 import RetirementBudgetWorksheet from './components/helperApps/RetirementBudgetWorksheet.jsx';
 import StartStopStartCalculator from './components/StartStopStartCalculator.jsx';
+import LifeExpectancyCalculator from './components/LifeExpectancyCalculator.jsx';
 import { UserProvider, useUser } from './contexts/UserContext.jsx';
 import { DevModeProvider, useDevMode } from './contexts/DevModeContext.jsx';
 import { API_BASE_URL } from './config/api';
@@ -1651,6 +1652,30 @@ function CalculatorApp() {
           </nav>
           <main className="animate-fade-in">
             <StartStopStartCalculator />
+          </main>
+        </div>
+      } />
+      <Route path="/life-expectancy" element={
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+          <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center h-16">
+                <div className="flex items-center gap-3">
+                  <h1 className="text-xl font-bold text-white whitespace-nowrap">
+                    Life Expectancy Reality Check
+                  </h1>
+                  <Link
+                    to="/"
+                    className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
+                  >
+                    💰 Social Security Calculator
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </nav>
+          <main className="animate-fade-in">
+            <LifeExpectancyCalculator />
           </main>
         </div>
       } />

@@ -3592,6 +3592,30 @@ const ShowMeTheMoneyCalculator = () => {
                                             </p>
                                         </div>
 
+                                        {/* Life Expectancy Reality Check */}
+                                        <div className="p-4 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 border-2 border-emerald-300 rounded-xl shadow-lg">
+                                            <div className="flex items-start gap-3 mb-3">
+                                                <div className="flex-shrink-0">
+                                                    <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
+                                                        <span className="text-white text-xl">📊</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <h4 className="text-base font-bold text-emerald-900 mb-1">Life Expectancy</h4>
+                                                    <p className="text-xs text-emerald-700">Survival probability curves for planning</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => navigate('/life-expectancy')}
+                                                className="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-lg shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                                            >
+                                                📊 Check Life Expectancy
+                                            </button>
+                                            <p className="text-xs text-emerald-600 mt-2 text-center italic">
+                                                The longer you live, the longer you're expected to live
+                                            </p>
+                                        </div>
+
                                     </div>
 
                                     <h3 className="text-sm font-semibold text-gray-900 mb-3 mt-4">Helper Apps</h3>
