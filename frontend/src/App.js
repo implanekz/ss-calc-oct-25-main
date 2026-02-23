@@ -1513,13 +1513,24 @@ function CalculatorApp() {
       <Route path="/settings" element={<Settings />} />
       <Route path="/pia-calculator" element={
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-          <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center h-16">
-                <div className="flex items-center gap-3">
-                  <h1 className="text-xl font-bold text-white whitespace-nowrap">
+          <nav className="shadow-md sticky top-0 z-50 border-b border-yellow-200" style={{ backgroundColor: '#FFF8DD' }}>
+            <div className="px-6 sm:px-10 lg:px-16">
+              <div className="flex items-center py-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                  <img src="/assets/logos/Ret1re Logo.png" alt="Ret1re Logo" className="h-8 sm:h-10 lg:h-14 w-auto" />
+                  <span className="hidden lg:inline text-slate-300 text-2xl font-light">|</span>
+                  <p className="hidden lg:block text-lg font-semibold text-slate-600 italic whitespace-nowrap">
+                    Income is the #1 outcome that matters!
+                  </p>
+                </div>
+                <div className="flex-1 min-w-[8px] sm:min-w-[16px]" />
+                <div className="flex-shrink-0">
+                  <h1 className="text-xl sm:text-3xl lg:text-5xl font-bold text-slate-800 whitespace-nowrap">
                     Lifelong Navigator
                   </h1>
+                </div>
+                <div className="flex-1 min-w-[8px] sm:min-w-[16px]" />
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                   <Link
                     to="/"
                     className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
@@ -1537,13 +1548,24 @@ function CalculatorApp() {
       } />
       <Route path="/sequence-risk" element={
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-          <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center h-16">
-                <div className="flex items-center gap-3">
-                  <h1 className="text-xl font-bold text-white whitespace-nowrap">
+          <nav className="shadow-md sticky top-0 z-50 border-b border-yellow-200" style={{ backgroundColor: '#FFF8DD' }}>
+            <div className="px-6 sm:px-10 lg:px-16">
+              <div className="flex items-center py-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                  <img src="/assets/logos/Ret1re Logo.png" alt="Ret1re Logo" className="h-8 sm:h-10 lg:h-14 w-auto" />
+                  <span className="hidden lg:inline text-slate-300 text-2xl font-light">|</span>
+                  <p className="hidden lg:block text-lg font-semibold text-slate-600 italic whitespace-nowrap">
+                    Income is the #1 outcome that matters!
+                  </p>
+                </div>
+                <div className="flex-1 min-w-[8px] sm:min-w-[16px]" />
+                <div className="flex-shrink-0">
+                  <h1 className="text-xl sm:text-3xl lg:text-5xl font-bold text-slate-800 whitespace-nowrap">
                     Lifelong Navigator
                   </h1>
+                </div>
+                <div className="flex-1 min-w-[8px] sm:min-w-[16px]" />
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                   <Link
                     to="/"
                     className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
@@ -1561,13 +1583,24 @@ function CalculatorApp() {
       } />
       <Route path="/longevity-spending" element={
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-          <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center h-16">
-                <div className="flex items-center gap-3">
-                  <h1 className="text-xl font-bold text-white whitespace-nowrap">
+          <nav className="shadow-md sticky top-0 z-50 border-b border-yellow-200" style={{ backgroundColor: '#FFF8DD' }}>
+            <div className="px-6 sm:px-10 lg:px-16">
+              <div className="flex items-center py-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                  <img src="/assets/logos/Ret1re Logo.png" alt="Ret1re Logo" className="h-8 sm:h-10 lg:h-14 w-auto" />
+                  <span className="hidden lg:inline text-slate-300 text-2xl font-light">|</span>
+                  <p className="hidden lg:block text-lg font-semibold text-slate-600 italic whitespace-nowrap">
+                    Income is the #1 outcome that matters!
+                  </p>
+                </div>
+                <div className="flex-1 min-w-[8px] sm:min-w-[16px]" />
+                <div className="flex-shrink-0">
+                  <h1 className="text-xl sm:text-3xl lg:text-5xl font-bold text-slate-800 whitespace-nowrap">
                     Lifelong Navigator
                   </h1>
+                </div>
+                <div className="flex-1 min-w-[8px] sm:min-w-[16px]" />
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                   <Link
                     to="/"
                     className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
@@ -1585,13 +1618,24 @@ function CalculatorApp() {
       } />
       <Route path="/income-target" element={
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-          <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center h-16">
-                <div className="flex items-center gap-3">
-                  <h1 className="text-xl font-bold text-white whitespace-nowrap">
+          <nav className="shadow-md sticky top-0 z-50 border-b border-yellow-200" style={{ backgroundColor: '#FFF8DD' }}>
+            <div className="px-6 sm:px-10 lg:px-16">
+              <div className="flex items-center py-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                  <img src="/assets/logos/Ret1re Logo.png" alt="Ret1re Logo" className="h-8 sm:h-10 lg:h-14 w-auto" />
+                  <span className="hidden lg:inline text-slate-300 text-2xl font-light">|</span>
+                  <p className="hidden lg:block text-lg font-semibold text-slate-600 italic whitespace-nowrap">
+                    Income is the #1 outcome that matters!
+                  </p>
+                </div>
+                <div className="flex-1 min-w-[8px] sm:min-w-[16px]" />
+                <div className="flex-shrink-0">
+                  <h1 className="text-xl sm:text-3xl lg:text-5xl font-bold text-slate-800 whitespace-nowrap">
                     Lifelong Navigator
                   </h1>
+                </div>
+                <div className="flex-1 min-w-[8px] sm:min-w-[16px]" />
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                   <Link
                     to="/"
                     className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
@@ -1609,13 +1653,24 @@ function CalculatorApp() {
       } />
       <Route path="/budget-worksheet" element={
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-          <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center h-16">
-                <div className="flex items-center gap-3">
-                  <h1 className="text-xl font-bold text-white whitespace-nowrap">
+          <nav className="shadow-md sticky top-0 z-50 border-b border-yellow-200" style={{ backgroundColor: '#FFF8DD' }}>
+            <div className="px-6 sm:px-10 lg:px-16">
+              <div className="flex items-center py-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                  <img src="/assets/logos/Ret1re Logo.png" alt="Ret1re Logo" className="h-8 sm:h-10 lg:h-14 w-auto" />
+                  <span className="hidden lg:inline text-slate-300 text-2xl font-light">|</span>
+                  <p className="hidden lg:block text-lg font-semibold text-slate-600 italic whitespace-nowrap">
+                    Income is the #1 outcome that matters!
+                  </p>
+                </div>
+                <div className="flex-1 min-w-[8px] sm:min-w-[16px]" />
+                <div className="flex-shrink-0">
+                  <h1 className="text-xl sm:text-3xl lg:text-5xl font-bold text-slate-800 whitespace-nowrap">
                     Lifelong Navigator
                   </h1>
+                </div>
+                <div className="flex-1 min-w-[8px] sm:min-w-[16px]" />
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                   <Link
                     to="/"
                     className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
@@ -1633,13 +1688,24 @@ function CalculatorApp() {
       } />
       <Route path="/start-stop-start" element={
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-          <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center h-16">
-                <div className="flex items-center gap-3">
-                  <h1 className="text-xl font-bold text-white whitespace-nowrap">
-                    Start-Stop-Start Strategy
+          <nav className="shadow-md sticky top-0 z-50 border-b border-yellow-200" style={{ backgroundColor: '#FFF8DD' }}>
+            <div className="px-6 sm:px-10 lg:px-16">
+              <div className="flex items-center py-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                  <img src="/assets/logos/Ret1re Logo.png" alt="Ret1re Logo" className="h-8 sm:h-10 lg:h-14 w-auto" />
+                  <span className="hidden lg:inline text-slate-300 text-2xl font-light">|</span>
+                  <p className="hidden lg:block text-lg font-semibold text-slate-600 italic whitespace-nowrap">
+                    Income is the #1 outcome that matters!
+                  </p>
+                </div>
+                <div className="flex-1 min-w-[8px] sm:min-w-[16px]" />
+                <div className="flex-shrink-0">
+                  <h1 className="text-xl sm:text-3xl lg:text-5xl font-bold text-slate-800 whitespace-nowrap">
+                    Lifelong Navigator
                   </h1>
+                </div>
+                <div className="flex-1 min-w-[8px] sm:min-w-[16px]" />
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                   <Link
                     to="/"
                     className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
@@ -1657,13 +1723,24 @@ function CalculatorApp() {
       } />
       <Route path="/life-expectancy" element={
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-          <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center h-16">
-                <div className="flex items-center gap-3">
-                  <h1 className="text-xl font-bold text-white whitespace-nowrap">
-                    Life Expectancy Reality Check
+          <nav className="shadow-md sticky top-0 z-50 border-b border-yellow-200" style={{ backgroundColor: '#FFF8DD' }}>
+            <div className="px-6 sm:px-10 lg:px-16">
+              <div className="flex items-center py-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                  <img src="/assets/logos/Ret1re Logo.png" alt="Ret1re Logo" className="h-8 sm:h-10 lg:h-14 w-auto" />
+                  <span className="hidden lg:inline text-slate-300 text-2xl font-light">|</span>
+                  <p className="hidden lg:block text-lg font-semibold text-slate-600 italic whitespace-nowrap">
+                    Income is the #1 outcome that matters!
+                  </p>
+                </div>
+                <div className="flex-1 min-w-[8px] sm:min-w-[16px]" />
+                <div className="flex-shrink-0">
+                  <h1 className="text-xl sm:text-3xl lg:text-5xl font-bold text-slate-800 whitespace-nowrap">
+                    Lifelong Navigator
                   </h1>
+                </div>
+                <div className="flex-1 min-w-[8px] sm:min-w-[16px]" />
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                   <Link
                     to="/"
                     className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full font-semibold text-sm hover:from-primary-600 hover:to-primary-700 shadow-lg transition-all whitespace-nowrap"
@@ -1682,15 +1759,37 @@ function CalculatorApp() {
       <Route path="/*" element={
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
           {/* Navigation Bar */}
-          <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg sticky top-0 z-50 border-b border-slate-700">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center h-16">
-                {/* Logo/Brand and Navigation Items - All on left */}
-                <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide flex-nowrap">
-                  <h1 className="text-xl font-bold text-white whitespace-nowrap">
+          <nav className="shadow-md sticky top-0 z-50 border-b border-yellow-200" style={{ backgroundColor: '#FFF8DD' }}>
+            <div className="px-6 sm:px-10 lg:px-16">
+              <div className="flex items-center py-3">
+                {/* Logo and Tagline - Far left */}
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                  <img
+                    src="/assets/logos/Ret1re Logo.png"
+                    alt="Ret1re Logo"
+                    className="h-8 sm:h-10 lg:h-14 w-auto"
+                  />
+                  <span className="hidden lg:inline text-slate-300 text-2xl font-light">|</span>
+                  <p className="hidden lg:block text-lg font-semibold text-slate-600 italic whitespace-nowrap">
+                    Income is the #1 outcome that matters!
+                  </p>
+                </div>
+
+                {/* Equal spacer */}
+                <div className="flex-1 min-w-[8px] sm:min-w-[16px]" />
+
+                {/* Lifelong Navigator - Center */}
+                <div className="flex-shrink-0">
+                  <h1 className="text-xl sm:text-3xl lg:text-5xl font-bold text-slate-800 whitespace-nowrap">
                     Lifelong Navigator
                   </h1>
+                </div>
 
+                {/* Equal spacer */}
+                <div className="flex-1 min-w-[8px] sm:min-w-[16px]" />
+
+                {/* Navigation Items - Right side */}
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                   {/* Social Security Planner Button */}
                   {navItems.map((item) => (
                     <button
@@ -1701,7 +1800,7 @@ function CalculatorApp() {
                     px-3 sm:px-4 py-2 rounded-full font-semibold text-sm transition-all duration-200 whitespace-nowrap
                     ${activeApp === item.id
                           ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/30 scale-105'
-                          : 'bg-slate-700 text-slate-200 hover:bg-slate-600 hover:text-white'
+                          : 'bg-slate-200 text-slate-700 hover:bg-slate-300 hover:text-slate-900'
                         }
                   `}
                       aria-label={item.label}
@@ -1718,7 +1817,7 @@ function CalculatorApp() {
                       <select
                         value={calculatorType}
                         onChange={(e) => setCalculatorType(e.target.value)}
-                        className="px-3 py-2 bg-slate-700 text-slate-200 rounded-full font-semibold text-sm border border-slate-600 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="px-3 py-2 bg-white text-slate-700 rounded-full font-semibold text-sm border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
                       >
                         {calculatorTypes.map((type) => (
                           <option key={type.id} value={type.id} disabled={type.disabled}>
@@ -1730,13 +1829,19 @@ function CalculatorApp() {
                       {/* Simple guidance - only shows when SS is active */}
                       <button
                         onClick={() => setShowHelpDropdown(!showHelpDropdown)}
-                        className="text-xs text-slate-300 hover:text-white flex items-center gap-1 px-2 py-1 cursor-pointer transition-colors"
+                        className="text-sm text-slate-700 font-medium hover:text-slate-900 flex items-center gap-1 px-2 py-1 cursor-pointer transition-colors"
                       >
-                        <span className="text-[10px]">💡</span> Need help choosing?
+                        <span className="text-sm">💡</span> Need help choosing?
                       </button>
                     </>
                   )}
                 </div>
+              </div>
+              {/* Tagline on mobile - shown below on small screens */}
+              <div className="sm:hidden pb-2">
+                <p className="text-xs font-semibold text-slate-700 italic text-center">
+                  Income is the #1 outcome that matters!
+                </p>
               </div>
             </div>
           </nav>
