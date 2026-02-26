@@ -1389,11 +1389,14 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                         const topName = raceData[0]?.name || '';
                         const bottomName = raceData[raceData.length - 1]?.name || '';
 
-                        // Position for the difference box - adapt to container width
+                        // Position for the difference box - adapt to container width and height
                         const boxWidth = Math.min(340, Math.max(240, width * 0.22));
                         const boxX = width - boxWidth - 30;
-                        const boxY = height / 2 - 200;
-                        const boxHeight = 400;
+                        const boxPadding = 10;
+                        const boxHeight = Math.min(400, height - boxPadding * 2);
+                        const boxY = boxPadding;
+                        // Scale factor for internal text positions (designed for 400px)
+                        const s = boxHeight / 400;
 
                         return (
                             <g>
@@ -1412,9 +1415,9 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                 {/* Title */}
                                 <text
                                     x={boxX + boxWidth / 2}
-                                    y={boxY + 40}
+                                    y={boxY + 40 * s}
                                     textAnchor="middle"
-                                    fontSize="24"
+                                    fontSize={Math.round(24 * s)}
                                     fontWeight="700"
                                     fill="#374151"
                                 >
@@ -1424,9 +1427,9 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                 {/* Top vs Bottom label */}
                                 <text
                                     x={boxX + boxWidth / 2}
-                                    y={boxY + 70}
+                                    y={boxY + 70 * s}
                                     textAnchor="middle"
-                                    fontSize="18"
+                                    fontSize={Math.round(18 * s)}
                                     fill="#6B7280"
                                 >
                                     1st - Last
@@ -1435,9 +1438,9 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                 {/* Difference amount */}
                                 <text
                                     x={boxX + boxWidth / 2}
-                                    y={boxY + 130}
+                                    y={boxY + 130 * s}
                                     textAnchor="middle"
-                                    fontSize="36"
+                                    fontSize={Math.round(36 * s)}
                                     fontWeight="700"
                                     fill={difference >= 0 ? '#10B981' : '#EF4444'}
                                 >
@@ -1447,9 +1450,9 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                 {/* Leader info */}
                                 <text
                                     x={boxX + boxWidth / 2}
-                                    y={boxY + 185}
+                                    y={boxY + 185 * s}
                                     textAnchor="middle"
-                                    fontSize="18"
+                                    fontSize={Math.round(18 * s)}
                                     fill="#059669"
                                     fontWeight="600"
                                 >
@@ -1458,9 +1461,9 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
 
                                 <text
                                     x={boxX + boxWidth / 2}
-                                    y={boxY + 215}
+                                    y={boxY + 215 * s}
                                     textAnchor="middle"
-                                    fontSize="20"
+                                    fontSize={Math.round(20 * s)}
                                     fill="#059669"
                                     fontWeight="700"
                                 >
@@ -1470,9 +1473,9 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                 {/* Last place info */}
                                 <text
                                     x={boxX + boxWidth / 2}
-                                    y={boxY + 255}
+                                    y={boxY + 255 * s}
                                     textAnchor="middle"
-                                    fontSize="18"
+                                    fontSize={Math.round(18 * s)}
                                     fill="#DC2626"
                                     fontWeight="600"
                                 >
@@ -1481,9 +1484,9 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
 
                                 <text
                                     x={boxX + boxWidth / 2}
-                                    y={boxY + 285}
+                                    y={boxY + 285 * s}
                                     textAnchor="middle"
-                                    fontSize="20"
+                                    fontSize={Math.round(20 * s)}
                                     fill="#DC2626"
                                     fontWeight="700"
                                 >
@@ -1493,9 +1496,9 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                 {/* Separator line */}
                                 <line
                                     x1={boxX + 20}
-                                    y1={boxY + 310}
+                                    y1={boxY + 310 * s}
                                     x2={boxX + boxWidth - 20}
-                                    y2={boxY + 310}
+                                    y2={boxY + 310 * s}
                                     stroke="#9CA3AF"
                                     strokeWidth="2"
                                     strokeDasharray="5,5"
@@ -1504,9 +1507,9 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                 {/* Difference calculation at bottom */}
                                 <text
                                     x={boxX + boxWidth / 2}
-                                    y={boxY + 340}
+                                    y={boxY + 340 * s}
                                     textAnchor="middle"
-                                    fontSize="16"
+                                    fontSize={Math.round(16 * s)}
                                     fill="#6B7280"
                                     fontWeight="700"
                                 >
@@ -1515,9 +1518,9 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
 
                                 <text
                                     x={boxX + boxWidth / 2}
-                                    y={boxY + 375}
+                                    y={boxY + 375 * s}
                                     textAnchor="middle"
-                                    fontSize="32"
+                                    fontSize={Math.round(32 * s)}
                                     fontWeight="700"
                                     fill={difference >= 0 ? '#10B981' : '#EF4444'}
                                 >
