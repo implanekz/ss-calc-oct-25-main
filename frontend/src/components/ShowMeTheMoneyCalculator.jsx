@@ -224,7 +224,11 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
             : combinedProjections;
 
     // Calculate the calendar year for the selected age
-    const calendarYear = birthYearPrimary + age;
+    // When viewing spouse-only projections, use spouse's birth year so the timeline aligns correctly
+    const effectiveBirthYear = (activeRecordView === 'spouse' && scenarioData.birthYearSpouse)
+        ? scenarioData.birthYearSpouse
+        : birthYearPrimary;
+    const calendarYear = effectiveBirthYear + age;
 
     // Get monthly values for each filing scenario
     // Always use the pure filing age projections (same as Monthly tab)
@@ -912,7 +916,10 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
         const allAges = Array.from({ length: 95 - 62 + 1 }, (_, i) => 62 + i);
 
         const allValues = allAges.flatMap(age => {
-            const calendarYear = scenarioData.birthYearPrimary + age;
+            const effectiveBirthYear = (activeRecordView === 'spouse' && scenarioData.birthYearSpouse)
+                ? scenarioData.birthYearSpouse
+                : scenarioData.birthYearPrimary;
+            const calendarYear = effectiveBirthYear + age;
             const projections = activeRecordView === 'primary'
                 ? scenarioData.primaryProjections
                 : activeRecordView === 'spouse' && scenarioData.spouseProjections
@@ -933,9 +940,9 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                 ];
                 if (age >= 70) {
                     values.push(
-                        (projections.age62.cumulative[calendarYear] || 0) - (projections.age62.cumulative[scenarioData.birthYearPrimary + 69] || 0),
-                        (projections.preferred.cumulative[calendarYear] || 0) - (projections.preferred.cumulative[scenarioData.birthYearPrimary + 69] || 0),
-                        (projections.age70.cumulative[calendarYear] || 0) - (projections.age70.cumulative[scenarioData.birthYearPrimary + 69] || 0)
+                        (projections.age62.cumulative[calendarYear] || 0) - (projections.age62.cumulative[effectiveBirthYear + 69] || 0),
+                        (projections.preferred.cumulative[calendarYear] || 0) - (projections.preferred.cumulative[effectiveBirthYear + 69] || 0),
+                        (projections.age70.cumulative[calendarYear] || 0) - (projections.age70.cumulative[effectiveBirthYear + 69] || 0)
                     );
                 }
                 return values;
@@ -991,9 +998,14 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
             ? spouseProjections
             : combinedProjections;
 
+    // Use the correct birth year for calendar year lookup based on whose projections we're viewing
+    const effectiveBirthYear = (activeRecordView === 'spouse' && scenarioData.birthYearSpouse)
+        ? scenarioData.birthYearSpouse
+        : birthYearPrimary;
+
     // Calculate data for all ages and scenarios
     const calculateRaceData = (age) => {
-        const calendarYear = birthYearPrimary + age;
+        const calendarYear = effectiveBirthYear + age;
 
         if (raceViewMode === 'monthly') {
             // Monthly view: Just show 3 bars with monthly income
@@ -1025,7 +1037,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
         // File at 62 - Total cumulative
         const age62Value = projections.age62.cumulative[calendarYear] || 0;
         // Use age 69 as baseline so age 70 includes the first year of benefits
-        const age62Since70 = age >= 70 ? age62Value - (projections.age62.cumulative[birthYearPrimary + 69] || 0) : 0;
+        const age62Since70 = age >= 70 ? age62Value - (projections.age62.cumulative[effectiveBirthYear + 69] || 0) : 0;
 
         scenarios.push({
             name: 'File at 62 - Total',
@@ -1046,7 +1058,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
         // File at 67 (FRA) - Total cumulative
         const age67Value = projections.preferred.cumulative[calendarYear] || 0;
         // Use age 69 as baseline so age 70 includes the first year of benefits
-        const age67Since70 = age >= 70 ? age67Value - (projections.preferred.cumulative[birthYearPrimary + 69] || 0) : 0;
+        const age67Since70 = age >= 70 ? age67Value - (projections.preferred.cumulative[effectiveBirthYear + 69] || 0) : 0;
 
         scenarios.push({
             name: 'File at 67 - Total',
@@ -1067,7 +1079,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
         // File at 70 - Total cumulative
         const age70Value = projections.age70.cumulative[calendarYear] || 0;
         // Use age 69 as baseline so age 70 includes the first year of benefits
-        const age70Since70 = age >= 70 ? age70Value - (projections.age70.cumulative[birthYearPrimary + 69] || 0) : 0;
+        const age70Since70 = age >= 70 ? age70Value - (projections.age70.cumulative[effectiveBirthYear + 69] || 0) : 0;
 
         scenarios.push({
             name: 'File at 70 - Total',
@@ -1158,7 +1170,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                             const primaryBirthYear = scenarioData.birthYearPrimary;
 
                             if (isMarried && spouseBirthYear) {
-                                const spouseAge = currentRaceAge - (primaryBirthYear - spouseBirthYear);
+                                const spouseAge = currentRaceAge + (primaryBirthYear - spouseBirthYear);
                                 return formatCoupleAges(primaryAge, spouseAge);
                             }
                             return `${primaryAge}`;
@@ -1533,14 +1545,14 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                         <div className="text-sm">
                             <span className="text-gray-600">Total: </span>
                             <span className="font-bold text-gray-900">
-                                {currencyFormatter.format(Math.round(projections.age62.cumulative[birthYearPrimary + currentRaceAge] || 0))}
+                                {currencyFormatter.format(Math.round(projections.age62.cumulative[effectiveBirthYear + currentRaceAge] || 0))}
                             </span>
                         </div>
                         {currentRaceAge >= 70 && (
                             <div className="text-sm">
                                 <span className="text-gray-600">Since 70: </span>
                                 <span className="font-semibold text-gray-700">
-                                    {currencyFormatter.format(Math.round((projections.age62.cumulative[birthYearPrimary + currentRaceAge] || 0) - (projections.age62.cumulative[birthYearPrimary + 69] || 0)))}
+                                    {currencyFormatter.format(Math.round((projections.age62.cumulative[effectiveBirthYear + currentRaceAge] || 0) - (projections.age62.cumulative[effectiveBirthYear + 69] || 0)))}
                                 </span>
                             </div>
                         )}
@@ -1557,14 +1569,14 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                         <div className="text-sm">
                             <span className="text-gray-600">Total: </span>
                             <span className="font-bold text-gray-900">
-                                {currencyFormatter.format(Math.round(projections.preferred.cumulative[birthYearPrimary + currentRaceAge] || 0))}
+                                {currencyFormatter.format(Math.round(projections.preferred.cumulative[effectiveBirthYear + currentRaceAge] || 0))}
                             </span>
                         </div>
                         {currentRaceAge >= 70 && (
                             <div className="text-sm">
                                 <span className="text-gray-600">Since 70: </span>
                                 <span className="font-semibold text-gray-700">
-                                    {currencyFormatter.format(Math.round((projections.preferred.cumulative[birthYearPrimary + currentRaceAge] || 0) - (projections.preferred.cumulative[birthYearPrimary + 69] || 0)))}
+                                    {currencyFormatter.format(Math.round((projections.preferred.cumulative[effectiveBirthYear + currentRaceAge] || 0) - (projections.preferred.cumulative[effectiveBirthYear + 69] || 0)))}
                                 </span>
                             </div>
                         )}
@@ -1582,14 +1594,14 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                         <div className="text-sm">
                             <span className="text-gray-600">Total: </span>
                             <span className="font-bold text-gray-900">
-                                {currencyFormatter.format(Math.round(projections.age70.cumulative[birthYearPrimary + currentRaceAge] || 0))}
+                                {currencyFormatter.format(Math.round(projections.age70.cumulative[effectiveBirthYear + currentRaceAge] || 0))}
                             </span>
                         </div>
                         {currentRaceAge >= 70 && (
                             <div className="text-sm">
                                 <span className="text-gray-600">Since 70: </span>
                                 <span className="font-semibold text-gray-700">
-                                    {currencyFormatter.format(Math.round((projections.age70.cumulative[birthYearPrimary + currentRaceAge] || 0) - (projections.age70.cumulative[birthYearPrimary + 69] || 0)))}
+                                    {currencyFormatter.format(Math.round((projections.age70.cumulative[effectiveBirthYear + currentRaceAge] || 0) - (projections.age70.cumulative[effectiveBirthYear + 69] || 0)))}
                                 </span>
                             </div>
                         )}
@@ -2038,6 +2050,7 @@ const ShowMeTheMoneyCalculator = () => {
                 preferred: combineMonthlyProjection(primaryPreferred, spousePreferredScenario),
                 age70: combineMonthlyProjection(primaryAge70, spouseAge70)
             };
+
         }
 
         const primaryIsLowerPia = !isMarried || spouse1Pia <= spouse2Pia;
@@ -3462,7 +3475,7 @@ const ShowMeTheMoneyCalculator = () => {
 
                                                                 let label;
                                                                 if (isMarried && spouseBirthYear) {
-                                                                    const spouseAge = age - (primaryBirthYear - spouseBirthYear);
+                                                                    const spouseAge = age + (primaryBirthYear - spouseBirthYear);
                                                                     label = formatCoupleAges(primaryAge, spouseAge);
                                                                 } else {
                                                                     label = `${primaryAge}`;
