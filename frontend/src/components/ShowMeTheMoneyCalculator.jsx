@@ -1226,7 +1226,9 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                 Filing Strategy Race: Cumulative Benefits
                             </text>
                             <text x={width / 2} y={65} textAnchor="middle" fontSize="14" fill="#6B7280">
-                                Watching benefits accumulate over time
+                                {isMarried
+                                    ? 'Comparing what happens if both spouses file at 62, at their preferred ages, or at 70'
+                                    : 'Watching benefits accumulate over time'}
                             </text>
                         </>
                     )}
@@ -1295,7 +1297,9 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                                         Filing Strategy Race: Monthly Benefits
                                     </text>
                                     <text x={width / 2} y={baseY + 90} textAnchor="middle" fontSize="14" fill="#6B7280">
-                                        Comparing monthly income at each age
+                                        {isMarried
+                                            ? 'Comparing what happens if both spouses file at 62, at their preferred ages, or at 70'
+                                            : 'Comparing monthly income at each age'}
                                     </text>
                                 </>
                             );
