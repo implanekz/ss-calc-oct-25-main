@@ -1113,7 +1113,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
     const barHeight = Math.max(32, Math.min(60, Math.floor((barsArea - ((numBars - 1) * barSpacing)) / numBars)));
     const leftMargin = Math.max(200, Math.round(width * 0.16)); // Enough space for full label text
     const rightMargin = Math.max(450, Math.round(width * 0.32)); // More space for Gap Tracker
-    const topMargin = 80;
+    const topMargin = 20;
     const height = topMargin + (numBars * (barHeight + barSpacing)) + 100;
 
     const getBarWidth = (value) => {
@@ -1200,6 +1200,20 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                 </div>
             </div>
 
+            {/* Title and subtitle - positioned between controls and SVG */}
+            <div className="text-center mt-1 mb-2">
+                <h3 className="text-xl font-bold text-gray-900">
+                    Filing Strategy Race: {raceViewMode === 'cumulative' ? 'Cumulative Benefits' : 'Monthly Benefits'}
+                </h3>
+                <p className="text-sm text-gray-500 mt-0.5">
+                    {isMarried
+                        ? 'Comparing what happens if both spouses file at 62, at their preferred ages, or at 70'
+                        : raceViewMode === 'cumulative'
+                            ? 'Watching benefits accumulate over time'
+                            : 'Comparing monthly income at each age'}
+                </p>
+            </div>
+
             {/* Race Track Visualization */}
             <div ref={raceContainerRef} className="flex-1 flex items-center justify-center overflow-auto">
                 <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
@@ -1219,19 +1233,6 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                         `}
                     </style>
 
-                    {/* Title - Only for Cumulative mode, Monthly mode shows it at bottom */}
-                    {raceViewMode === 'cumulative' && (
-                        <>
-                            <text x={width / 2} y={40} textAnchor="middle" fontSize="24" fontWeight="700" fill="#374151">
-                                Filing Strategy Race: Cumulative Benefits
-                            </text>
-                            <text x={width / 2} y={65} textAnchor="middle" fontSize="14" fill="#6B7280">
-                                {isMarried
-                                    ? 'Comparing what happens if both spouses file at 62, at their preferred ages, or at 70'
-                                    : 'Watching benefits accumulate over time'}
-                            </text>
-                        </>
-                    )}
 
                     {/* Bars - Conditional rendering based on view mode */}
                     {raceViewMode === 'monthly' ? (
@@ -1293,14 +1294,6 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
                             return (
                                 <>
                                     {result}
-                                    <text x={width / 2} y={baseY + 65} textAnchor="middle" fontSize="24" fontWeight="700" fill="#374151">
-                                        Filing Strategy Race: Monthly Benefits
-                                    </text>
-                                    <text x={width / 2} y={baseY + 90} textAnchor="middle" fontSize="14" fill="#6B7280">
-                                        {isMarried
-                                            ? 'Comparing what happens if both spouses file at 62, at their preferred ages, or at 70'
-                                            : 'Comparing monthly income at each age'}
-                                    </text>
                                 </>
                             );
                         })()
