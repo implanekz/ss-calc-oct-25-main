@@ -41,7 +41,7 @@ const DEFAULTS = {
   colaRate: 0.03,
   taxRate: 0.25,
   withdrawalMode: 'amount',
-  withdrawalAmount: 25000,
+  withdrawalAmount: 0,
   withdrawalPercent: 0.04,
 };
 
@@ -411,7 +411,6 @@ const RetirementSpendingApp = () => {
                         const value = Number(raw);
                         if (!Number.isFinite(value)) return;
                         setInputs((prev) => ({ ...prev, withdrawalAmount: value }));
-                        setOriginalSpendingNeed(value);
                       }}
                       style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5f5', background: '#ffffff' }}
                     />
