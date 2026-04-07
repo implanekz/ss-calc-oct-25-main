@@ -500,7 +500,7 @@ const RetirementIncomeNeedsApp = () => {
             <h2 style={{ fontSize: '1.1rem', marginBottom: '10px', color: '#1f2937' }}>Accumulation outlook</h2>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '8px' }}>
               <li style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: '#1f2937' }}>
-                <span>Projected nest egg at {inputs.assumedReturnAccumulation * 100}%:</span>
+                <span>Projected nest egg at {(inputs.assumedReturnAccumulation * 100).toFixed(1)}%:</span>
                 <strong>{currency(accumulationAtAssumed)}</strong>
               </li>
               <li style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: '#1f2937' }}>
