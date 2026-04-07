@@ -196,29 +196,47 @@ const RetirementIncomeNeedsApp = () => {
     return series;
   }, [inputs]);
 
-  const chartData = useMemo(() => ({
-    labels: accumulationSeries.map((row) => row.age),
-    datasets: [
-      {
-        type: 'line',
-        label: 'Projected Nest Egg (assumed return)',
-        data: accumulationSeries.map((row) => Math.round(row.balance)),
-        borderColor: '#2563eb',
-        backgroundColor: 'rgba(37, 99, 235, 0.15)',
-        fill: true,
-        tension: 0.2,
-        pointRadius: 2,
-      },
-      {
-        type: 'line',
-        label: 'Nest Egg Needed',
-        data: accumulationSeries.map(() => Math.round(nestEggInfo.nestEgg)),
-        borderColor: '#f97316',
-        borderDash: [6, 6],
-        pointRadius: 0,
-      },
-    ],
-  }), [accumulationSeries, nestEggInfo]);
+  const chartData = useMemo(() => {
+    // Generate full age range from current age to plan until age
+    const fullAgeRange = Array.from(
+      { length: inputs.planUntilAge - inputs.currentAge + 1 },
+      (_, i) => inputs.currentAge + i
+    );
+    
+    // Create a map of accumulation data for quick lookup
+    const accumulationMap = new Map(accumulationSeries.map((row) => [row.age, row.balance]));
+    
+    return {
+      labels: fullAgeRange,
+      datasets: [
+        {
+          type: 'line',
+          label: 'Projected Nest Egg (assumed return)',
+          data: fullAgeRange.map((age) => {
+            const value = accumulationMap.get(age);
+            return value !== undefined ? Math.round(value) : null;
+          }),
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37, 99, 235, 0.15)',
+          fill: true,
+          tension: 0.2,
+          pointRadius: (ctx) => ctx.parsed?.y !== null ? 2 : 0,
+          segment: {
+            borderColor: '#2563eb',
+            borderDash: (ctx) => ctx.p0.parsed?.y === null || ctx.p1.parsed?.y === null ? [5, 5] : undefined,
+          },
+        },
+        {
+          type: 'line',
+          label: 'Nest Egg Needed',
+          data: fullAgeRange.map(() => Math.round(nestEggInfo.nestEgg)),
+          borderColor: '#f97316',
+          borderDash: [6, 6],
+          pointRadius: 0,
+        },
+      ],
+    };
+  }, [accumulationSeries, inputs.currentAge, inputs.planUntilAge, nestEggInfo]);
 
   const chartOptions = {
     responsive: true,
