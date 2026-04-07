@@ -52,17 +52,46 @@ export const TEST_SCENARIOS = {
 
 export const DevModeProvider = ({ children }) => {
   const [isDevMode, setIsDevMode] = useState(() => {
+    // Auto-enable dev mode in development
+    if (process.env.NODE_ENV === 'development' && window.location.hostname === 'localhost') {
+      return true;
+    }
     return localStorage.getItem('devMode') === 'true';
   });
 
   const [devUser, setDevUser] = useState(() => {
     const saved = localStorage.getItem('devUser');
-    return saved ? JSON.parse(saved) : null;
+    if (saved) return JSON.parse(saved);
+    
+    // Auto-create a dev user in development mode
+    if (process.env.NODE_ENV === 'development' && window.location.hostname === 'localhost') {
+      return {
+        id: 'dev-user-id',
+        email: 'demo@example.com',
+        created_at: new Date().toISOString()
+      };
+    }
+    return null;
   });
 
   const [devProfile, setDevProfile] = useState(() => {
     const saved = localStorage.getItem('devProfile');
-    return saved ? JSON.parse(saved) : null;
+    if (saved) return JSON.parse(saved);
+    
+    // Auto-create a dev profile in development mode
+    if (process.env.NODE_ENV === 'development' && window.location.hostname === 'localhost') {
+      return {
+        id: 'dev-user-id',
+        first_name: 'Demo',
+        last_name: 'User',
+        date_of_birth: '1965-01-15',
+        relationship_status: 'single',
+        onboarding_completed: true,
+        onboarding_completed_at: new Date().toISOString(),
+        created_at: new Date().toISOString()
+      };
+    }
+    return null;
   });
 
   const [devPartners, setDevPartners] = useState(() => {

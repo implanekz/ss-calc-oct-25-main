@@ -40,9 +40,11 @@ const DEFAULTS = {
   assumedReturnRetirement: 0.05,
   annualIncomeGoalToday: 50000,
   incomeInflation: 0.03,
+  taxRate: 0.25,
 };
 
 const contributionIncreaseOptions = [0, 0.02, 0.03, 0.04, 0.05];
+const TAX_RATE_OPTIONS = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50];
 
 const ageOptions = Array.from({ length: 71 }, (_, idx) => 40 + idx);
 
@@ -53,18 +55,26 @@ const computeNestEggNeeded = ({
   planUntilAge,
   incomeInflation,
   assumedReturnRetirement,
+  taxRate,
 }) => {
   const yearsUntilRetirement = Math.max(0, retirementAge - currentAge);
   const yearsInRetirement = Math.max(1, planUntilAge - retirementAge);
-  const firstYearIncome = annualIncomeGoalToday * ((1 + incomeInflation) ** yearsUntilRetirement);
+  
+  // Gross up the net income goal if taxes apply
+  const netFirstYearIncome = annualIncomeGoalToday * ((1 + incomeInflation) ** yearsUntilRetirement);
+  const grossFirstYearIncome = taxRate < 1 ? netFirstYearIncome / (1 - taxRate) : netFirstYearIncome;
 
   if (Math.abs(assumedReturnRetirement - incomeInflation) < 1e-6) {
-    return { nestEgg: firstYearIncome * yearsInRetirement, firstYearIncome };
+    return { 
+      nestEgg: grossFirstYearIncome * yearsInRetirement, 
+      firstYearIncome: netFirstYearIncome,
+      grossFirstYearIncome,
+    };
   }
 
   const growthRatio = (1 + incomeInflation) / (1 + assumedReturnRetirement);
-  const nestEgg = firstYearIncome * (1 - (growthRatio ** yearsInRetirement)) / (assumedReturnRetirement - incomeInflation);
-  return { nestEgg, firstYearIncome };
+  const nestEgg = grossFirstYearIncome * (1 - (growthRatio ** yearsInRetirement)) / (assumedReturnRetirement - incomeInflation);
+  return { nestEgg, firstYearIncome: netFirstYearIncome, grossFirstYearIncome };
 };
 
 const futureValueAtRate = ({
@@ -140,7 +150,7 @@ const solveRequiredRate = ({
 };
 
 const RetirementIncomeNeedsApp = () => {
-  const [inputs, setInputs] = useState({ ...DEFAULTS });
+  const [inputs, setInputs] = useState({ ...DEFAULTS, taxRate: DEFAULTS.taxRate });
 
   const yearsContributing = Math.max(0, inputs.retirementAge - inputs.currentAge);
 
@@ -151,6 +161,7 @@ const RetirementIncomeNeedsApp = () => {
     planUntilAge: inputs.planUntilAge,
     incomeInflation: inputs.incomeInflation,
     assumedReturnRetirement: inputs.assumedReturnRetirement,
+    taxRate: inputs.taxRate,
   }), [inputs]);
 
   const requiredRate = useMemo(() => solveRequiredRate({
@@ -260,6 +271,12 @@ const RetirementIncomeNeedsApp = () => {
     setInputs((prev) => ({ ...prev, [field]: clamp(value / 100, 0, 0.99) }));
   };
 
+  const handleNumberChange = (field) => (event) => {
+    const value = Number(event.target.value);
+    if (!Number.isFinite(value)) return;
+    setInputs((prev) => ({ ...prev, [field]: value }));
+  };
+
   return (
     <div style={{ padding: '20px', maxWidth: '1100px', margin: '0 auto', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <header style={{ marginBottom: '20px' }}>
@@ -362,16 +379,47 @@ const RetirementIncomeNeedsApp = () => {
               </div>
             </label>
 
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', color: '#1f2937' }}>
-              Annual income goal (today&apos;s dollars)
-              <input
-                type="text"
-                inputMode="numeric"
-                value={currency(inputs.annualIncomeGoalToday)}
-                onChange={handleCurrencyChange('annualIncomeGoalToday')}
-                style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5f5' }}
-              />
-            </label>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              border: '2px solid #cbd5f5',
+              borderRadius: '10px',
+              padding: '14px',
+              background: '#fafbff',
+            }}>
+              <span style={{ fontWeight: 600, color: '#1f2937', fontSize: '1.02rem' }}>Income Goal &amp; Tax</span>
+              
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', color: '#1f2937' }}>
+                Annual income goal (today&apos;s dollars)
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={currency(inputs.annualIncomeGoalToday)}
+                  onChange={handleCurrencyChange('annualIncomeGoalToday')}
+                  style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5f5', background: '#ffffff' }}
+                />
+              </label>
+
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', color: '#1f2937' }}>
+                Gross withdrawal needed to cover taxes
+                <input
+                  type="text"
+                  readOnly
+                  value={currency(inputs.taxRate < 1 ? inputs.annualIncomeGoalToday / (1 - inputs.taxRate) : inputs.annualIncomeGoalToday)}
+                  style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5f5', background: '#fef2f2', color: '#dc2626', fontWeight: 600 }}
+                />
+              </label>
+
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', color: '#1f2937', marginTop: '4px', paddingTop: '8px', borderTop: '1px solid #e2e8f0' }}>
+                Tax Rate on Withdrawal
+                <select value={inputs.taxRate} onChange={handleNumberChange('taxRate')} style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5f5', background: '#ffffff' }}>
+                  {TAX_RATE_OPTIONS.map((option) => (
+                    <option key={option} value={option}>{(option * 100).toFixed(0)}%</option>
+                  ))}
+                </select>
+              </label>
+            </div>
 
             <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', color: '#1f2937' }}>
               Income inflation assumption
@@ -412,8 +460,12 @@ const RetirementIncomeNeedsApp = () => {
             <h2 style={{ fontSize: '1.1rem', marginBottom: '10px', color: '#1f2937' }}>Retirement goal summary</h2>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '8px' }}>
               <li style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: '#1f2937' }}>
-                <span>First-year income (inflated to age {inputs.retirementAge}):</span>
+                <span>First-year net income (inflated to age {inputs.retirementAge}):</span>
                 <strong>{currency(nestEggInfo.firstYearIncome)}</strong>
+              </li>
+              <li style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: '#1f2937' }}>
+                <span>First-year gross withdrawal needed:</span>
+                <strong style={{ color: inputs.taxRate > 0 ? '#dc2626' : '#000000' }}>{currency(nestEggInfo.grossFirstYearIncome)}</strong>
               </li>
               <li style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: '#1f2937' }}>
                 <span>Years of income needed:</span>
@@ -421,7 +473,7 @@ const RetirementIncomeNeedsApp = () => {
               </li>
               <li style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: '#1f2937' }}>
                 <span>Nest egg needed at retirement:</span>
-                <strong>{currency(nestEggInfo.nestEgg)}</strong>
+                <strong style={{ color: inputs.taxRate > 0 ? '#dc2626' : '#000000' }}>{currency(nestEggInfo.nestEgg)}</strong>
               </li>
             </ul>
           </div>
