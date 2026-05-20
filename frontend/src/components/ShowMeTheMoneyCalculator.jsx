@@ -37,6 +37,7 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
 
 // Retirement Stages Slider Component
 const RetirementStagesSlider = ({
+    label,
     goGoEndAge,
     setGoGoEndAge,
     slowGoEndAge,
@@ -122,7 +123,16 @@ const RetirementStagesSlider = ({
                         backgroundColor: '#E67E22', // Carrot (Flat UI) - Assumed correction for #E6E22
                     }}
                 >
-                    <span className="drop-shadow-sm">Go-Go Years</span>
+                    {label && (
+                        <div className="absolute left-3 px-2 py-0.5 bg-black/25 text-white font-extrabold text-xs rounded tracking-wider uppercase select-none">
+                            {label}
+                        </div>
+                    )}
+                    {goGoWidth > (label ? 22 : 15) ? (
+                        <span className="drop-shadow-sm">Go-Go Years</span>
+                    ) : goGoWidth > (label ? 15 : 8) ? (
+                        <span className="drop-shadow-sm">Go-Go</span>
+                    ) : null}
                 </div>
 
                 {/* Handle 1: Between Go-Go and Slow-Go */}
@@ -151,7 +161,11 @@ const RetirementStagesSlider = ({
                         backgroundColor: '#F1C40F', // Sunflower (Flat UI)
                     }}
                 >
-                    <span className="drop-shadow-sm">Slow-Go Years</span>
+                    {slowGoWidth > 15 ? (
+                        <span className="drop-shadow-sm">Slow-Go Years</span>
+                    ) : slowGoWidth > 8 ? (
+                        <span className="drop-shadow-sm">Slow-Go</span>
+                    ) : null}
                 </div>
 
                 {/* Handle 2: Between Slow-Go and No-Go */}
@@ -180,8 +194,11 @@ const RetirementStagesSlider = ({
                         backgroundColor: '#95A5A6', // Concrete (Flat UI)
                     }}
                 >
-
-                    <span className="drop-shadow-sm">No-Go Years</span>
+                    {noGoWidth > 15 ? (
+                        <span className="drop-shadow-sm">No-Go Years</span>
+                    ) : noGoWidth > 8 ? (
+                        <span className="drop-shadow-sm">No-Go</span>
+                    ) : null}
                 </div>
             </div>
         </div>
@@ -1677,6 +1694,8 @@ const ShowMeTheMoneyCalculator = () => {
         inflation: 0.025,
         goGoEndAge: 75,
         slowGoEndAge: 85,
+        spouseGoGoEndAge: 75,
+        spouseSlowGoEndAge: 85,
         monthlyNeeds: 7000,
         flowAge: 70,
         bubbleAge: 70
@@ -1697,6 +1716,8 @@ const ShowMeTheMoneyCalculator = () => {
     // Retirement stages slider state (purely visual)
     const [goGoEndAge, setGoGoEndAge] = useState(75);
     const [slowGoEndAge, setSlowGoEndAge] = useState(85);
+    const [spouseGoGoEndAge, setSpouseGoGoEndAge] = useState(75);
+    const [spouseSlowGoEndAge, setSpouseSlowGoEndAge] = useState(85);
 
     // Additional state variables that need to be declared before the persistence effect
     const [monthlyNeeds, setMonthlyNeeds] = useState(7000);
@@ -1732,6 +1753,8 @@ const ShowMeTheMoneyCalculator = () => {
             if (persistedState.inflation !== undefined) setInflation(persistedState.inflation);
             if (persistedState.goGoEndAge !== undefined) setGoGoEndAge(persistedState.goGoEndAge);
             if (persistedState.slowGoEndAge !== undefined) setSlowGoEndAge(persistedState.slowGoEndAge);
+            if (persistedState.spouseGoGoEndAge !== undefined) setSpouseGoGoEndAge(persistedState.spouseGoGoEndAge);
+            if (persistedState.spouseSlowGoEndAge !== undefined) setSpouseSlowGoEndAge(persistedState.spouseSlowGoEndAge);
             if (persistedState.monthlyNeeds !== undefined) setMonthlyNeeds(persistedState.monthlyNeeds);
             if (persistedState.flowAge !== undefined) setFlowAge(persistedState.flowAge);
             if (persistedState.bubbleAge !== undefined) setBubbleAge(persistedState.bubbleAge);
@@ -1841,12 +1864,17 @@ const ShowMeTheMoneyCalculator = () => {
                 inflation,
                 goGoEndAge,
                 slowGoEndAge,
+                spouseGoGoEndAge,
+                spouseSlowGoEndAge,
                 monthlyNeeds,
                 flowAge,
                 bubbleAge
             });
         }
-    }, [isMarried, spouse1Dob, spouse1Pia, spouse1PreferredYear, spouse1PreferredMonth, spouse2Dob, spouse2Pia, spouse2PreferredYear, spouse2PreferredMonth, inflation, goGoEndAge, slowGoEndAge, monthlyNeeds, flowAge, bubbleAge, isLoaded, setPersistedState]);
+    }, [isMarried, spouse1Dob, spouse1Pia, spouse1PreferredYear, spouse1PreferredMonth, spouse2Dob, spouse2Pia, spouse2PreferredYear, spouse2PreferredMonth, inflation, goGoEndAge, slowGoEndAge, spouseGoGoEndAge, spouseSlowGoEndAge, monthlyNeeds, flowAge, bubbleAge, isLoaded, setPersistedState]);
+
+    const primaryFirstName = profile?.first_name?.trim() || profile?.firstName?.trim() || 'Bob';
+    const spouseFirstName = partners?.[0]?.first_name?.trim() || partners?.[0]?.firstName?.trim() || 'Spouse';
 
     const [chartView, setChartView] = useState('monthly'); // monthly, cumulative, combined, earlyLate, post70, sscuts
     const [chartData, setChartData] = useState({ labels: [], datasets: [] });
@@ -1870,6 +1898,8 @@ const ShowMeTheMoneyCalculator = () => {
     const [showPreferredFilingModal, setShowPreferredFilingModal] = useState(false);
     const [isDraggingGoGo, setIsDraggingGoGo] = useState(false);
     const [isDraggingSlowGo, setIsDraggingSlowGo] = useState(false);
+    const [isDraggingSpouseGoGo, setIsDraggingSpouseGoGo] = useState(false);
+    const [isDraggingSpouseSlowGo, setIsDraggingSpouseSlowGo] = useState(false);
 
     // One Month at a Time modal state
     const [showOneMonthModal, setShowOneMonthModal] = useState(false);
@@ -4159,8 +4189,9 @@ const ShowMeTheMoneyCalculator = () => {
 
                     {/* Retirement Stages Slider - Below chart */}
                     {['monthly', 'cumulative', 'combined', 'earlyLate', 'post70', 'sscuts'].includes(chartView) && (
-                        <div>
+                        <div className="space-y-3 mt-4">
                             <RetirementStagesSlider
+                                label={isMarried ? primaryFirstName : undefined}
                                 goGoEndAge={goGoEndAge}
                                 setGoGoEndAge={setGoGoEndAge}
                                 slowGoEndAge={slowGoEndAge}
@@ -4170,6 +4201,19 @@ const ShowMeTheMoneyCalculator = () => {
                                 isDraggingSlowGo={isDraggingSlowGo}
                                 setIsDraggingSlowGo={setIsDraggingSlowGo}
                             />
+                            {isMarried && (
+                                <RetirementStagesSlider
+                                    label={spouseFirstName}
+                                    goGoEndAge={spouseGoGoEndAge}
+                                    setGoGoEndAge={setSpouseGoGoEndAge}
+                                    slowGoEndAge={spouseSlowGoEndAge}
+                                    setSlowGoEndAge={setSpouseSlowGoEndAge}
+                                    isDraggingGoGo={isDraggingSpouseGoGo}
+                                    setIsDraggingGoGo={setIsDraggingSpouseGoGo}
+                                    isDraggingSlowGo={isDraggingSpouseSlowGo}
+                                    setIsDraggingSlowGo={setIsDraggingSpouseSlowGo}
+                                />
+                            )}
                         </div>
                     )}
 

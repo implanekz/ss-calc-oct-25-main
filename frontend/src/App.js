@@ -2170,12 +2170,14 @@ function LoginScreenWithDevMode() {
 
 // Onboarding Screen with Dev Mode support  
 function OnboardingScreenWithDevMode() {
-  const { isDevMode, devUpdateProfile, devCompleteOnboarding, devAddPartner, devAddChild } = useDevMode();
+  const { isDevMode, devProfile, devPartners, updateDevProfile, devCompleteOnboarding, devAddPartner, devAddChild } = useDevMode();
 
   if (isDevMode) {
     // Use local state version for dev mode
     return <OnboardingScreen devMode={{
-      updateProfile: devUpdateProfile,
+      profile: devProfile,
+      partners: devPartners,
+      updateProfile: updateDevProfile,
       completeOnboarding: devCompleteOnboarding,
       addPartner: devAddPartner,
       addChild: devAddChild
