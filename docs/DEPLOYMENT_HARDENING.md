@@ -46,3 +46,21 @@ Suggested starting thresholds:
 - Calculations: 120 requests per minute per IP.
 
 Tune thresholds after real traffic begins.
+
+## Launch Monitoring
+
+Watch during beta:
+
+- Railway CPU and memory.
+- Railway request latency and 5xx responses.
+- Supabase API errors and auth errors.
+- Browser console errors from embedded contexts.
+- Cloudflare WAF/rate-limit events.
+- XML upload failures by status code.
+
+Operational thresholds:
+
+- If Railway CPU is sustained above 70%, increase `WEB_CONCURRENCY` only if memory allows, otherwise add a replica.
+- If memory is sustained above 75%, increase Railway memory or reduce worker count.
+- If Supabase latency/errors rise, reduce frontend preference-write frequency before increasing backend capacity.
+- If iframe auth fails only in Safari or private browsing, document the limitation and consider a non-embedded login fallback.
