@@ -50,7 +50,7 @@ def test_basic_ex_spouse_benefit():
     else:
         print(f"\n❌ Own benefit is ${own_benefit_62 - ex_benefit_62:,.2f}/month better")
 
-    return calc
+    assert calc is not None
 
 
 def test_child_in_care_benefit():
@@ -93,7 +93,7 @@ def test_child_in_care_benefit():
     else:
         print(f"\n❌ Not eligible: {child_benefit['reason']}")
 
-    return calc
+    assert calc is not None
 
 
 def test_optimization_strategies():
@@ -145,7 +145,7 @@ def test_optimization_strategies():
             advantage = opt['lifetime_total'] - next_best
             print(f"   Advantage: ${advantage:,.2f} over next best strategy")
 
-    return result
+    assert result is not None
 
 
 def test_ineligible_scenarios():

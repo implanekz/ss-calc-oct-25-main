@@ -48,7 +48,7 @@ def test_basic_survivor_benefit():
     print(f"\n💡 Crossover strategy potential:")
     print(f"   Take survivor early (${survivor_60:,.2f}), let own grow to 70 (${own_70:,.2f})")
 
-    return calc
+    assert calc is not None
 
 
 def test_crossover_strategy():
@@ -87,7 +87,7 @@ def test_crossover_strategy():
     else:
         print(f"\n❌ Crossover not valid: {crossover['reason']}")
 
-    return calc
+    assert calc is not None
 
 
 def test_optimization_all_strategies():
@@ -137,7 +137,7 @@ def test_optimization_all_strategies():
             advantage = opt['lifetime_total'] - next_best
             print(f"   Advantage: ${advantage:,.2f} over next best strategy")
 
-    return result
+    assert result is not None
 
 
 def test_remarriage_rules():
