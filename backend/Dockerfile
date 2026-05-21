@@ -18,4 +18,4 @@ COPY . .
 RUN echo "Listing files in /app:" && ls -la
 
 # Command to run the application using Railway's PORT
-CMD uvicorn main:app --host 0.0.0.0 --port $PORT
+CMD ["sh", "-c", "gunicorn -w ${WEB_CONCURRENCY:-2} -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:${PORT:-8000} --timeout ${WORKER_TIMEOUT:-60}"]
