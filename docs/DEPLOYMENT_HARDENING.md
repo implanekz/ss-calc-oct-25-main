@@ -29,3 +29,20 @@ Manual browser checks:
 - Chrome incognito: embedded app loads, expected auth behavior is documented.
 - Safari: embedded app loads, auth and local storage behavior are checked.
 - Mobile Safari: app is usable inside the iframe dimensions used by the host.
+
+## Cloudflare WAF And Rate Limits
+
+Initial rules:
+
+- Auth endpoints: rate limit `/api/auth/login`, `/api/auth/signup`, `/api/auth/reset-password` by IP.
+- XML upload: rate limit `/upload-ssa-xml` by IP and authenticated user when available.
+- Calculation endpoints: rate limit `/calculate-*`, `/calculate`, `/monthly-optimization`, and `/compare-earnings-scenarios` by IP.
+- Block obvious non-browser bot traffic except verified monitoring services.
+
+Suggested starting thresholds:
+
+- Auth: 10 requests per minute per IP.
+- XML upload: 5 requests per minute per IP.
+- Calculations: 120 requests per minute per IP.
+
+Tune thresholds after real traffic begins.
