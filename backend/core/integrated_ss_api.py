@@ -37,9 +37,12 @@ app = FastAPI(
 # Configure CORS from ALLOWED_ORIGINS env (comma-separated), default to "*"
 _origins_env = os.getenv("ALLOWED_ORIGINS")
 _allowed_origins = (
-    [o.strip() for o in _origins_env.split(",") if o.strip()]
+    [origin.strip() for origin in _origins_env.split(",") if origin.strip()]
     if _origins_env else ["*"]
 )
+
+if os.getenv("ENVIRONMENT") == "production" and _allowed_origins == ["*"]:
+    raise RuntimeError("ALLOWED_ORIGINS must be set in production")
 
 app.add_middleware(
     CORSMiddleware,

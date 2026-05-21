@@ -38,6 +38,13 @@ from api.calculation_models import (
 router = APIRouter(tags=["calculations"])
 logger = logging.getLogger(__name__)
 
+MAX_XML_UPLOAD_BYTES = 2 * 1024 * 1024
+ALLOWED_XML_CONTENT_TYPES = {
+    "application/xml",
+    "text/xml",
+    "application/octet-stream",
+}
+
 # Global session storage (use proper session management in production)
 user_sessions = {}
 
@@ -85,12 +92,18 @@ async def upload_ssa_xml(
     Upload SSA XML file and analyze earnings impact on PIA
     This is the core of the PIA Impact Analyzer
     """
+    if file.content_type not in ALLOWED_XML_CONTENT_TYPES:
+        raise HTTPException(status_code=415, detail="SSA upload must be an XML file")
+
+    content = await file.read()
+    if len(content) > MAX_XML_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="SSA XML upload exceeds 2 MB limit")
+
     if not file.filename.endswith('.xml'):
         raise HTTPException(status_code=400, detail="File must be XML format")
     
     try:
         # Read and process XML
-        content = await file.read()
         xml_content = content.decode('utf-8')
         
         processor = SSAXMLProcessor()
