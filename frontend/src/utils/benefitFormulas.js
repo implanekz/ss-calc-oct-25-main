@@ -103,7 +103,7 @@ export const adjustPIAForPreClaim = (piaAtFRA, claimAgeYears, fraYears, colaRate
   return piaAtFRA * Math.pow(1 + colaRate, yearsAfterFra);
 };
 
-export default {
+const benefitFormulas = {
   getFra,
   getFraYears,
   preclaimColaFactor,
@@ -116,3 +116,5 @@ export default {
   benefitAfterClaim,
   adjustPIAForPreClaim
 };
+
+export default benefitFormulas;
