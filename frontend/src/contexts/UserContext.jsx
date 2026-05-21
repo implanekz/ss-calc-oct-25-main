@@ -5,6 +5,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase, getAuthToken } from '../config/supabase';
 import { API_BASE_URL } from '../config/api';
+import { apiFetch, authHeaders } from '../services/apiClient';
+import { normalizePartner, normalizeProfile } from '../services/profileAdapter';
 
 const UserContext = createContext(null);
 
@@ -29,12 +31,18 @@ export const UserProvider = ({ children }) => {
 
     try {
       console.log("[UserContext] Fetching profile from API...");
-      const profileRes = await fetch(`${API_BASE_URL}/api/profiles/me/full`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const profileData = await apiFetch('/api/profiles/me/full', {
+        headers: authHeaders(token)
       });
-      console.log("[UserContext] Profile response status:", profileRes.status);
 
-      if (profileRes.status === 401) {
+      setProfile(normalizeProfile(profileData.profile || {}));
+      setPartners((profileData.partners || []).map(normalizePartner));
+      setUserChildren(profileData.children || []);
+      setPreferences(profileData.preferences);
+      console.log("[UserContext] Profile loaded successfully");
+
+    } catch (err) {
+      if (err.status === 401) {
         console.warn("Token expired, signing out...");
         await supabase.auth.signOut();
         setUser(null);
@@ -42,36 +50,6 @@ export const UserProvider = ({ children }) => {
         return;
       }
 
-      if (!profileRes.ok) {
-        const errData = await profileRes.json().catch(() => ({}));
-        throw new Error(errData.detail || `Server error: ${profileRes.status}`);
-      }
-
-      const profileData = await profileRes.json();
-
-      // Normalize keys for front-end (camelCase) while preserving originals
-      const p = profileData.profile || {};
-      const normalizedProfile = {
-        ...p,
-        firstName: p.firstName ?? p.first_name,
-        lastName: p.lastName ?? p.last_name,
-        dateOfBirth: p.dateOfBirth ?? p.date_of_birth,
-        relationshipStatus: p.relationshipStatus ?? p.relationship_status,
-      };
-      setProfile(normalizedProfile);
-
-      const partnerList = (profileData.partners || []).map((pt) => ({
-        ...pt,
-        firstName: pt.firstName ?? pt.first_name,
-        lastName: pt.lastName ?? pt.last_name,
-        dateOfBirth: pt.dateOfBirth ?? pt.date_of_birth,
-      }));
-      setPartners(partnerList);
-      setUserChildren(profileData.children || []);
-      setPreferences(profileData.preferences);
-      console.log("[UserContext] Profile loaded successfully");
-
-    } catch (err) {
       console.error('Error loading user data:', err);
       setError(err.message);
     }
@@ -319,16 +297,7 @@ export const UserProvider = ({ children }) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || data.detail || 'Failed to update profile');
 
-      // Normalize profile response
-      const p = data.profile;
-      const normalizedProfile = {
-        ...p,
-        firstName: p.firstName ?? p.first_name,
-        lastName: p.lastName ?? p.last_name,
-        dateOfBirth: p.dateOfBirth ?? p.date_of_birth,
-        relationshipStatus: p.relationshipStatus ?? p.relationship_status,
-      };
-      setProfile(normalizedProfile);
+      setProfile(normalizeProfile(data.profile));
       return data;
     } catch (err) {
       setError(err.message);
@@ -356,7 +325,7 @@ export const UserProvider = ({ children }) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to add partner');
 
-      setPartners([...partners, data.partner]);
+      setPartners([...partners, normalizePartner(data.partner)]);
       return data;
     } catch (err) {
       setError(err.message);
@@ -384,16 +353,7 @@ export const UserProvider = ({ children }) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || data.detail || 'Failed to update partner');
 
-      // Normalize partner response
-      const pt = data.partner;
-      const normalizedPartner = {
-        ...pt,
-        firstName: pt.firstName ?? pt.first_name,
-        lastName: pt.lastName ?? pt.last_name,
-        dateOfBirth: pt.dateOfBirth ?? pt.date_of_birth,
-      };
-
-      setPartners(partners.map(p => p.id === partnerId ? normalizedPartner : p));
+      setPartners(partners.map(p => p.id === partnerId ? normalizePartner(data.partner) : p));
       return data;
     } catch (err) {
       setError(err.message);
