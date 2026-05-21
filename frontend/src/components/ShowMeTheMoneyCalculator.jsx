@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { OneMonthAtATimeModal } from './OneMonthAtATime';
 import { getFra, monthlyBenefitAtClaim } from '../utils/benefitFormulas';
 import { ageInMonths, calculateProjection, combineProjections } from '../calculators/showMeTheMoney/projections';
+import { applyBenefitCut, calculateAxisRanges } from '../calculators/showMeTheMoney/ssCuts';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, annotationPlugin, SankeyController, Flow, BubbleController);
 
@@ -2733,38 +2734,17 @@ const ShowMeTheMoneyCalculator = () => {
                     { key: 'age70', label: 'File at 70', barColor: 'rgba(45, 212, 191, 0.78)', lineColor: 'rgba(20, 184, 166, 1)' },
                 ];
 
-                const reductionFactor = Math.min(1, Math.max(0, 1 - (Number(ssCutPercentage) || 0) / 100));
-                const cutYearValue = Number(ssCutYear) || ssCutYear;
-
-                const applyCuts = (projection) => {
-                    const yearKeys = Array.from(new Set([
-                        ...Object.keys(projection.monthly || {}),
-                        ...Object.keys(projection.cumulative || {})
-                    ])).map(Number).sort((a, b) => a - b);
-
-                    const monthly = {};
-                    const cumulative = {};
-                    let running = 0;
-
-                    yearKeys.forEach(year => {
-                        const baseMonthly = projection.monthly?.[year] || 0;
-                        const adjustedMonthly = year >= cutYearValue ? baseMonthly * reductionFactor : baseMonthly;
-                        const roundedMonthly = Number(adjustedMonthly.toFixed(2));
-                        monthly[year] = roundedMonthly;
-                        running = Number((running + roundedMonthly * 12).toFixed(2));
-                        cumulative[year] = running;
-                    });
-
-                    return { monthly, cumulative };
-                };
-
                 const scenarios = [];
 
                 scenarioConfigs.forEach((config) => {
                     const baseProjection = baseProjections?.[config.key];
                     if (!baseProjection) return;
 
-                    const cutProjection = applyCuts(baseProjection);
+                    const cutProjection = applyBenefitCut({
+                        projection: baseProjection,
+                        cutYear: ssCutYear,
+                        cutPercentage: ssCutPercentage
+                    });
 
                     const baselineMonthly = displayYearsForData.map(year => Number((baseProjection.monthly?.[year] || 0).toFixed(2)));
                     const baselineCumulative = displayYearsForData.map(year => Number((baseProjection.cumulative?.[year] || 0).toFixed(2)));
@@ -2796,37 +2776,7 @@ const ShowMeTheMoneyCalculator = () => {
                     delta: Math.round(scenario.cutTotal - scenario.baselineTotal)
                 }));
 
-                // Calculate min/max across both baseline and cuts to freeze the Y-axis
-                let minMonthly = Infinity;
-                let maxMonthly = -Infinity;
-                let minCumulative = Infinity;
-                let maxCumulative = -Infinity;
-
-                scenarios.forEach((scenario) => {
-                    [...scenario.baselineMonthly, ...scenario.cutMonthly].forEach(val => {
-                        minMonthly = Math.min(minMonthly, val);
-                        maxMonthly = Math.max(maxMonthly, val);
-                    });
-
-                    [...scenario.baselineCumulative, ...scenario.cutCumulative].forEach(val => {
-                        minCumulative = Math.min(minCumulative, val);
-                        maxCumulative = Math.max(maxCumulative, val);
-                    });
-                });
-
-                const monthlyPadding = (maxMonthly - minMonthly) * 0.1;
-                const cumulativePadding = (maxCumulative - minCumulative) * 0.1;
-
-                const yAxisRanges = {
-                    monthly: {
-                        min: 0,
-                        max: Math.ceil(maxMonthly + monthlyPadding)
-                    },
-                    cumulative: {
-                        min: 0,
-                        max: Math.ceil(maxCumulative + cumulativePadding)
-                    }
-                };
+                const yAxisRanges = calculateAxisRanges(scenarios);
 
                 const payload = {
                     labels,
@@ -2937,31 +2887,6 @@ const ShowMeTheMoneyCalculator = () => {
             { key: 'age70', label: 'File at 70', barColor: 'rgba(45, 212, 191, 0.78)', lineColor: 'rgba(20, 184, 166, 1)' },
         ];
 
-        const reductionFactor = Math.min(1, Math.max(0, 1 - (Number(ssCutPercentage) || 0) / 100));
-        const cutYearValue = Number(ssCutYear) || ssCutYear;
-
-        const applyCuts = (projection) => {
-            const yearKeys = Array.from(new Set([
-                ...Object.keys(projection.monthly || {}),
-                ...Object.keys(projection.cumulative || {})
-            ])).map(Number).sort((a, b) => a - b);
-
-            const monthly = {};
-            const cumulative = {};
-            let running = 0;
-
-            yearKeys.forEach(year => {
-                const baseMonthly = projection.monthly?.[year] || 0;
-                const adjustedMonthly = year >= cutYearValue ? baseMonthly * reductionFactor : baseMonthly;
-                const roundedMonthly = Number(adjustedMonthly.toFixed(2));
-                monthly[year] = roundedMonthly;
-                running = Number((running + roundedMonthly * 12).toFixed(2));
-                cumulative[year] = running;
-            });
-
-            return { monthly, cumulative };
-        };
-
         const scenarios = [];
 
         scenarioConfigs.forEach((config) => {
@@ -2970,7 +2895,11 @@ const ShowMeTheMoneyCalculator = () => {
                 return;
             }
 
-            const cutProjection = applyCuts(baseProjection);
+            const cutProjection = applyBenefitCut({
+                projection: baseProjection,
+                cutYear: ssCutYear,
+                cutPercentage: ssCutPercentage
+            });
 
             const baselineMonthly = displayYearsForData.map(year => Number((baseProjection.monthly?.[year] || 0).toFixed(2)));
             const baselineCumulative = displayYearsForData.map(year => Number((baseProjection.cumulative?.[year] || 0).toFixed(2)));
@@ -3007,43 +2936,9 @@ const ShowMeTheMoneyCalculator = () => {
             delta: Math.round(scenario.cutTotal - scenario.baselineTotal)
         }));
 
-        // Calculate min/max across both baseline and cuts to freeze the Y-axis
-        let minMonthly = Infinity;
-        let maxMonthly = -Infinity;
-        let minCumulative = Infinity;
-        let maxCumulative = -Infinity;
-
-        scenarios.forEach((scenario) => {
-            // Check both baseline and cuts for min/max
-            [...scenario.baselineMonthly, ...scenario.cutMonthly].forEach(val => {
-                minMonthly = Math.min(minMonthly, val);
-                maxMonthly = Math.max(maxMonthly, val);
-            });
-
-            [...scenario.baselineCumulative, ...scenario.cutCumulative].forEach(val => {
-                minCumulative = Math.min(minCumulative, val);
-                maxCumulative = Math.max(maxCumulative, val);
-            });
-        });
-
-        // Add 10% padding to the ranges
-        const monthlyPadding = (maxMonthly - minMonthly) * 0.1;
-        const cumulativePadding = (maxCumulative - minCumulative) * 0.1;
-
-        const yAxisRanges = {
-            monthly: {
-                min: 0, // Start monthly at 0 for clear visual comparison
-                max: Math.ceil(maxMonthly + monthlyPadding)
-            },
-            cumulative: {
-                min: 0, // Start cumulative at 0 for clear visual comparison
-                max: Math.ceil(maxCumulative + cumulativePadding)
-            }
-        };
+        const yAxisRanges = calculateAxisRanges(scenarios);
 
         console.log('Calculated Y-axis ranges for SS Cuts:', yAxisRanges);
-        console.log('Monthly range:', minMonthly, 'to', maxMonthly);
-        console.log('Cumulative range:', minCumulative, 'to', maxCumulative);
 
         const payload = {
             labels,
