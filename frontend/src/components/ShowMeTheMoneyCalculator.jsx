@@ -10,22 +10,10 @@ import { useDevMode } from '../contexts/DevModeContext.jsx';
 import { useCalculatorPersistence } from '../hooks/useCalculatorPersistence';
 import { useNavigate } from 'react-router-dom';
 import { OneMonthAtATimeModal } from './OneMonthAtATime';
-import { getFra, delayedRetirementCreditFactor, earlyReductionFactor, preclaimColaFactor, monthsFromFra, monthlyBenefitAtClaim, benefitAfterClaim } from '../utils/benefitFormulas';
+import { getFra, monthlyBenefitAtClaim } from '../utils/benefitFormulas';
+import { ageInMonths, calculateProjection, combineProjections } from '../calculators/showMeTheMoney/projections';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, annotationPlugin, SankeyController, Flow, BubbleController);
-
-
-const ageInMonths = (birthDate, targetDate) => {
-    let years = targetDate.getFullYear() - birthDate.getFullYear();
-    let months = targetDate.getMonth() - birthDate.getMonth();
-    let totalMonths = years * 12 + months;
-
-    if (targetDate.getDate() < birthDate.getDate()) {
-        totalMonths -= 1;
-    }
-
-    return totalMonths;
-};
 
 // FRA + reduction/DRC + pre/post-claim COLA are imported from shared benefitFormulas
 
@@ -1967,60 +1955,28 @@ const ShowMeTheMoneyCalculator = () => {
         return `${years}y ${months}m`;
     };
 
-    const calculateProjections = (pia, dob, filingYear, filingMonth, inflationRate) => {
-        const birthDate = new Date(dob);
-        const birthYear = birthDate.getFullYear();
-        const birthMonthIndex = birthDate.getMonth(); // 0-11
-        const claimAgeYears = filingYear + (filingMonth || 0) / 12;
-        const currentAgeMonths = ageInMonths(birthDate, new Date());
-        const currentAgeYears = currentAgeMonths / 12;
-        const fra = getFra(birthYear);
-        const fraYears = fra.years + (fra.months || 0) / 12;
-
-        const baseMonthlyAtClaim = monthlyBenefitAtClaim({
-            piaFRA: pia,
-            claimAgeYears,
-            currentAgeYears,
-            rate: inflationRate,
-            fraYears
-        });
-
-        const monthlyProjection = {};
-        const cumulativeProjection = {};
-        let cumulative = 0;
-
-        const startYear = birthYear + 62;
-        const endYear = birthYear + 95;
-        const claimingCalendarYear = birthYear + filingYear;
-
-        for (let year = startYear; year <= endYear; year++) {
-            let monthlyBenefit = 0;
-            let monthsInYear = 12;
-
-            if (year >= claimingCalendarYear) {
-                const yearsAfterClaim = year - claimingCalendarYear;
-                monthlyBenefit = benefitAfterClaim(baseMonthlyAtClaim, yearsAfterClaim, inflationRate);
-
-                // In the claiming year, only count months after birthday month
-                if (year === claimingCalendarYear) {
-                    monthsInYear = 12 - birthMonthIndex; // e.g., if born in June (month 5), get 7 months
-                }
-            }
-
-            const roundedMonthly = Number(monthlyBenefit.toFixed(2));
-            monthlyProjection[year] = roundedMonthly;
-            cumulative = Number((cumulative + roundedMonthly * monthsInYear).toFixed(2));
-            cumulativeProjection[year] = cumulative;
-        }
-
-        return { monthly: monthlyProjection, cumulative: cumulativeProjection, birthYear };
-    };
-
-
     const scenarioData = useMemo(() => {
-        const primaryAge62 = calculateProjections(spouse1Pia, spouse1Dob, 62, 0, inflation);
-        const primaryPreferred = calculateProjections(spouse1Pia, spouse1Dob, spouse1PreferredYear, spouse1PreferredMonth, inflation);
-        const primaryAge70 = calculateProjections(spouse1Pia, spouse1Dob, 70, 0, inflation);
+        const primaryAge62 = calculateProjection({
+            pia: spouse1Pia,
+            dob: spouse1Dob,
+            filingYear: 62,
+            filingMonth: 0,
+            inflationRate: inflation
+        });
+        const primaryPreferred = calculateProjection({
+            pia: spouse1Pia,
+            dob: spouse1Dob,
+            filingYear: spouse1PreferredYear,
+            filingMonth: spouse1PreferredMonth,
+            inflationRate: inflation
+        });
+        const primaryAge70 = calculateProjection({
+            pia: spouse1Pia,
+            dob: spouse1Dob,
+            filingYear: 70,
+            filingMonth: 0,
+            inflationRate: inflation
+        });
 
         const primaryProjections = {
             age62: primaryAge62,
@@ -2032,42 +1988,39 @@ const ShowMeTheMoneyCalculator = () => {
         const primaryBirthYear = new Date(spouse1Dob).getFullYear();
         const deathYearNumber = primaryBirthYear + deathAge;
 
-        const combineMonthlyProjection = (primaryScenario, spouseScenario) => {
-            if (!isMarried || !spouseScenario) {
-                return primaryScenario;
-            }
-
-            const allYears = Array.from(new Set([
-                ...Object.keys(primaryScenario.monthly || {}),
-                ...Object.keys(spouseScenario.monthly || {})
-            ])).map(Number).sort((a, b) => a - b);
-
-            const monthly = {};
-            const cumulative = {};
-            let runningTotal = 0;
-
-            allYears.forEach(year => {
-                const primaryMonthly = primaryScenario.monthly?.[year] || 0;
-                const spouseMonthly = spouseScenario.monthly?.[year] || 0;
-                const combinedMonthly = prematureDeath && year >= deathYearNumber
-                    ? Math.max(primaryMonthly, spouseMonthly)
-                    : primaryMonthly + spouseMonthly;
-
-                monthly[year] = combinedMonthly;
-                runningTotal += combinedMonthly * 12;
-                cumulative[year] = runningTotal;
-            });
-
-            return { monthly, cumulative };
-        };
+        const combineMonthlyProjection = (primaryScenario, spouseScenario) => combineProjections({
+            primaryProjection: primaryScenario,
+            spouseProjection: spouseScenario,
+            isMarried,
+            prematureDeath,
+            deathYear: deathYearNumber
+        });
 
         let spouseProjections = null;
         let combinedProjections = primaryProjections;
 
         if (isMarried) {
-            const spouseAge62 = calculateProjections(spouse2Pia, spouse2Dob, 62, 0, inflation);
-            const spousePreferredScenario = calculateProjections(spouse2Pia, spouse2Dob, spouse2PreferredYear, spouse2PreferredMonth, inflation);
-            const spouseAge70 = calculateProjections(spouse2Pia, spouse2Dob, 70, 0, inflation);
+            const spouseAge62 = calculateProjection({
+                pia: spouse2Pia,
+                dob: spouse2Dob,
+                filingYear: 62,
+                filingMonth: 0,
+                inflationRate: inflation
+            });
+            const spousePreferredScenario = calculateProjection({
+                pia: spouse2Pia,
+                dob: spouse2Dob,
+                filingYear: spouse2PreferredYear,
+                filingMonth: spouse2PreferredMonth,
+                inflationRate: inflation
+            });
+            const spouseAge70 = calculateProjection({
+                pia: spouse2Pia,
+                dob: spouse2Dob,
+                filingYear: 70,
+                filingMonth: 0,
+                inflationRate: inflation
+            });
 
             spouseProjections = {
                 age62: spouseAge62,
