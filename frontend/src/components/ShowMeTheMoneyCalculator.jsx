@@ -3756,7 +3756,7 @@ const ShowMeTheMoneyCalculator = () => {
                         </div>
                     )}
 
-                    {workStopLadder && (
+                    {workStopLadder && workStopLadder.length > 0 && (
                         <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 mb-4">
                             <div className="font-semibold text-slate-900 mb-2">What if you stop working at…</div>
                             <div className="grid grid-cols-4 gap-3">
