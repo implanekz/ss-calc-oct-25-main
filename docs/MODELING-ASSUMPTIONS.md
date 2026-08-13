@@ -23,6 +23,31 @@ This seam already exists in the product. The work-stop ladder is arithmetic on a
 
 ---
 
+## 0. What the XML actually buys — and what it does not
+
+A common misreading: that adding the earnings record makes *everything* more precise, including early-filing reductions and delayed credits. It does not. Getting this right matters, because overclaiming the benefit of the upload is the same failure mode as the "Earnings Record Verified" banner we had to correct.
+
+**With a PIA alone:**
+
+| | Status |
+|---|---|
+| Backward (earnings → indexed → AIME → PIA) | **absent** — not extrapolated, simply nonexistent |
+| The anchor itself | already a projection: SSA's, assuming continued earnings to FRA |
+| Early reduction / delayed credits | **exact statutory arithmetic** |
+| COLA forward | projection under the user's single rate |
+
+Reduction and DRC factors are deterministic (`benefitFormulas.js:56-70`): 5/9 of 1% per month for the first 36 months early, 5/12 of 1% beyond, 2/3 of 1% per month delayed. Given a PIA and a birth year they are *right*, not estimated. The user simply cannot question the anchor, or ask what another year of work would do — that needs an AIME.
+
+**Adding the XML changes the backward half only:**
+
+1. The anchor becomes **theirs** — arithmetic on a factual record, not a number of unknown vintage carrying an unseen assumption.
+2. The anchor becomes **movable** — recomputable under different stop-work assumptions. This is the entire work-stop ladder.
+3. The chain becomes **inspectable** — glass box instead of a given.
+
+**Forward precision is identical either way.** Claiming adjustments and COLA operate on PIA the same regardless of where PIA came from.
+
+**Copy implication:** the pitch for uploading is not "more accurate numbers." It is *"stop taking one number on faith — see where it comes from, and watch it move when you change your plans."* Precision is the wrong promise; agency is the right one.
+
 ## 1. One inflation rate for the entire span (deliberate)
 
 `inflation` (default 2.5%) is applied uniformly across every projected year — pre-claim COLA, post-claim COLA, and the whole horizon out to age 95.
