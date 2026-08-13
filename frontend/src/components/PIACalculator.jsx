@@ -5,6 +5,8 @@ import { useUser } from '../contexts/UserContext';
 import { useCalculatorPersistence } from '../hooks/useCalculatorPersistence';
 import { Tabs, TabList, Tab, TabPanel } from './ui/Tabs';
 import { API_BASE_URL } from '../config/api';
+import { saveEarnings } from '../services/earningsService';
+import { getAuthToken } from '../config/supabase';
 
 const PIACalculator = () => {
     // Get user context for names and marital status
@@ -398,11 +400,16 @@ const PIACalculator = () => {
             }
 
             // Update birth year from XML (only if provided and valid)
+            // Track the resolved value locally too: setBirthYear() is async, so the
+            // `birthYear` closure variable won't reflect this update until the next
+            // render. Anything persisted later in this function must use this value.
+            let resolvedBirthYear = birthYear;
             if (result.person_info?.birth_date) {
                 const birthDate = new Date(result.person_info.birth_date);
                 const year = birthDate.getFullYear();
                 if (year >= 1937 && year <= 2010) {
                     setBirthYear(year);
+                    resolvedBirthYear = year;
                 }
             }
             // If no birth date in XML, try to infer from earnings years
@@ -412,6 +419,7 @@ const PIACalculator = () => {
                 const inferredBirthYear = earliestYear - 18;
                 if (inferredBirthYear >= 1937 && inferredBirthYear <= 2010) {
                     setBirthYear(inferredBirthYear);
+                    resolvedBirthYear = inferredBirthYear;
                 }
             }
 
@@ -433,6 +441,24 @@ const PIACalculator = () => {
                 }));
 
                 setEarningsHistory(mappedEarnings);
+
+                // Persist so the record survives reload and is visible to Show Me The Money.
+                // A failure here must not block the upload the user just completed.
+                try {
+                    const token = await getAuthToken();
+                    if (token) {
+                        await saveEarnings(token, isPrimary ? 'spouse1' : 'spouse2', {
+                            birthYear: resolvedBirthYear,
+                            rows: mappedEarnings.map((row) => ({
+                                year: row.year,
+                                earnings: row.earnings,
+                                isProjected: row.is_projected
+                            }))
+                        });
+                    }
+                } catch (persistError) {
+                    console.error('Could not save earnings record:', persistError);
+                }
             }
 
             // Count zeros in top 35
