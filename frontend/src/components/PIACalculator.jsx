@@ -176,13 +176,19 @@ const PIACalculator = () => {
     }, [birthYear, activeTab]); // Re-run when birthYear changes or tab switches
 
     // Calculate PIA from earnings
-    const calculatePIA = async () => {
+    // Accepts an optional earnings-history override so callers that just
+    // replaced earningsHistory via setEarningsHistory() (async, not yet
+    // reflected in this closure) can pass the fresh array directly instead
+    // of racing the state update. The manual "Calculate PIA" button omits
+    // it and reads current state, unchanged from before.
+    const calculatePIA = async (earningsOverride) => {
         setIsCalculating(true);
         setError(null);
 
         try {
             // Filter to only send non-zero or recent years
-            const relevantEarnings = earningsHistory
+            const sourceEarnings = earningsOverride ?? earningsHistory;
+            const relevantEarnings = sourceEarnings
                 .filter(e => e.earnings > 0 || e.year >= new Date().getFullYear() - 5)
                 .map(e => ({
                     year: e.year,
@@ -459,6 +465,18 @@ const PIACalculator = () => {
                 } catch (persistError) {
                     console.error('Could not save earnings record:', persistError);
                 }
+
+                // Auto-calculate PIA after upload. Pass mappedEarnings explicitly:
+                // calculatePIA() with no argument reads the `earningsHistory` state
+                // variable, but setEarningsHistory() above is async, so a bare call
+                // here (even delayed) still closes over the pre-upload value and
+                // silently computes PIA from the empty/template earnings that were
+                // on screen before this upload — same class of bug as the
+                // resolvedBirthYear fix just above. Scoped inside this block since
+                // there is nothing to calculate when the upload had no rows.
+                setTimeout(() => {
+                    calculatePIA(mappedEarnings);
+                }, 500);
             }
 
             // Count zeros in top 35 (exclude projected/future years — they are
@@ -473,11 +491,6 @@ const PIACalculator = () => {
             setXmlUploadSuccess(
                 `✅ Loaded ${file.name} • ${result.earnings_summary?.total_years || 0} years • ${zeroCount} zeros in top-35`
             );
-
-            // Auto-calculate PIA after upload
-            setTimeout(() => {
-                calculatePIA();
-            }, 500);
 
         } catch (err) {
             setError(`XML Upload Error: ${err.message}`);
@@ -1225,6 +1238,27 @@ const PIACalculator = () => {
             )}
 
             {/* Double Hit Educational Block */}
+            {/*
+                Three states, ordered by how much we actually know:
+
+                1. nonZeroYears >= 35 — provably safe regardless of anything else.
+                   A $0 row can never outrank a positive one for a top-35 slot, so
+                   35+ real (non-projected) years guarantees no zero can enter.
+
+                2. calculatedResult exists — we know the REAL zero-year count
+                   (calculatedResult.years_of_zero_in_top_35) rather than guessing.
+                   This matters because the client-side estimate below
+                   (35 - nonZeroYears) assumes every "missing" year is a zero, but
+                   the editable table's projected/carried-forward rows are usually
+                   positive — they can fill some or all of that gap. Verified
+                   live: a 30-real-year record with 5 real zero years produced
+                   only 1 zero in the actual top 35, not the estimate's 5, because
+                   4 carried-forward projected years filled the rest.
+
+                3. Neither — no verified number exists yet. Say so qualitatively
+                   rather than asserting an estimate that live testing showed can
+                   overstate the gap by several years.
+            */}
             <div className="mt-6 p-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-lg">
                 <h4 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
                     ⚠️ {tooltips.pia.doubleHit.medium.title}
@@ -1237,11 +1271,56 @@ const PIACalculator = () => {
                         <p className="font-semibold text-gray-900 mb-2">Why Your PIA Changes When You Stop Working:</p>
                         <ol className="list-decimal list-inside space-y-2 text-gray-700">
                             <li><strong>Early Filing Penalty (~30%)</strong> – Claiming at 62 reduces your check for life.</li>
-                            <li><strong>Earnings Gap Penalty</strong> – SSA assumes you keep earning to 67; if you don't, ages 62-67 become zeros in your 35-year average.</li>
+                            {(() => {
+                                const provenZeroFree = nonZeroYears >= 35;
+                                const calculatedZeroYears = calculatedResult ? calculatedResult.years_of_zero_in_top_35 : null;
+                                const calculatedZeroFree = calculatedZeroYears === 0;
+
+                                if (provenZeroFree || calculatedZeroFree) {
+                                    return (
+                                        <li>
+                                            <strong className="text-green-700">Earnings Gap Penalty – doesn't apply to you.</strong>{' '}
+                                            {provenZeroFree ? (
+                                                <>You already have {nonZeroYears} real earning years on record, so stopping work
+                                                    now can't add zero years to your 35-year average.</>
+                                            ) : (
+                                                <>Your calculated PIA already shows zero zero-years in your top 35 — your current
+                                                    and projected earnings fill it completely.</>
+                                            )}
+                                        </li>
+                                    );
+                                }
+
+                                if (calculatedZeroYears !== null) {
+                                    return (
+                                        <li>
+                                            <strong>Earnings Gap Penalty</strong> – Your calculated top-35 average currently
+                                            includes {calculatedZeroYears} zero or low year{calculatedZeroYears === 1 ? '' : 's'}.
+                                            Replacing them with real earnings would raise your PIA.
+                                        </li>
+                                    );
+                                }
+
+                                return (
+                                    <li>
+                                        <strong>Earnings Gap Penalty</strong> – You have {nonZeroYears} real earning
+                                        year{nonZeroYears === 1 ? '' : 's'} on record. Calculate your PIA to see exactly how
+                                        many zero or low years currently count toward your 35-year average.
+                                    </li>
+                                );
+                            })()}
                         </ol>
-                        <p className="mt-3 text-green-700 font-semibold">
-                            💡 Keep earning (even part-time) and you replace low/zero years, raising your PIA for life.
-                        </p>
+                        {(nonZeroYears >= 35 || (calculatedResult && calculatedResult.years_of_zero_in_top_35 === 0)) ? (
+                            <p className="mt-3 text-green-700 font-semibold">
+                                💡 You'd still take the ~30% early-filing cut if you claim at 62 — but the earnings-gap
+                                penalty is already avoided. Continuing to work can still raise your PIA if you out-earn
+                                your lowest counted year.
+                            </p>
+                        ) : (
+                            <p className="mt-3 text-green-700 font-semibold">
+                                💡 Keep earning (even part-time) and you replace low/zero years, raising your PIA for life.
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>
