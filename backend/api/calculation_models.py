@@ -199,7 +199,10 @@ class WorkStopLadderRequest(BaseModel):
     """Request for PIA across a range of work-stop ages"""
     birth_year: int = Field(..., ge=1937, le=2010)
     earnings_history: List[EarningsYearInput]
-    stop_ages: List[int] = Field(..., min_length=1)
+    # max_length 9 == ages 62..70 inclusive, the entire legal domain. The route
+    # does synchronous CPU work per rung on an unauthenticated endpoint, so an
+    # unbounded list is a request-amplification primitive.
+    stop_ages: List[int] = Field(..., min_length=1, max_length=9)
 
     @field_validator("stop_ages")
     @classmethod
@@ -207,6 +210,8 @@ class WorkStopLadderRequest(BaseModel):
         for age in value:
             if age < 62 or age > 70:
                 raise ValueError("stop_ages must be between 62 and 70")
+        if len(set(value)) != len(value):
+            raise ValueError("stop_ages must not contain duplicate ages")
         return value
 
 

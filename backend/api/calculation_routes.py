@@ -702,28 +702,67 @@ async def compare_earnings_scenarios(request: WhatIfComparisonRequest):
         logger.error(f"Earnings comparison error: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Earnings comparison failed: {str(e)}")
 
+def _history_for_stop_year(earnings_history, stop_year: int) -> List[EarningsRecord]:
+    """
+    Build the earnings history implied by "you keep working until `stop_year`".
+
+    Two halves, both required for the ladder to answer its own question:
+      1. Project forward. A submitted record ends a few years after today, so
+         for anyone not already near 62 every stop year lands past the end of
+         the record and there is nothing to zero. Carry the most recent
+         non-zero earnings amount forward to the stop year, the way SSA's own
+         statement projection does.
+      2. Zero from the stop year on, since that is the year work stops.
+    """
+    known = {entry.year: entry.earnings for entry in earnings_history}
+    years_with_earnings = [year for year, amount in known.items() if amount > 0]
+    carry_forward = known[max(years_with_earnings)] if years_with_earnings else 0
+
+    records = [
+        EarningsRecord(
+            year=entry.year,
+            earnings=0 if entry.year >= stop_year else entry.earnings,
+            is_zero=(entry.year >= stop_year or entry.earnings == 0),
+            is_projected=entry.is_projected,
+        )
+        for entry in earnings_history
+    ]
+
+    if known and carry_forward > 0:
+        for year in range(max(known) + 1, stop_year):
+            records.append(
+                EarningsRecord(
+                    year=year,
+                    earnings=carry_forward,
+                    is_zero=False,
+                    is_projected=True,
+                )
+            )
+
+    return records
+
+
 @router.post("/api/work-stop-ladder", response_model=WorkStopLadderResult)
-async def work_stop_ladder(request: WorkStopLadderRequest):
+def work_stop_ladder(request: WorkStopLadderRequest):
     """
     Recompute PIA for each candidate work-stop age.
 
-    Answers "what happens if you stop working at 62 vs 65 vs 67?" by zeroing
-    every earnings year at or after the stop year and recomputing AIME/PIA.
+    Answers "what happens if you stop working at 62 vs 65 vs 67?" by projecting
+    earnings forward to each stop year, zeroing every year at or after it, and
+    recomputing AIME/PIA.
+
+    Declared `def` rather than `async def` on purpose: the work is synchronous
+    CPU, so Starlette runs it on the threadpool instead of blocking the event
+    loop for every other request on the worker.
     """
     try:
         rungs = []
-        for stop_age in sorted(request.stop_ages):
+        for stop_age in sorted(set(request.stop_ages)):
             stop_year = request.birth_year + stop_age
             processor = SSAXMLProcessor(birth_year=request.birth_year)
-            processor.earnings_history = [
-                EarningsRecord(
-                    year=entry.year,
-                    earnings=0 if entry.year >= stop_year else entry.earnings,
-                    is_zero=(entry.year >= stop_year or entry.earnings == 0),
-                    is_projected=entry.is_projected,
-                )
-                for entry in request.earnings_history
-            ]
+            processor.earnings_history = _history_for_stop_year(
+                request.earnings_history, stop_year
+            )
             calculation = processor.calculate_aime_and_pia()
             rungs.append(
                 WorkStopRung(

@@ -19,8 +19,11 @@ class EarningsRecord:
 class SSAXMLProcessor:
     """Processes SSA XML files and calculates AIME/PIA"""
     
-    # SSA bend points by year (updated values)
+    # PIA bend points by year of eligibility (year worker attains 62, becomes
+    # disabled before 62, or dies before 62).
+    # Source: https://www.ssa.gov/oact/cola/bendpoints.html (verified 2026-08-13)
     PIA_BEND_POINTS_BY_YEAR = {
+        2026: [1286, 7749],
         2025: [1226, 7391],
         2024: [1174, 7078],
         2023: [1115, 6721],
@@ -29,9 +32,26 @@ class SSAXMLProcessor:
         2020: [960, 5785],
     }
     PIA_FACTORS = [0.90, 0.32, 0.15]  # 90%, 32%, 15% factors (constant)
+
+    # Retirement & survivor family maximum bend points, by year of eligibility.
+    # Applied as 150% / 272% / 134% / 175% of the PIA portions they delimit.
+    # Source: https://www.ssa.gov/oact/cola/familymax.html (verified 2026-08-13)
+    # NOTE: the disability (DI) family maximum uses a different formula entirely
+    # (85% of AIME, floored at PIA, capped at 150% of PIA) and is not in this table.
+    FAMILY_MAX_BEND_POINTS_BY_YEAR = {
+        2026: [1643, 2371, 3093],
+        2025: [1567, 2262, 2950],
+        2024: [1500, 2166, 2825],
+        2023: [1425, 2056, 2682],
+        2022: [1308, 1889, 2463],
+        2021: [1272, 1837, 2395],
+        2020: [1226, 1770, 2309],
+    }
+    FAMILY_MAX_FACTORS = [1.50, 2.72, 1.34, 1.75]
     
     # Maximum taxable earnings by year (complete SSA data)
     TAXABLE_MAXIMUM = {
+        2026: 184500,
         2025: 176100, 2024: 168600, 2023: 160200, 2022: 147000, 2021: 142800,
         2020: 137700, 2019: 132900, 2018: 128400, 2017: 127200, 2016: 118500,
         2015: 118500, 2014: 117000, 2013: 113700, 2012: 110100, 2011: 106800,
@@ -46,18 +66,21 @@ class SSAXMLProcessor:
         1970: 7800, 1969: 7800, 1968: 7800, 1967: 6600, 1966: 6600,
     }
 
-    # Average Wage Index for indexing historical earnings (official SSA AWI)
+    # Average Wage Index for indexing historical earnings (official SSA AWI).
+    # Source: https://www.ssa.gov/oact/cola/awiseries.html (verified 2026-08-13)
+    # AWI for year N is not published until the fall of year N+1, so the most
+    # recent available value here lags the current year by two.
     AVERAGE_WAGE_INDEX = {
-        2024: 68461.26, 2023: 66621.80, 2022: 63795.13, 2021: 60575.07,
+        2024: 69846.57, 2023: 66621.80, 2022: 63795.13, 2021: 60575.07,
         2020: 55628.60, 2019: 54099.99, 2018: 52145.80, 2017: 50321.89,
         2016: 48642.15, 2015: 48098.63, 2014: 46481.52, 2013: 44888.16,
         2012: 44321.67, 2011: 42979.61, 2010: 41673.83, 2009: 40711.61,
         2008: 41334.97, 2007: 40405.48, 2006: 38651.41, 2005: 36952.94,
         2004: 35648.55, 2003: 34064.95, 2002: 33252.09, 2001: 32921.92,
         2000: 32154.82, 1999: 30469.84, 1998: 28861.44, 1997: 27426.00,
-        1996: 25913.90, 1995: 24705.66, 1994: 23753.53, 1993: 22935.42,
+        1996: 25913.90, 1995: 24705.66, 1994: 23753.53, 1993: 23132.67,
         1992: 22935.42, 1991: 21811.60, 1990: 21027.98, 1989: 20099.55,
-        1988: 18426.51, 1987: 16822.51, 1986: 16822.51, 1985: 16822.51,
+        1988: 19334.04, 1987: 18426.51, 1986: 17321.82, 1985: 16822.51,
         1984: 16135.07, 1983: 15239.24, 1982: 14531.34, 1981: 13773.10,
         1980: 12513.46, 1979: 11479.46, 1978: 10556.03, 1977: 9779.44,
     }
@@ -407,35 +430,61 @@ class SSAXMLProcessor:
     
     def create_editable_spreadsheet(self) -> List[Dict]:
         """
-        Create user-friendly spreadsheet data for editing
+        Create user-friendly spreadsheet data for editing.
+
+        Future years are PROJECTED the way SSA's own statement projection works:
+        the most recent known (non-zero) earnings amount is carried forward. They
+        used to be padded with $0, which quietly broke every downstream
+        "what if you keep working until age N?" comparison — zeroing a year that
+        is already $0 changes nothing, so every work-stop age produced an
+        identical PIA. Historical gaps inside the record stay $0, because those
+        are genuine zero-earnings years.
         """
         if not self.earnings_history:
             raise ValueError("No earnings history to create spreadsheet")
 
         spreadsheet_data = []
 
+        current_year = datetime.now().year
+
         # Fill in all years from first earnings year to current
-        if self.earnings_history:
-            start_year = min(record.year for record in self.earnings_history)
-            end_year = max(max(record.year for record in self.earnings_history), datetime.now().year)
+        start_year = min(record.year for record in self.earnings_history)
+        end_year = max(max(record.year for record in self.earnings_history), current_year)
 
-            # Create lookup for existing earnings
-            earnings_lookup = {record.year: record.earnings for record in self.earnings_history}
+        # Create lookup for existing earnings
+        earnings_lookup = {record.year: record.earnings for record in self.earnings_history}
 
-            for year in range(start_year, end_year + 5):  # Add 5 future years for planning
-                earnings = earnings_lookup.get(year, 0)
-                is_future = year > datetime.now().year
+        # The amount carried forward: the most recent year that actually has
+        # earnings. Zero if the record has no earnings at all.
+        years_with_earnings = [year for year, amount in earnings_lookup.items() if amount > 0]
+        last_known_earnings = earnings_lookup[max(years_with_earnings)] if years_with_earnings else 0
 
-                spreadsheet_data.append({
-                    'year': year,
-                    'earnings': earnings,
-                    'is_zero': earnings == 0,
-                    'is_future_projection': is_future,
-                    'is_editable': True,
-                    'notes': 'Future projection' if is_future else ('Zero earnings year' if earnings == 0 else ''),
-                    'max_taxable': self.TAXABLE_MAXIMUM.get(year, 200000),  # Use reasonable default for future years
-                    'source': 'ssa_xml' if not is_future else 'projected'
-                })
+        for year in range(start_year, end_year + 5):  # Add 5 future years for planning
+            recorded = earnings_lookup.get(year, 0)
+            is_future = year > current_year
+            is_carried_forward = is_future and recorded == 0 and last_known_earnings > 0
+            earnings = last_known_earnings if is_carried_forward else recorded
+
+            if is_carried_forward:
+                notes = 'Projected — your most recent earnings carried forward'
+            elif is_future:
+                notes = 'Future projection'
+            elif earnings == 0:
+                notes = 'Zero earnings year'
+            else:
+                notes = ''
+
+            spreadsheet_data.append({
+                'year': year,
+                'earnings': earnings,
+                'is_zero': earnings == 0,
+                'is_future_projection': is_future,
+                'is_projected': is_future,
+                'is_editable': True,
+                'notes': notes,
+                'max_taxable': self.TAXABLE_MAXIMUM.get(year, 200000),  # Use reasonable default for future years
+                'source': 'ssa_xml' if not is_future else 'projected'
+            })
 
         return spreadsheet_data
 
