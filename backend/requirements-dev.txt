@@ -1,0 +1,8 @@
+# Development / test-only dependencies.
+# Deliberately NOT in requirements.txt: the production image installs only
+# requirements.txt (see Dockerfile), so test tooling never ships to production.
+# Install locally with:  pip install -r requirements.txt -r requirements-dev.txt
+-r requirements.txt
+
+pytest>=8.0
+httpx>=0.28
