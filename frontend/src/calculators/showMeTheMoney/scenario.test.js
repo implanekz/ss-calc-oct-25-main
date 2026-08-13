@@ -7,6 +7,7 @@ import {
   serializeScenario,
   deserializeScenario,
   areScenariosComparable,
+  hasThirtyFiveNonZeroYears,
   planLabel
 } from './scenario';
 
@@ -105,12 +106,63 @@ describe('scenarioReducer', () => {
     const loaded = createScenario({ spouse1Pia: 4000, isMarried: true });
     expect(scenarioReducer(s, { type: 'LOAD', scenario: loaded }).spouse1Pia).toBe(4000);
   });
+
+  it('restores a saved plan\'s frozen assumptions on RESTORE_META', () => {
+    const s = createScenario({}, { bendPointsYear: 2030, colaRate: 0.05 });
+    const next = scenarioReducer(s, {
+      type: 'RESTORE_META',
+      assumptions: { bendPointsYear: 2026, colaRate: 0.02 },
+      schemaVersion: 1
+    });
+    expect(next.assumptions).toEqual({ bendPointsYear: 2026, colaRate: 0.02 });
+    expect(next.schemaVersion).toBe(1);
+  });
+
+  it('leaves profile-owned fields untouched on RESTORE_META', () => {
+    const s = createScenario({ spouse1Pia: 3200, spouse1Dob: '1962-01-01', isMarried: true });
+    const next = scenarioReducer(s, {
+      type: 'RESTORE_META',
+      assumptions: { bendPointsYear: 2026, colaRate: 0.02 }
+    });
+    expect(next.spouse1Pia).toBe(3200);
+    expect(next.spouse1Dob).toBe('1962-01-01');
+    expect(next.isMarried).toBe(true);
+    expect(next.spouse1PreferredYear).toBe(s.spouse1PreferredYear);
+  });
 });
 
 describe('serialization', () => {
-  it('round-trips without loss', () => {
+  it('round-trips the fields it persists without loss', () => {
     const s = createScenario({ spouse1Pia: 3000, isMarried: true, deathAge: 82 });
     expect(deserializeScenario(serializeScenario(s))).toEqual(s);
+  });
+
+  it('never writes the earnings history into the persisted payload', () => {
+    const s = scenarioReducer(createScenario(), {
+      type: 'SET_EARNINGS',
+      person: 'spouse1',
+      record: { birthYear: 1965, rows: [{ year: 2020, earnings: 100000 }] }
+    });
+    const payload = serializeScenario(s);
+    expect(payload.earnings).toBeUndefined();
+    expect(payload.provenance).toBeUndefined();
+    expect(JSON.stringify(payload)).not.toContain('100000');
+  });
+
+  it('deserializes to an empty earnings shape that is safe to read', () => {
+    const restored = deserializeScenario({ schemaVersion: 1 });
+    expect(restored.earnings).toEqual({ spouse1: null, spouse2: null });
+    expect(restored.provenance).toBe(PROVENANCE.ESTIMATED);
+  });
+
+  it('will not claim verified from a legacy payload with no record behind it', () => {
+    const restored = deserializeScenario({
+      schemaVersion: 1,
+      provenance: PROVENANCE.VERIFIED,
+      earnings: { spouse1: { birthYear: 1965, rows: [] }, spouse2: null }
+    });
+    expect(restored.provenance).toBe(PROVENANCE.ESTIMATED);
+    expect(restored.earnings.spouse1).toBeNull();
   });
 
   it('fills missing fields from defaults when reading an older payload', () => {
@@ -125,6 +177,39 @@ describe('serialization', () => {
       assumptions: { bendPointsYear: 2025, colaRate: 0.02 }
     });
     expect(restored.assumptions.bendPointsYear).toBe(2025);
+  });
+});
+
+describe('hasThirtyFiveNonZeroYears', () => {
+  const rows = (count, opts = {}) =>
+    Array.from({ length: count }, (_, i) => ({
+      year: 1990 + i,
+      earnings: 50000,
+      isProjected: false,
+      ...opts
+    }));
+
+  it('is false with no record at all, so the reassurance cannot show', () => {
+    expect(hasThirtyFiveNonZeroYears(null)).toBe(false);
+    expect(hasThirtyFiveNonZeroYears({})).toBe(false);
+  });
+
+  it('is false when fewer than 35 years are banked', () => {
+    expect(hasThirtyFiveNonZeroYears({ rows: rows(34) })).toBe(false);
+  });
+
+  it('is true at 35 banked non-zero years', () => {
+    expect(hasThirtyFiveNonZeroYears({ rows: rows(35) })).toBe(true);
+  });
+
+  it('does not count zero-earnings years', () => {
+    const record = { rows: [...rows(30), ...rows(10).map((r) => ({ ...r, earnings: 0 }))] };
+    expect(hasThirtyFiveNonZeroYears(record)).toBe(false);
+  });
+
+  it('does not count projected years, which are assumptions rather than banked', () => {
+    const record = { rows: [...rows(30), ...rows(10).map((r) => ({ ...r, isProjected: true }))] };
+    expect(hasThirtyFiveNonZeroYears(record)).toBe(false);
   });
 });
 

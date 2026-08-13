@@ -84,6 +84,16 @@ export const scenarioReducer = (state, action) => {
       const earnings = { ...state.earnings, [action.person]: action.record ?? null };
       return { ...state, earnings, provenance: deriveProvenance(earnings) };
     }
+    case 'RESTORE_META': {
+      // Restores only the recorded metadata of a saved plan: the frozen
+      // assumption set and the schema it was written under. Deliberately
+      // narrower than LOAD, which would also overwrite PIA/DOB/married/
+      // preferred ages -- those are owned by the profile sync, not by storage.
+      const next = { ...state };
+      if (action.assumptions) next.assumptions = { ...action.assumptions };
+      if (action.schemaVersion !== undefined) next.schemaVersion = action.schemaVersion;
+      return next;
+    }
     case 'LOAD':
       return action.scenario;
     case 'RESET':
@@ -93,11 +103,15 @@ export const scenarioReducer = (state, action) => {
   }
 };
 
+// `earnings` is deliberately NOT serialized. The records live in the
+// `earnings_records` table and are re-fetched on mount; writing them here
+// duplicated every user's year-by-year financial history into
+// calculator_preferences on each autosave, with no reader. `provenance` is
+// derived from `earnings`, so persisting it would let a payload claim VERIFIED
+// with no record behind it.
 export const serializeScenario = (scenario) => ({
   ...pickKnownFields(scenario),
   schemaVersion: scenario.schemaVersion,
-  provenance: scenario.provenance,
-  earnings: scenario.earnings,
   assumptions: scenario.assumptions
 });
 
@@ -106,11 +120,26 @@ export const deserializeScenario = (raw = {}) => {
   return {
     ...base,
     schemaVersion: raw.schemaVersion ?? SCENARIO_SCHEMA_VERSION,
-    provenance: raw.provenance ?? base.provenance,
-    earnings: raw.earnings ?? base.earnings,
+    // Earnings, and the provenance derived from them, always start empty: they
+    // are authoritative only from earnings_records. A legacy payload that still
+    // carries either is ignored rather than trusted.
+    earnings: { spouse1: null, spouse2: null },
+    provenance: PROVENANCE.ESTIMATED,
     // Recorded assumptions win over freshly-derived ones.
     assumptions: raw.assumptions ?? base.assumptions
   };
+};
+
+// True only when the record itself proves the person already has 35 non-zero
+// earnings years -- i.e. zero years in the top 35 is zero, so working longer
+// really cannot add a year to the top 35. Only actual (non-projected) years
+// count; a projection is an assumption, not a year they have banked.
+export const hasThirtyFiveNonZeroYears = (record) => {
+  if (!record || !Array.isArray(record.rows)) return false;
+  const banked = record.rows.filter(
+    (row) => !row.isProjected && Number(row.earnings) > 0
+  );
+  return banked.length >= 35;
 };
 
 // UNRESOLVED — settle this before wiring the scenario-comparison chart.
