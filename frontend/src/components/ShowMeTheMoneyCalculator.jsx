@@ -1720,8 +1720,21 @@ const ShowMeTheMoneyCalculator = () => {
         monthlyNeeds, flowAge, bubbleAge
     } = scenario;
 
-    const setScenarioField = (field) => (value) =>
-        dispatch({ type: 'SET_FIELD', field, value });
+    // Memoized so each setter keeps a stable identity across renders, matching the
+    // useState setters these replaced. This matters: several are passed as props
+    // into child dependency arrays (RetirementStagesSlider's mousemove/mouseup
+    // listener effect), where a fresh identity each render would tear down and
+    // re-add the document listeners on every parent re-render. `dispatch` is
+    // referentially stable, so the cache is safe to build once.
+    const setScenarioField = useMemo(() => {
+        const cache = {};
+        return (field) => {
+            if (!cache[field]) {
+                cache[field] = (value) => dispatch({ type: 'SET_FIELD', field, value });
+            }
+            return cache[field];
+        };
+    }, []);
 
     const setIsMarried = setScenarioField('isMarried');
     const setSpouse1Dob = setScenarioField('spouse1Dob');
