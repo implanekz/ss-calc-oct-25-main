@@ -30,6 +30,9 @@ from api.calculation_models import (
     WhatIfComparisonResult,
     WidowCalculationRequest,
     WidowCalculationResponse,
+    WorkStopLadderRequest,
+    WorkStopLadderResult,
+    WorkStopRung,
     XMLAnalysisRequest,
     XMLAnalysisResponse,
 )
@@ -698,3 +701,39 @@ async def compare_earnings_scenarios(request: WhatIfComparisonRequest):
     except Exception as e:
         logger.error(f"Earnings comparison error: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Earnings comparison failed: {str(e)}")
+
+@router.post("/api/work-stop-ladder", response_model=WorkStopLadderResult)
+async def work_stop_ladder(request: WorkStopLadderRequest):
+    """
+    Recompute PIA for each candidate work-stop age.
+
+    Answers "what happens if you stop working at 62 vs 65 vs 67?" by zeroing
+    every earnings year at or after the stop year and recomputing AIME/PIA.
+    """
+    try:
+        rungs = []
+        for stop_age in sorted(request.stop_ages):
+            stop_year = request.birth_year + stop_age
+            processor = SSAXMLProcessor(birth_year=request.birth_year)
+            processor.earnings_history = [
+                EarningsRecord(
+                    year=entry.year,
+                    earnings=0 if entry.year >= stop_year else entry.earnings,
+                    is_zero=(entry.year >= stop_year or entry.earnings == 0),
+                    is_projected=entry.is_projected,
+                )
+                for entry in request.earnings_history
+            ]
+            calculation = processor.calculate_aime_and_pia()
+            rungs.append(
+                WorkStopRung(
+                    stop_age=stop_age,
+                    stop_year=stop_year,
+                    aime=calculation["aime"],
+                    pia=calculation["pia"],
+                )
+            )
+        return WorkStopLadderResult(rungs=rungs)
+    except Exception as e:
+        logger.error(f"Work-stop ladder error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Work-stop ladder failed: {str(e)}")

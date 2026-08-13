@@ -1,5 +1,5 @@
 from datetime import date
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, field_validator
 from typing import Optional, List, Dict, Any
 
 
@@ -194,3 +194,29 @@ class SSDICalculationResponse(BaseModel):
     early_retirement: Dict[str, Any] # eligible, amount, reduction_percent
     strategies: Dict[str, Any] # standard vs suspension
     timeline: List[Dict[str, Any]] # Year by year data for charts
+
+class WorkStopLadderRequest(BaseModel):
+    """Request for PIA across a range of work-stop ages"""
+    birth_year: int = Field(..., ge=1937, le=2010)
+    earnings_history: List[EarningsYearInput]
+    stop_ages: List[int] = Field(..., min_length=1)
+
+    @field_validator("stop_ages")
+    @classmethod
+    def validate_stop_ages(cls, value: List[int]) -> List[int]:
+        for age in value:
+            if age < 62 or age > 70:
+                raise ValueError("stop_ages must be between 62 and 70")
+        return value
+
+
+class WorkStopRung(BaseModel):
+    """PIA outcome for a single work-stop age"""
+    stop_age: int
+    stop_year: int
+    aime: float
+    pia: float
+
+
+class WorkStopLadderResult(BaseModel):
+    rungs: List[WorkStopRung]
