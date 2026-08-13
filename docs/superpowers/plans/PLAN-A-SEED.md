@@ -66,3 +66,7 @@ Plan A must add the column, thread it through the API and the frontend service, 
 Staleness always biases **understated**, for two independent reasons: missing recent earnings years (each can displace a zero or low year in the top 35) and missing COLAs since the statement year. This is a **third** cause of "our number differs from their statement," alongside the assumption difference and engine defects — the three must never be conflated in code or in copy.
 
 Related: the indexing year is `birth_year + 60`, but AWI for year N is not published until autumn of N+1, so anyone turning 60 this year or later silently falls back to `max(AVERAGE_WAGE_INDEX.values())`. That hits the youngest slice of the 58+ audience (born 1966 indexes to 2026, unavailable until late 2027). Surface it rather than hide it.
+
+**The XML is self-dating; the PIA cannot be.** That is a second, independent reason the earnings record outranks the entered PIA: it is the only input whose vintage is knowable. The remedy for staleness is cheap — send the user back for a fresh download, from the same SSA page they already used.
+
+But separate two signals: **file vintage** (`today − statement_date`) and **data gap** (`(current year − 1) − last earnings year`). SSA's posting lags, so a file generated today can still be missing last year. Old file + gap → prompt for re-download. Fresh file + gap → SSA has not posted yet; explain the lag rather than sending them on a wasted trip.

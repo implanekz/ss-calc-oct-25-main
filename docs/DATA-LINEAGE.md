@@ -89,6 +89,30 @@ A user may be reading a statement from last month or from 2019. Nothing in the a
 
 **Plan A must add `statement_date` to `earnings_records` and thread it through the API.** Without it we cannot tell a user their record is stale, and cannot reason about what is missing from it.
 
+### The XML is self-dating — which is a second reason it outranks the PIA
+
+The XML carries the date SSA generated it. A hand-typed PIA carries nothing and never can. So the earnings record is authoritative not only because everything derives from it (§2), but because **it is the only input whose vintage we can actually know.**
+
+The remedy for a stale record is cheap: send the user back to download a fresh one. They already know where it is — it sits directly beneath the statement link on the same SSA page.
+
+### But file vintage and data completeness are two different signals
+
+Do not collapse them. They have different remedies, and confusing them sends users on pointless errands:
+
+| Signal | Computed from | Meaning |
+|---|---|---|
+| **File vintage** | `today − statement_date` | how old the download is |
+| **Data gap** | `(current year − 1) − last earnings year` | how many recent years are missing |
+
+SSA's earnings posting lags — employers file W-2s in January and posting takes months — so **a file generated today can legitimately still be missing last year's earnings.**
+
+- Old file **and** a gap → re-downloading will help. Prompt for it.
+- Fresh file **and** a gap → SSA has not posted yet. Re-downloading will not help. Explain the lag instead.
+
+Telling someone their record is stale when SSA simply has not posted their most recent year sends them on a wasted trip and erodes trust in every other number we show.
+
+Note: `backend/sample_ssa_statement.xml` (generated 2024-10-01, earnings through 2024) and `sample_ssdi_earnings.xml` (generated 2025-01-15, earnings through 2024) are synthetic and model this lag unrealistically. `backend/test_profile_pia2250_5zeros.xml` (generated 2026-08-01, earnings through 2025) is realistic. Do not calibrate staleness logic against the first two.
+
 ### Staleness always biases the same direction: understated
 
 Both stale inputs understate, for two independent reasons:
