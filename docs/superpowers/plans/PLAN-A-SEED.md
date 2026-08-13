@@ -56,3 +56,13 @@ Also in that file: a **duplicate `calculate_aime_and_pia`** — the first defini
 - Migration 005 (`earnings_records`) is applied and verified in the live database: 8 columns, 4 policies, 1 trigger, RLS enabled.
 - The SSA XML carries only name, SSN, birth date, statement date, one `EstimatedPIA`, and year/earnings pairs. Nothing else.
 - **Do not build a PDF statement parser.** The PDF has SSA's own 62/FRA/70 estimates, survivor estimates, the family maximum, a disability estimate, credits/insured status, and taxes paid — but parsing it is brittle and storing it would put SSN-bearing identity documents in the database. The current design deliberately keeps SSN and name out of storage (`earnings_records` holds neither). Instead capture 2-3 numbers as optional typed cross-checks ("what does your statement say at FRA?"), which validates the PIA engine against SSA's own arithmetic and yields a real test set for the family-maximum work.
+
+## Added 2026-08-13 — statement vintage
+
+`earnings_records` has **no `statement_date` column**, and `EarningsRecordOut` does not carry one. `ssa_xml_processor.py:109-120` parses `<StatementDate>` (fallbacks `<AsOfDate>`, `<DateGenerated>`) and comments that it is critical for AWI accuracy — then it is discarded. `created_at` records when the user *uploaded*, which can be years after SSA *generated* the statement.
+
+Plan A must add the column, thread it through the API and the frontend service, and use it. A hand-typed PIA has no date at all, so its vintage is simply unknowable — treat it accordingly.
+
+Staleness always biases **understated**, for two independent reasons: missing recent earnings years (each can displace a zero or low year in the top 35) and missing COLAs since the statement year. This is a **third** cause of "our number differs from their statement," alongside the assumption difference and engine defects — the three must never be conflated in code or in copy.
+
+Related: the indexing year is `birth_year + 60`, but AWI for year N is not published until autumn of N+1, so anyone turning 60 this year or later silently falls back to `max(AVERAGE_WAGE_INDEX.values())`. That hits the youngest slice of the 58+ audience (born 1966 indexes to 2026, unavailable until late 2027). Surface it rather than hide it.

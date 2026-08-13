@@ -73,7 +73,40 @@ Use it as a **validation oracle, not a data source**: capture 2-3 typed numbers 
 
 ---
 
-## 3. Birth year — four sources, silently racing
+## 3. Vintage — every input has an age, and we currently track none of it
+
+A user may be reading a statement from last month or from 2019. Nothing in the app knows the difference.
+
+| Input | Has a date? | Do we keep it? |
+|---|---|---|
+| Hand-typed PIA | **no date at all** | n/a — we cannot know its vintage |
+| XML earnings record | yes — `<StatementDate>` (fallbacks `<AsOfDate>`, `<DateGenerated>`) | **no — extracted, then discarded** |
+| `earnings_records.created_at` | yes | when they *uploaded*, not when SSA *generated* |
+
+### 🔴 Defect — statement date is parsed and thrown away
+
+`ssa_xml_processor.py:109-120` extracts the statement date and comments that it is "critical for AWI accuracy." Migration 005 has no column for it and `EarningsRecordOut` does not carry it. `created_at` is not a substitute — someone can upload a three-year-old statement today.
+
+**Plan A must add `statement_date` to `earnings_records` and thread it through the API.** Without it we cannot tell a user their record is stale, and cannot reason about what is missing from it.
+
+### Staleness always biases the same direction: understated
+
+Both stale inputs understate, for two independent reasons:
+
+1. **Missing recent earnings years.** Each absent year is a year that could displace a zero or a low year in the top 35. On `test_profile_pia2250_5zeros.xml` this is severe — that profile has 5 zeros in the top 35, so every missing recent year at ~$53k is a directly foregone replacement. A 2023-vintage statement would omit three such years.
+2. **Missing COLAs.** SSA states estimates in the dollars of the statement year. A figure copied from a 2023 statement has not been adjusted for the COLAs since.
+
+So when our number comes out *higher* than what the user typed, a stale statement is a leading explanation — and a benign one. This is a third cause of A ≠ C, alongside the assumption difference and engine defects in §2, and it must not be conflated with either.
+
+### Our own reference data is stale too, on the young end of the audience
+
+The indexing year is `birth_year + 60`. AWI for year *N* is not published until autumn of *N+1*, so anyone turning 60 this year or later has no AWI for their indexing year. `calculate_indexed_earnings()` falls back to `max(AVERAGE_WAGE_INDEX.values())` — a reasonable approximation, but silent.
+
+This lands on the youngest slice of the 58+ audience: someone born 1966 indexes to 2026, which will not exist until late 2027. Their PIA is approximate and they are not told. Worth surfacing rather than hiding.
+
+---
+
+## 4. Birth year — four sources, silently racing
 
 | Source | Where |
 |---|---|
@@ -88,7 +121,7 @@ Use it as a **validation oracle, not a data source**: capture 2-3 typed numbers 
 
 ---
 
-## 4. Derived counts — duplicated logic
+## 5. Derived counts — duplicated logic
 
 "Zero years in top 35" is computed two different ways:
 - `PIACalculator.jsx` table: algebraically, `35 − nonZeroYears`
@@ -100,7 +133,7 @@ Note `hasThirtyFiveNonZeroYears()` (`scenario.js:137`) counts non-projected rows
 
 ---
 
-## 5. SSA constants — one duplication remains
+## 6. SSA constants — one duplication remains
 
 | Table | Location | Duplicated? |
 |---|---|---|
@@ -116,7 +149,7 @@ Both lookups **silently fall back to the most recent year** on a miss, which is 
 
 ---
 
-## 6. Benefit — the chain after PIA
+## 7. Benefit — the chain after PIA
 
 ```
 PIA (§2)
@@ -132,7 +165,7 @@ Each step is applied **exactly once**. The work-stop ladder deliberately returns
 
 ---
 
-## 7. Scenario assumptions
+## 8. Scenario assumptions
 
 `scenario.assumptions` freezes `bendPointsYear` and `colaRate` at creation so a saved plan keeps reporting the tables it was computed under.
 
