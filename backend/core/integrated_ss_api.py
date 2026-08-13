@@ -23,6 +23,7 @@ from api.partners import router as partners_router
 from api.children import router as children_router
 from api.preferences import router as preferences_router
 from api.calculation_routes import router as calculation_router
+from api.earnings import router as earnings_router
 
 # Load environment variables early
 load_dotenv()
@@ -59,6 +60,7 @@ app.include_router(partners_router)
 app.include_router(children_router)
 app.include_router(preferences_router)
 app.include_router(calculation_router)
+app.include_router(earnings_router)
 
 # Logging setup
 logging.basicConfig(level=logging.INFO)
