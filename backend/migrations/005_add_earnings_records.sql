@@ -27,3 +27,6 @@ CREATE POLICY "Users can delete own earnings" ON earnings_records
   FOR DELETE USING (auth.uid() = user_id);
 
 CREATE INDEX IF NOT EXISTS idx_earnings_records_user ON earnings_records (user_id);
+
+CREATE TRIGGER update_earnings_records_updated_at BEFORE UPDATE ON earnings_records
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

@@ -6,11 +6,13 @@ from typing import List, Literal
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
+from supabase import Client
 
 from api.children import get_user_id_from_token_sync
-from config.supabase import supabase
+from config.supabase import get_supabase_client
 
 router = APIRouter(prefix="/api/earnings", tags=["earnings"])
+supabase: Client = get_supabase_client()
 
 
 class EarningsRow(BaseModel):
@@ -54,7 +56,16 @@ async def get_earnings(request: Request):
         .eq("user_id", user_id)
         .execute()
     )
-    return {"earnings": response.data or []}
+    earnings = [
+        EarningsRecordOut(
+            person=row["person"],
+            birth_year=row["birth_year"],
+            rows=row["rows"],
+            updated_at=str(row.get("updated_at") or ""),
+        )
+        for row in (response.data or [])
+    ]
+    return {"earnings": earnings}
 
 
 @router.put("/{person}", response_model=EarningsRecordOut)
@@ -79,7 +90,7 @@ async def upsert_earnings(person: Person, payload: EarningsRecordIn, request: Re
         person=saved["person"],
         birth_year=saved["birth_year"],
         rows=saved["rows"],
-        updated_at=str(saved.get("updated_at", "")),
+        updated_at=str(saved.get("updated_at") or ""),
     )
 
 
