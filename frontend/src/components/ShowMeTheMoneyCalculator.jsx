@@ -17,8 +17,12 @@ import {
     createScenario,
     scenarioReducer,
     serializeScenario,
-    deserializeScenario
+    deserializeScenario,
+    PROVENANCE,
+    planLabel
 } from '../calculators/showMeTheMoney/scenario';
+import { fetchEarnings, fetchWorkStopLadder } from '../services/earningsService';
+import { getAuthToken } from '../config/supabase';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, annotationPlugin, SankeyController, Flow, BubbleController);
 
@@ -1649,7 +1653,7 @@ const ShowMeTheMoneyCalculator = () => {
     const navigate = useNavigate();
 
     // Get user context data
-    const { profile: realProfile, partners: realPartners, preferences: realPreferences, updateProfile, updatePartner, updatePreferences } = useUser();
+    const { user, profile: realProfile, partners: realPartners, preferences: realPreferences, updateProfile, updatePartner, updatePreferences } = useUser();
     const { isDevMode, devProfile, devPartners, updateDevProfile, updateDevPartner } = useDevMode();
 
     // Use dev or real data based on mode
@@ -1764,6 +1768,49 @@ const ShowMeTheMoneyCalculator = () => {
     const setBubbleAge = setScenarioField('bubbleAge');
 
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+    // Load any stored earnings record(s) on mount / sign-in. Dev Mode has no
+    // Supabase session, so getAuthToken() resolves null and this quietly no-ops
+    // — the banner below simply stays in its default ESTIMATED state.
+    useEffect(() => {
+        let cancelled = false;
+
+        (async () => {
+            const token = await getAuthToken();
+            if (!token || cancelled) return;
+            try {
+                const records = await fetchEarnings(token);
+                if (cancelled) return;
+                if (records.spouse1) dispatch({ type: 'SET_EARNINGS', person: 'spouse1', record: records.spouse1 });
+                if (records.spouse2) dispatch({ type: 'SET_EARNINGS', person: 'spouse2', record: records.spouse2 });
+            } catch (error) {
+                console.error('Could not load earnings records:', error);
+            }
+        })();
+
+        return () => { cancelled = true; };
+    }, [user]);
+
+    // Work-stop ladder is derived display data computed from the verified
+    // earnings record — it is not a scenario input, so it stays in useState
+    // rather than the scenario reducer.
+    const [workStopLadder, setWorkStopLadder] = useState(null);
+
+    useEffect(() => {
+        const record = scenario.earnings.spouse1;
+        if (!record) { setWorkStopLadder(null); return; }
+
+        let cancelled = false;
+        fetchWorkStopLadder({
+            birthYear: record.birthYear,
+            rows: record.rows,
+            stopAges: [62, 65, 67, 70]
+        })
+            .then((rungs) => { if (!cancelled) setWorkStopLadder(rungs); })
+            .catch((error) => console.error('Could not compute work-stop ladder:', error));
+
+        return () => { cancelled = true; };
+    }, [scenario.earnings.spouse1]);
 
     // Track if we've loaded initial persisted state to prevent infinite loop
     const hasLoadedPersistedState = useRef(false);
@@ -3686,6 +3733,49 @@ const ShowMeTheMoneyCalculator = () => {
                             >
                                 <span className="text-sm font-bold">i</span>
                             </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Earnings Provenance Banner */}
+                <div className="px-4 pt-4">
+                    {scenario.provenance === PROVENANCE.ESTIMATED ? (
+                        <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 mb-4">
+                            <div className="font-semibold text-amber-900">Preliminary Lifelong Estimate</div>
+                            <p className="text-sm text-amber-800 mt-1">
+                                These numbers assume your future earnings continue at their current level.
+                                Add your Social Security earnings record to replace that assumption with your own history.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 mb-4">
+                            <div className="font-semibold text-emerald-900">Earnings Record Verified</div>
+                            <p className="text-sm text-emerald-800 mt-1">
+                                {planLabel(scenario)} is now based on your actual Social Security earnings history.
+                            </p>
+                        </div>
+                    )}
+
+                    {workStopLadder && (
+                        <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 mb-4">
+                            <div className="font-semibold text-slate-900 mb-2">What if you stop working at…</div>
+                            <div className="grid grid-cols-4 gap-3">
+                                {workStopLadder.map((rung) => (
+                                    <div key={rung.stopAge} className="text-center">
+                                        <div className="text-xs uppercase tracking-wide text-slate-500">Age {rung.stopAge}</div>
+                                        <div className="text-lg font-semibold text-slate-900">
+                                            ${Math.round(rung.pia).toLocaleString()}
+                                        </div>
+                                        <div className="text-xs text-slate-500">PIA at FRA</div>
+                                    </div>
+                                ))}
+                            </div>
+                            {workStopLadder[0].pia === workStopLadder[workStopLadder.length - 1].pia && (
+                                <p className="text-sm text-emerald-700 mt-3">
+                                    Good news — you already have 35 strong earnings years. Working longer has
+                                    very little effect on your Social Security calculation.
+                                </p>
+                            )}
                         </div>
                     )}
                 </div>
