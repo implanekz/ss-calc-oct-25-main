@@ -19,6 +19,7 @@ import {
     serializeScenario,
     deserializeScenario,
     PROVENANCE,
+    hasThirtyFiveNonZeroYears,
     planLabel
 } from '../calculators/showMeTheMoney/scenario';
 import { fetchEarnings, fetchWorkStopLadder } from '../services/earningsService';
@@ -1846,6 +1847,16 @@ const ShowMeTheMoneyCalculator = () => {
                     dispatch({ type: 'SET_FIELD', field, value: restored[field] });
                 }
             });
+            // The saved plan's frozen assumptions must survive the reload too,
+            // otherwise bendPointsYear re-stamps from the wall clock on every
+            // mount and a plan saved in December reports January's tables.
+            // RESTORE_META rather than LOAD: LOAD would also overwrite the
+            // profile-owned fields listed above.
+            dispatch({
+                type: 'RESTORE_META',
+                assumptions: restored.assumptions,
+                schemaVersion: restored.schemaVersion
+            });
         }
     }, [isLoaded, persistedState]);
 
@@ -1945,6 +1956,17 @@ const ShowMeTheMoneyCalculator = () => {
 
     const primaryFirstName = profile?.first_name?.trim() || profile?.firstName?.trim() || 'Bob';
     const spouseFirstName = partners?.[0]?.first_name?.trim() || partners?.[0]?.firstName?.trim() || 'Spouse';
+
+    // Whose earnings record we actually hold. The banner names the person
+    // rather than implying the household is covered: a partner-only upload
+    // must not read as verification of the primary's numbers.
+    const hasSpouse1Earnings = Boolean(scenario.earnings.spouse1);
+    const hasSpouse2Earnings = Boolean(scenario.earnings.spouse2);
+    const earningsRecordPhrase = hasSpouse1Earnings && hasSpouse2Earnings
+        ? `your and ${spouseFirstName}'s Social Security earnings records`
+        : hasSpouse1Earnings
+            ? 'your Social Security earnings record'
+            : `${spouseFirstName}'s Social Security earnings record`;
 
     const [chartView, setChartView] = useState('monthly'); // monthly, cumulative, combined, earlyLate, post70, sscuts
     const [chartData, setChartData] = useState({ labels: [], datasets: [] });
@@ -3744,14 +3766,26 @@ const ShowMeTheMoneyCalculator = () => {
                             <div className="font-semibold text-amber-900">Preliminary Lifelong Estimate</div>
                             <p className="text-sm text-amber-800 mt-1">
                                 These numbers assume your future earnings continue at their current level.
-                                Add your Social Security earnings record to replace that assumption with your own history.
+                                Add your Social Security earnings record to see what stopping work at
+                                different ages would do to your benefit.
                             </p>
                         </div>
                     ) : (
                         <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 mb-4">
-                            <div className="font-semibold text-emerald-900">Earnings Record Verified</div>
+                            {/* Claims only what is true today: the record is on file and
+                                drives the work-stop comparison. It does NOT yet feed the
+                                PIA behind the chart -- those figures still come from the
+                                entered PIA -- so the old "your plan is now based on your
+                                actual earnings history" copy was false. */}
+                            <div className="font-semibold text-emerald-900">Earnings Record On File</div>
                             <p className="text-sm text-emerald-800 mt-1">
-                                {planLabel(scenario)} is now based on your actual Social Security earnings history.
+                                We have {earningsRecordPhrase} saved
+                                {workStopLadder && workStopLadder.length > 0
+                                    ? ', and the work-stop comparison below is calculated from it'
+                                    : ''}.
+                                The benefit amounts in {planLabel(scenario)} still come from the PIA
+                                entered in your profile — we have not recalculated them from the
+                                earnings record yet.
                             </p>
                         </div>
                     )}
@@ -3770,7 +3804,14 @@ const ShowMeTheMoneyCalculator = () => {
                                     </div>
                                 ))}
                             </div>
-                            {workStopLadder[0].pia === workStopLadder[workStopLadder.length - 1].pia && (
+                            {/* Only claim "35 strong years" when the record proves it.
+                                Equal PIAs alone do not: someone with 15 zero years in
+                                their top 35 can produce a flat ladder, and telling them
+                                working longer barely matters is the opposite of the truth.
+                                If the record cannot settle it, say nothing. */}
+                            {workStopLadder.length > 1 &&
+                                workStopLadder[0].pia === workStopLadder[workStopLadder.length - 1].pia &&
+                                hasThirtyFiveNonZeroYears(scenario.earnings.spouse1) && (
                                 <p className="text-sm text-emerald-700 mt-3">
                                     Good news — you already have 35 strong earnings years. Working longer has
                                     very little effect on your Social Security calculation.
