@@ -1,10 +1,18 @@
 import { fetchEarnings, saveEarnings, fetchWorkStopLadder } from './earningsService';
+import { ApiError } from './apiClient';
 
 beforeEach(() => { global.fetch = jest.fn(); });
 afterEach(() => { jest.resetAllMocks(); });
 
 const jsonResponse = (body) => Promise.resolve({
   ok: true,
+  headers: { get: () => 'application/json' },
+  json: () => Promise.resolve(body)
+});
+
+const errorResponse = (status, body) => Promise.resolve({
+  ok: false,
+  status,
   headers: { get: () => 'application/json' },
   json: () => Promise.resolve(body)
 });
@@ -27,6 +35,24 @@ describe('fetchEarnings', () => {
   it('returns nulls when the user has no records', async () => {
     global.fetch.mockReturnValue(jsonResponse({ earnings: [] }));
     expect(await fetchEarnings('tok')).toEqual({ spouse1: null, spouse2: null });
+  });
+
+  it('defaults to empty results when the response omits earnings entirely', async () => {
+    global.fetch.mockReturnValue(jsonResponse({}));
+    expect(await fetchEarnings('tok')).toEqual({ spouse1: null, spouse2: null });
+  });
+
+  it('sends the bearer token in the Authorization header', async () => {
+    global.fetch.mockReturnValue(jsonResponse({ earnings: [] }));
+    await fetchEarnings('tok');
+    const [, options] = global.fetch.mock.calls[0];
+    expect(options.headers.Authorization).toBe('Bearer tok');
+  });
+
+  it('rejects with an ApiError carrying the response status on non-OK responses', async () => {
+    global.fetch.mockReturnValue(errorResponse(401, { detail: 'Unauthorized' }));
+    await expect(fetchEarnings('tok')).rejects.toThrow(ApiError);
+    await expect(fetchEarnings('tok')).rejects.toMatchObject({ status: 401 });
   });
 });
 
@@ -57,6 +83,30 @@ describe('saveEarnings', () => {
     await saveEarnings('tok', 'spouse2', { birthYear: 1968, rows: [] });
     expect(global.fetch.mock.calls[0][0]).toContain('/api/earnings/partner');
   });
+
+  it('sends the bearer token in the Authorization header', async () => {
+    global.fetch.mockReturnValue(jsonResponse({
+      person: 'self', birth_year: 1965, rows: [], updated_at: '2026-08-13'
+    }));
+    await saveEarnings('tok', 'spouse1', { birthYear: 1965, rows: [] });
+    const [, options] = global.fetch.mock.calls[0];
+    expect(options.headers.Authorization).toBe('Bearer tok');
+  });
+
+  it('defaults rows to an empty array when the record omits it', async () => {
+    global.fetch.mockReturnValue(jsonResponse({
+      person: 'self', birth_year: 1965, rows: [], updated_at: '2026-08-13'
+    }));
+    await saveEarnings('tok', 'spouse1', { birthYear: 1965 });
+    const [, options] = global.fetch.mock.calls[0];
+    expect(JSON.parse(options.body)).toEqual({ birth_year: 1965, rows: [] });
+  });
+
+  it('rejects unknown person keys without calling fetch', async () => {
+    await expect(saveEarnings('tok', 'cousin', { birthYear: 1965, rows: [] }))
+      .rejects.toThrow('Unknown person: cousin');
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
 });
 
 describe('fetchWorkStopLadder', () => {
@@ -72,5 +122,33 @@ describe('fetchWorkStopLadder', () => {
     });
 
     expect(rungs).toEqual([{ stopAge: 62, stopYear: 2027, aime: 5000, pia: 2873 }]);
+  });
+
+  it('maps every rung when multiple stop ages are supplied', async () => {
+    global.fetch.mockReturnValue(jsonResponse({
+      rungs: [
+        { stop_age: 62, stop_year: 2027, aime: 5000, pia: 2873 },
+        { stop_age: 67, stop_year: 2032, aime: 6200, pia: 3400 },
+        { stop_age: 70, stop_year: 2035, aime: 6500, pia: 4200 }
+      ]
+    }));
+
+    const rungs = await fetchWorkStopLadder({
+      birthYear: 1965,
+      rows: [{ year: 2020, earnings: 90000, isProjected: false }],
+      stopAges: [62, 67, 70]
+    });
+
+    expect(rungs).toEqual([
+      { stopAge: 62, stopYear: 2027, aime: 5000, pia: 2873 },
+      { stopAge: 67, stopYear: 2032, aime: 6200, pia: 3400 },
+      { stopAge: 70, stopYear: 2035, aime: 6500, pia: 4200 }
+    ]);
+  });
+
+  it('defaults to an empty array when the response omits rungs entirely', async () => {
+    global.fetch.mockReturnValue(jsonResponse({}));
+    const rungs = await fetchWorkStopLadder({ birthYear: 1965, rows: [], stopAges: [62] });
+    expect(rungs).toEqual([]);
   });
 });
