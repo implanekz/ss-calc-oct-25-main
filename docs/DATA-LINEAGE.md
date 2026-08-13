@@ -19,6 +19,8 @@ A single year's earnings exists in six forms. Only one is the source of truth; t
 | 5 | Projected rows | same, `is_projected: true` | nominal, assumed | forecasting only — **never a "banked" year** |
 | 6 | Indexed earnings | `calculate_indexed_earnings()` | **AWI-year dollars** | AIME input only |
 
+**#2 is the single source of truth for the entire system.** Every benefit figure the app shows — including SSA's own PIA estimate — is a derivation of it. See §2.
+
 **Rules:**
 - #2 arrives pre-capped. SSA's record reports *taxed* earnings, which never exceed that year's maximum. Re-capping real XML is redundant.
 - #5 must be excluded from any count of years worked. This has already caused one shipped bug (`PIACalculator.jsx:467`, `:554` counted projected rows as earnings years, overstating a 21-year record as 25).
@@ -32,22 +34,42 @@ Effect: systematically **understates PIA**, worst for the longest careers (large
 
 ---
 
-## 2. PIA — four competing sources, and this is the dangerous one
+## 2. PIA — never a source, always a derivation
 
-| Source | Where set | Currently drives | Trust |
+**PIA is not a source of truth. The earnings record (§1) is.** Every PIA in this system is derived from it — the only differences are *who* ran the derivation and *under what assumption about future earnings*.
+
+This matters because users do not experience it that way. A user does not invent their PIA; they copy SSA's figure off their statement. To them it reads as a fact they can rely on. It is actually a projection resting on an assumption they were never shown.
+
+| Derivation | Channel | Assumption baked in | Currently drives |
 |---|---|---|---|
-| **A. User-entered** | onboarding → `profiles.pia_at_fra` | **the chart** | user's own belief |
-| B. SSA's estimate | XML `<EstimatedPIA>` → `ssaPIA` | PIA Calculator comparison only | SSA's, under SSA's assumptions |
-| C. Our computed | `calculate_aime_and_pia()` → `calculatedResult.pia` | PIA Calculator display only | ours, from #2 above |
-| D. Statement PDF | not ingested | nothing | SSA's, best cross-check |
+| **A. SSA's, hand-copied** | user types it at onboarding → `profiles.pia_at_fra` | you keep earning at your current rate until FRA | **the chart** |
+| **B. SSA's, parsed** | XML `<EstimatedPIA>` → `ssaPIA` | identical to A — same number, different channel | PIA Calculator comparison |
+| **C. Ours** | `calculate_aime_and_pia()` → `calculatedResult.pia` | whatever the user sets in the editable spreadsheet | PIA Calculator display only |
 
-**Today: A is the source of truth for everything the user sees on the chart.** C exists but is never written back — `PIACalculator` has no `updateProfile` call, so a computed PIA stays inside that screen. The chart reads A via the profile sync at `ShowMeTheMoneyCalculator.jsx:1883`.
+A and B are **the same derivation**, not competing sources. Treat a disagreement between them as a transcription error, not a modelling question.
 
-This is why the banner says "Earnings Record On File" and explicitly states chart amounts still come from the entered PIA. **Any copy claiming the chart reflects the earnings record is false until Plan A changes this.**
+**Today the chart runs on A** (profile sync, `ShowMeTheMoneyCalculator.jsx:1883`). C exists but never leaves the PIA Calculator — there is no `updateProfile` call — which is why the banner says "Earnings Record On File" and states outright that chart amounts still come from the entered PIA. **Any copy claiming the chart reflects the earnings record is false until Plan A changes that.**
 
-**Plan A must decide explicitly:** does C replace A, or does the user adopt C into A with a visible confirmation? Given the constraint that PIA-only users stay first-class, adoption is likely right — A remains valid and complete on its own; C becomes an offered upgrade. Whichever is chosen, exactly one must be authoritative at a time, and the UI must say which.
+### The product thesis this implies
 
-Use **D as a validation oracle, not a data source** — capture 2-3 typed numbers from the statement and compare against C. Do not build a PDF parser (fragile, and it would put SSN-bearing documents in storage; `earnings_records` deliberately holds neither name nor SSN).
+What we tell the user is: *the number on your statement is an estimate resting on an assumption. Your earnings record is the underlying fact. Here is what it produces under assumptions you control.*
+
+So Plan A is not "replace their number with ours." It is "show them that their number was always a derivation, and hand them the controls."
+
+### A ≠ C is usually NOT an error — and that distinction is load-bearing
+
+When our PIA differs from the statement figure, there are two entirely different causes and they must never be conflated:
+
+- **Different assumptions → the numbers SHOULD differ.** SSA assumed continued earnings to FRA; the user told us they stop at 63. A lower number is the correct answer and is the entire value of the product.
+- **Same assumptions → they MUST match.** Any gap is a defect in our engine (see the §1 indexing-cap defect, which understates PIA and would masquerade as an assumption difference).
+
+**Therefore any validation must control for the assumption.** To check our engine against SSA, compute C *under SSA's own assumption* — earnings continuing at the current rate through FRA — and compare that to the statement figure. Comparing a stop-at-63 PIA against SSA's continue-to-FRA PIA proves nothing.
+
+This also means user-facing copy must attribute a difference to the right cause. Telling someone their benefit is lower than their statement says, without naming the assumption that caused it, is alarming and unhelpful.
+
+### The statement PDF (not ingested)
+
+Use it as a **validation oracle, not a data source**: capture 2-3 typed numbers (benefit at FRA, family maximum, disability estimate) and compare against C computed under matched assumptions. Do not build a PDF parser — brittle, and storing statements would put SSN-bearing identity documents in the database, which `earnings_records` deliberately avoids (it holds neither name nor SSN).
 
 ---
 
