@@ -113,6 +113,18 @@ export const deserializeScenario = (raw = {}) => {
   };
 };
 
+// UNRESOLVED — settle this before wiring the scenario-comparison chart.
+// This reads the LIVE `inflation` field, but each scenario also carries a FROZEN
+// `assumptions.colaRate` captured at creation. They diverge as soon as the COLA
+// slider moves after a scenario exists (observed: inflation 0.04 alongside
+// colaRate 0.025 in one persisted scenario). Nothing calls this yet, so it is
+// latent — but once the chart ships, two scenarios saved under genuinely
+// different COLA assumptions would compare as if they matched, producing exactly
+// the dishonest lines the frozen-assumption design exists to prevent.
+// Decide which value is authoritative (likely assumptions.colaRate), and
+// consider refusing to compare when a scenario's live inflation has drifted from
+// its own frozen colaRate — that drift means the saved plan no longer describes
+// the assumptions it was computed under.
 export const areScenariosComparable = (a, b) =>
   a.assumptions.bendPointsYear === b.assumptions.bendPointsYear &&
   a.inflation === b.inflation;
