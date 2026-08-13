@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useReducer } from 'react';
 import { Bar, Line, Bubble } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, BubbleController } from 'chart.js';
 import annotationPlugin from 'chartjs-plugin-annotation';
@@ -13,6 +13,12 @@ import { OneMonthAtATimeModal } from './OneMonthAtATime';
 import { getFra, monthlyBenefitAtClaim } from '../utils/benefitFormulas';
 import { ageInMonths, calculateProjection, combineProjections } from '../calculators/showMeTheMoney/projections';
 import { applyBenefitCut, calculateAxisRanges } from '../calculators/showMeTheMoney/ssCuts';
+import {
+    createScenario,
+    scenarioReducer,
+    serializeScenario,
+    deserializeScenario
+} from '../calculators/showMeTheMoney/scenario';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, annotationPlugin, SankeyController, Flow, BubbleController);
 
@@ -1690,28 +1696,61 @@ const ShowMeTheMoneyCalculator = () => {
         bubbleAge: 70
     });
 
-    const [isMarried, setIsMarried] = useState(getInitialMarriedState());
+    // All scenario-defining inputs live in a single reducer. View state
+    // (sidebar, chart view, modals, drag flags, svg dimensions) stays in useState.
+    const [scenario, dispatch] = useReducer(
+        scenarioReducer,
+        undefined,
+        () => createScenario({
+            isMarried: getInitialMarriedState(),
+            spouse1Dob: getInitialSpouse1Dob(),
+            spouse2Dob: getInitialSpouse2Dob()
+        })
+    );
+
+    // Shadow bindings: every name below already appears throughout this file.
+    // Re-exposing them here keeps the JSX below unchanged.
+    const {
+        isMarried, spouse1Dob, spouse1Pia, spouse1PreferredYear, spouse1PreferredMonth,
+        spouse1AlreadyFiled, spouse1CurrentBenefit, spouse1FiledAge,
+        spouse2Dob, spouse2Pia, spouse2PreferredYear, spouse2PreferredMonth,
+        spouse2AlreadyFiled, spouse2CurrentBenefit, spouse2FiledAge,
+        inflation, prematureDeath, deathAge, piaStrategy,
+        goGoEndAge, slowGoEndAge, spouseGoGoEndAge, spouseSlowGoEndAge,
+        monthlyNeeds, flowAge, bubbleAge
+    } = scenario;
+
+    const setScenarioField = (field) => (value) =>
+        dispatch({ type: 'SET_FIELD', field, value });
+
+    const setIsMarried = setScenarioField('isMarried');
+    const setSpouse1Dob = setScenarioField('spouse1Dob');
+    const setSpouse1Pia = setScenarioField('spouse1Pia');
+    const setSpouse1PreferredYear = setScenarioField('spouse1PreferredYear');
+    const setSpouse1PreferredMonth = setScenarioField('spouse1PreferredMonth');
+    const setSpouse1AlreadyFiled = setScenarioField('spouse1AlreadyFiled');
+    const setSpouse1CurrentBenefit = setScenarioField('spouse1CurrentBenefit');
+    const setSpouse1FiledAge = setScenarioField('spouse1FiledAge');
+    const setSpouse2Dob = setScenarioField('spouse2Dob');
+    const setSpouse2Pia = setScenarioField('spouse2Pia');
+    const setSpouse2PreferredYear = setScenarioField('spouse2PreferredYear');
+    const setSpouse2PreferredMonth = setScenarioField('spouse2PreferredMonth');
+    const setSpouse2AlreadyFiled = setScenarioField('spouse2AlreadyFiled');
+    const setSpouse2CurrentBenefit = setScenarioField('spouse2CurrentBenefit');
+    const setSpouse2FiledAge = setScenarioField('spouse2FiledAge');
+    const setInflation = setScenarioField('inflation');
+    const setPrematureDeath = setScenarioField('prematureDeath');
+    const setDeathAge = setScenarioField('deathAge');
+    const setPiaStrategy = setScenarioField('piaStrategy');
+    const setGoGoEndAge = setScenarioField('goGoEndAge');
+    const setSlowGoEndAge = setScenarioField('slowGoEndAge');
+    const setSpouseGoGoEndAge = setScenarioField('spouseGoGoEndAge');
+    const setSpouseSlowGoEndAge = setScenarioField('spouseSlowGoEndAge');
+    const setMonthlyNeeds = setScenarioField('monthlyNeeds');
+    const setFlowAge = setScenarioField('flowAge');
+    const setBubbleAge = setScenarioField('bubbleAge');
+
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-    const [spouse1Dob, setSpouse1Dob] = useState(getInitialSpouse1Dob());
-    const [spouse1Pia, setSpouse1Pia] = useState('');
-    const [spouse1PreferredYear, setSpouse1PreferredYear] = useState(67);
-    const [spouse1PreferredMonth, setSpouse1PreferredMonth] = useState(0);
-    const [spouse2Dob, setSpouse2Dob] = useState(getInitialSpouse2Dob());
-    const [spouse2Pia, setSpouse2Pia] = useState('');
-    const [spouse2PreferredYear, setSpouse2PreferredYear] = useState(65);
-    const [spouse2PreferredMonth, setSpouse2PreferredMonth] = useState(0);
-    const [inflation, setInflation] = useState(0.025);
-
-    // Retirement stages slider state (purely visual)
-    const [goGoEndAge, setGoGoEndAge] = useState(75);
-    const [slowGoEndAge, setSlowGoEndAge] = useState(85);
-    const [spouseGoGoEndAge, setSpouseGoGoEndAge] = useState(75);
-    const [spouseSlowGoEndAge, setSpouseSlowGoEndAge] = useState(85);
-
-    // Additional state variables that need to be declared before the persistence effect
-    const [monthlyNeeds, setMonthlyNeeds] = useState(7000);
-    const [flowAge, setFlowAge] = useState(70);
-    const [bubbleAge, setBubbleAge] = useState(70);
 
     // Track if we've loaded initial persisted state to prevent infinite loop
     const hasLoadedPersistedState = useRef(false);
@@ -1728,25 +1767,25 @@ const ShowMeTheMoneyCalculator = () => {
     useEffect(() => {
         if (isLoaded && persistedState && !hasLoadedPersistedState.current) {
             hasLoadedPersistedState.current = true;
-            // Removed: isMarried, spouse1Dob, spouse2Dob restoration 
-            // We now rely on the active sync with Profile context below to ensure accuracy relative to Onboarding
-            // Removed: spouse1Pia and Preferred Ages - now handled by Sync with Profile
-            // if (persistedState.spouse1Pia !== undefined) setSpouse1Pia(persistedState.spouse1Pia);
-            // if (persistedState.spouse1PreferredYear !== undefined) setSpouse1PreferredYear(persistedState.spouse1PreferredYear);
-            // if (persistedState.spouse1PreferredMonth !== undefined) setSpouse1PreferredMonth(persistedState.spouse1PreferredMonth);
-
-            // Removed: spouse2Pia and Preferred Ages - now handled by Sync with Partner/Preferences
-            // if (persistedState.spouse2Pia !== undefined) setSpouse2Pia(persistedState.spouse2Pia);
-            // if (persistedState.spouse2PreferredYear !== undefined) setSpouse2PreferredYear(persistedState.spouse2PreferredYear);
-            // if (persistedState.spouse2PreferredMonth !== undefined) setSpouse2PreferredMonth(persistedState.spouse2PreferredMonth);
-            if (persistedState.inflation !== undefined) setInflation(persistedState.inflation);
-            if (persistedState.goGoEndAge !== undefined) setGoGoEndAge(persistedState.goGoEndAge);
-            if (persistedState.slowGoEndAge !== undefined) setSlowGoEndAge(persistedState.slowGoEndAge);
-            if (persistedState.spouseGoGoEndAge !== undefined) setSpouseGoGoEndAge(persistedState.spouseGoGoEndAge);
-            if (persistedState.spouseSlowGoEndAge !== undefined) setSpouseSlowGoEndAge(persistedState.spouseSlowGoEndAge);
-            if (persistedState.monthlyNeeds !== undefined) setMonthlyNeeds(persistedState.monthlyNeeds);
-            if (persistedState.flowAge !== undefined) setFlowAge(persistedState.flowAge);
-            if (persistedState.bubbleAge !== undefined) setBubbleAge(persistedState.bubbleAge);
+            // Deliberately NOT restored: isMarried, spouse1Dob, spouse2Dob, spouse1Pia,
+            // spouse2Pia and both spouses' preferred ages. Those are owned by the
+            // profile/partners/preferences sync effect below so the calculator always
+            // reflects Onboarding rather than a stale saved copy.
+            const restored = deserializeScenario(persistedState);
+            [
+                'inflation',
+                'goGoEndAge',
+                'slowGoEndAge',
+                'spouseGoGoEndAge',
+                'spouseSlowGoEndAge',
+                'monthlyNeeds',
+                'flowAge',
+                'bubbleAge'
+            ].forEach(field => {
+                if (persistedState[field] !== undefined) {
+                    dispatch({ type: 'SET_FIELD', field, value: restored[field] });
+                }
+            });
         }
     }, [isLoaded, persistedState]);
 
@@ -1775,7 +1814,7 @@ const ShowMeTheMoneyCalculator = () => {
             // Only update local state if the SERVER value has changed from what we last saw
             // This prevents overwriting local edits when unrelated profile fields update
             if (lastProfilePia.current !== profilePia) {
-                setSpouse1Pia(profilePia);
+                dispatch({ type: 'SET_FIELD', field: 'spouse1Pia', value: profilePia });
                 lastProfilePia.current = profilePia;
             }
         }
@@ -1792,7 +1831,7 @@ const ShowMeTheMoneyCalculator = () => {
             if (partnerPia !== undefined && partnerPia !== null) {
                 // Only update local state if the SERVER value has changed
                 if (lastPartnerPia.current !== partnerPia) {
-                    setSpouse2Pia(partnerPia);
+                    dispatch({ type: 'SET_FIELD', field: 'spouse2Pia', value: partnerPia });
                     lastPartnerPia.current = partnerPia;
                 }
             }
@@ -1804,14 +1843,14 @@ const ShowMeTheMoneyCalculator = () => {
 
         if (pYear !== undefined && pYear !== null) {
             if (lastSpouse1PreferredYear.current !== pYear) {
-                setSpouse1PreferredYear(pYear);
+                dispatch({ type: 'SET_FIELD', field: 'spouse1PreferredYear', value: pYear });
                 lastSpouse1PreferredYear.current = pYear;
             }
         }
 
         if (pMonth !== undefined && pMonth !== null) {
             if (lastSpouse1PreferredMonth.current !== pMonth) {
-                setSpouse1PreferredMonth(pMonth);
+                dispatch({ type: 'SET_FIELD', field: 'spouse1PreferredMonth', value: pMonth });
                 lastSpouse1PreferredMonth.current = pMonth;
             }
         }
@@ -1823,14 +1862,14 @@ const ShowMeTheMoneyCalculator = () => {
 
             if (sYear !== undefined && sYear !== null) {
                 if (lastSpouse2PreferredYear.current !== sYear) {
-                    setSpouse2PreferredYear(sYear);
+                    dispatch({ type: 'SET_FIELD', field: 'spouse2PreferredYear', value: sYear });
                     lastSpouse2PreferredYear.current = sYear;
                 }
             }
 
             if (sMonth !== undefined && sMonth !== null) {
                 if (lastSpouse2PreferredMonth.current !== sMonth) {
-                    setSpouse2PreferredMonth(sMonth);
+                    dispatch({ type: 'SET_FIELD', field: 'spouse2PreferredMonth', value: sMonth });
                     lastSpouse2PreferredMonth.current = sMonth;
                 }
             }
@@ -1840,27 +1879,9 @@ const ShowMeTheMoneyCalculator = () => {
     // Persist ALL state changes
     useEffect(() => {
         if (isLoaded) {
-            setPersistedState({
-                isMarried,
-                spouse1Dob,
-                spouse1Pia,
-                spouse1PreferredYear,
-                spouse1PreferredMonth,
-                spouse2Dob,
-                spouse2Pia,
-                spouse2PreferredYear,
-                spouse2PreferredMonth,
-                inflation,
-                goGoEndAge,
-                slowGoEndAge,
-                spouseGoGoEndAge,
-                spouseSlowGoEndAge,
-                monthlyNeeds,
-                flowAge,
-                bubbleAge
-            });
+            setPersistedState(serializeScenario(scenario));
         }
-    }, [isMarried, spouse1Dob, spouse1Pia, spouse1PreferredYear, spouse1PreferredMonth, spouse2Dob, spouse2Pia, spouse2PreferredYear, spouse2PreferredMonth, inflation, goGoEndAge, slowGoEndAge, spouseGoGoEndAge, spouseSlowGoEndAge, monthlyNeeds, flowAge, bubbleAge, isLoaded, setPersistedState]);
+    }, [scenario, isLoaded, setPersistedState]);
 
     const primaryFirstName = profile?.first_name?.trim() || profile?.firstName?.trim() || 'Bob';
     const spouseFirstName = partners?.[0]?.first_name?.trim() || partners?.[0]?.firstName?.trim() || 'Spouse';
@@ -1868,8 +1889,6 @@ const ShowMeTheMoneyCalculator = () => {
     const [chartView, setChartView] = useState('monthly'); // monthly, cumulative, combined, earlyLate, post70, sscuts
     const [chartData, setChartData] = useState({ labels: [], datasets: [] });
     const [chartOptions, setChartOptions] = useState({});
-    const [prematureDeath, setPrematureDeath] = useState(false);
-    const [deathAge, setDeathAge] = useState(75);
     const [activeRecordView, setActiveRecordView] = useState('combined');
     const [showMonthlyCashflow, setShowMonthlyCashflow] = useState(false);
     const [post70View, setPost70View] = useState('cumulative');
@@ -1882,7 +1901,6 @@ const ShowMeTheMoneyCalculator = () => {
     const [showSsCutInfo, setShowSsCutInfo] = useState(false);
     const [ssCutsAxisRanges, setSsCutsAxisRanges] = useState(null);
     const [selectedStrategy, setSelectedStrategy] = useState(2); // 0=62, 1=67, 2=70
-    const [piaStrategy, setPiaStrategy] = useState('late'); // 'early' or 'late'
     const [showPiaFraModal, setShowPiaFraModal] = useState(false);
     const [showPreferredFilingModal, setShowPreferredFilingModal] = useState(false);
     const [isDraggingGoGo, setIsDraggingGoGo] = useState(false);
@@ -1893,13 +1911,7 @@ const ShowMeTheMoneyCalculator = () => {
     // One Month at a Time modal state
     const [showOneMonthModal, setShowOneMonthModal] = useState(false);
 
-    // Already Filed state variables
-    const [spouse1AlreadyFiled, setSpouse1AlreadyFiled] = useState(false);
-    const [spouse1CurrentBenefit, setSpouse1CurrentBenefit] = useState(null);
-    const [spouse1FiledAge, setSpouse1FiledAge] = useState(65);
-    const [spouse2AlreadyFiled, setSpouse2AlreadyFiled] = useState(false);
-    const [spouse2CurrentBenefit, setSpouse2CurrentBenefit] = useState(null);
-    const [spouse2FiledAge, setSpouse2FiledAge] = useState(65);
+    // Already Filed state now lives in the scenario reducer above
     const [showAlreadyFiledModal, setShowAlreadyFiledModal] = useState(false);
     // bubbleAge already declared above with other persistent state
 
@@ -1909,24 +1921,9 @@ const ShowMeTheMoneyCalculator = () => {
     const [animationKey, setAnimationKey] = useState(0);
     const [showYearModal, setShowYearModal] = useState(false);
 
-    // Update state when profile data changes
-    useEffect(() => {
-        if (profile) {
-            const shouldBeMarried = ['married', 'divorced', 'widowed'].includes(profile.relationship_status);
-            setIsMarried(shouldBeMarried);
-
-            if (profile.date_of_birth) {
-                setSpouse1Dob(profile.date_of_birth);
-            }
-        }
-    }, [profile]);
-
-    // Update spouse DOB when partners data changes
-    useEffect(() => {
-        if (partners && partners.length > 0 && partners[0].date_of_birth) {
-            setSpouse2Dob(partners[0].date_of_birth);
-        }
-    }, [partners]);
+    // Note: the profile/partners sync effect above already assigns isMarried,
+    // spouse1Dob and spouse2Dob, so the two follow-up effects that used to live
+    // here were exact duplicates and have been removed.
 
     useEffect(() => {
         if (!isMarried && activeRecordView === 'spouse') {
