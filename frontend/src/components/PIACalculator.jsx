@@ -461,8 +461,11 @@ const PIACalculator = () => {
                 }
             }
 
-            // Count zeros in top 35
-            const sortedEarnings = [...result.spreadsheet_data]
+            // Count zeros in top 35 (exclude projected/future years — they are
+            // assumptions, not banked earnings, and must not be counted as either
+            // earnings years or zero years in the actual record)
+            const actualEarnings = result.spreadsheet_data.filter(e => !e.is_projected);
+            const sortedEarnings = [...actualEarnings]
                 .sort((a, b) => (b.earnings || 0) - (a.earnings || 0))
                 .slice(0, 35);
             const zeroCount = sortedEarnings.filter(e => (e.earnings || 0) === 0).length;
@@ -550,8 +553,10 @@ const PIACalculator = () => {
     // Get the active PIA value
     const activePIA = useCalculatedPIA && calculatedResult ? calculatedResult.pia : ssaPIA;
 
-    // Count non-zero years
-    const nonZeroYears = earningsHistory.filter(e => e.earnings > 0).length;
+    // Count non-zero years (exclude projected/future years — those are
+    // assumptions carried forward for planning, not years the user actually
+    // has earnings on record)
+    const nonZeroYears = earningsHistory.filter(e => e.earnings > 0 && !e.is_projected).length;
     const visibleEarnings = earningsHistory.filter(e => e.visible);
 
     return (
