@@ -1,6 +1,9 @@
 // SSA taxable maximum (maximum earnings subject to Social Security payroll tax)
-// Source: SSA historical taxable maximum table (updated 2025)
+// Source: https://www.ssa.gov/oact/cola/cbb.html (verified 2026-08-13)
+// NOTE: this table is duplicated in backend/core/ssa_xml_processor.py
+// (SSAXMLProcessor.TAXABLE_MAXIMUM). Update both together.
 export const TAXABLE_MAXIMUM_BY_YEAR = {
+    2026: 184500,
     2025: 176100,
     2024: 168600,
     2023: 160200,

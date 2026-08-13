@@ -52,14 +52,17 @@ def generate_earnings_profile(
     pattern_func = PATTERNS.get(career_pattern, PATTERNS["steady"])
 
     # Calculate target AIME from PIA (reverse bend point formula)
-    # PIA formula: 90% of first $1,174, 32% of next ($7,078 - $1,174), 15% above
-    # For 2024 bend points: [1174, 7078]
+    # PIA formula: 90% of first bend point, 32% of the span to the second, 15% above.
 
     pia_year = birth_year + 62
     processor = SSAXMLProcessor(birth_year=birth_year)
 
-    # Get bend points for the person's eligibility year
-    bend_points = processor.PIA_BEND_POINTS_BY_YEAR.get(pia_year, [1174, 7078])
+    # Get bend points for the person's eligibility year, falling back to the most
+    # recent published set rather than a hardcoded historical year.
+    bend_points = processor.PIA_BEND_POINTS_BY_YEAR.get(
+        pia_year,
+        processor.PIA_BEND_POINTS_BY_YEAR[max(processor.PIA_BEND_POINTS_BY_YEAR)],
+    )
 
     # Reverse engineer AIME from target PIA
     target_aime = reverse_calculate_aime(target_pia, bend_points)
