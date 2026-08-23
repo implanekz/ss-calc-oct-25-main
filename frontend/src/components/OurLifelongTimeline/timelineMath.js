@@ -67,3 +67,19 @@ export const getHouseholdBuckets = ({ spouse1Pia, spouse1Dob, spouse2Pia, spouse
     filingAge,
     ...getHouseholdBucket({ filingAge, spouse1Pia, spouse1Dob, spouse2Pia, spouse2Dob, inflation })
   }));
+
+export const formatCurrency = (value) =>
+  new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0
+  }).format(value);
+
+export const getAnnualIncome = (monthlyValue) => monthlyValue * 12;
+
+export const formatBucketValue = (bucket, year) => {
+  if (year < bucket.startYear) {
+    return { display: `starts ${bucket.startYear}`, muted: true };
+  }
+  return { display: formatCurrency(bucket.cumulative[year] ?? 0), muted: false };
+};

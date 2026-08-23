@@ -1,4 +1,4 @@
-import { ageToCalendarYear, calendarYearToAge, getAxisEndYear, AXIS_END_AGE, getHouseholdBucket, getHouseholdBuckets, BUCKET_FILING_AGES } from './timelineMath';
+import { ageToCalendarYear, calendarYearToAge, getAxisEndYear, AXIS_END_AGE, getHouseholdBucket, getHouseholdBuckets, BUCKET_FILING_AGES, formatCurrency, formatBucketValue, getAnnualIncome } from './timelineMath';
 
 describe('age/calendar-year conversion', () => {
   test('converts age to the calendar year it falls in', () => {
@@ -125,5 +125,28 @@ describe('household cumulative buckets', () => {
     // because calculateProjection() calculated those keys from the same birthYear.
     // This guarantees correct alignment even in timezones where ISO date parsing
     // might shift the birth year by 1 relative to the input DOB string.
+  });
+});
+
+describe('display formatting', () => {
+  test('formatCurrency renders whole-dollar USD', () => {
+    expect(formatCurrency(66960)).toBe('$66,960');
+    expect(formatCurrency(0)).toBe('$0');
+  });
+
+  test('getAnnualIncome is monthly times 12', () => {
+    expect(getAnnualIncome(3087)).toBe(37044);
+  });
+
+  test('formatBucketValue shows a muted "starts <year>" before the bucket starts', () => {
+    const bucket = { startYear: 2040, cumulative: { 2039: 0, 2040: 66960 } };
+    expect(formatBucketValue(bucket, 2035)).toEqual({ display: 'starts 2040', muted: true });
+    expect(formatBucketValue(bucket, 2039)).toEqual({ display: 'starts 2040', muted: true });
+  });
+
+  test('formatBucketValue shows the formatted cumulative amount once the bucket has started', () => {
+    const bucket = { startYear: 2040, cumulative: { 2040: 66960, 2041: 133920 } };
+    expect(formatBucketValue(bucket, 2040)).toEqual({ display: '$66,960', muted: false });
+    expect(formatBucketValue(bucket, 2041)).toEqual({ display: '$133,920', muted: false });
   });
 });
