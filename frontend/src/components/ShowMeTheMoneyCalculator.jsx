@@ -10,6 +10,8 @@ import { useDevMode } from '../contexts/DevModeContext.jsx';
 import { useCalculatorPersistence } from '../hooks/useCalculatorPersistence';
 import { useNavigate } from 'react-router-dom';
 import { OneMonthAtATimeModal } from './OneMonthAtATime';
+import { OurLifelongTimeline } from './OurLifelongTimeline';
+import { isTimelineReachable } from './OurLifelongTimeline/timelineMath';
 import { getFra, monthlyBenefitAtClaim } from '../utils/benefitFormulas';
 import { ageInMonths, calculateProjection, combineProjections } from '../calculators/showMeTheMoney/projections';
 import { applyBenefitCut, calculateAxisRanges } from '../calculators/showMeTheMoney/ssCuts';
@@ -2002,6 +2004,7 @@ const ShowMeTheMoneyCalculator = () => {
     const [isDraggingSlowGo, setIsDraggingSlowGo] = useState(false);
     const [isDraggingSpouseGoGo, setIsDraggingSpouseGoGo] = useState(false);
     const [isDraggingSpouseSlowGo, setIsDraggingSpouseSlowGo] = useState(false);
+    const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
 
     // One Month at a Time modal state
     const [showOneMonthModal, setShowOneMonthModal] = useState(false);
@@ -4192,29 +4195,78 @@ const ShowMeTheMoneyCalculator = () => {
                     {/* Retirement Stages Slider - Below chart */}
                     {['monthly', 'cumulative', 'combined', 'earlyLate', 'post70', 'sscuts'].includes(chartView) && (
                         <div className="space-y-3 mt-4">
-                            <RetirementStagesSlider
-                                label={isMarried ? primaryFirstName : undefined}
-                                goGoEndAge={goGoEndAge}
-                                setGoGoEndAge={setGoGoEndAge}
-                                slowGoEndAge={slowGoEndAge}
-                                setSlowGoEndAge={setSlowGoEndAge}
-                                isDraggingGoGo={isDraggingGoGo}
-                                setIsDraggingGoGo={setIsDraggingGoGo}
-                                isDraggingSlowGo={isDraggingSlowGo}
-                                setIsDraggingSlowGo={setIsDraggingSlowGo}
-                            />
-                            {isMarried && (
-                                <RetirementStagesSlider
-                                    label={spouseFirstName}
-                                    goGoEndAge={spouseGoGoEndAge}
-                                    setGoGoEndAge={setSpouseGoGoEndAge}
-                                    slowGoEndAge={spouseSlowGoEndAge}
-                                    setSlowGoEndAge={setSpouseSlowGoEndAge}
-                                    isDraggingGoGo={isDraggingSpouseGoGo}
-                                    setIsDraggingGoGo={setIsDraggingSpouseGoGo}
-                                    isDraggingSlowGo={isDraggingSpouseSlowGo}
-                                    setIsDraggingSlowGo={setIsDraggingSpouseSlowGo}
-                                />
+                            {isTimelineExpanded && isTimelineReachable({ isMarried, spouse1Dob, spouse2Dob }) ? (
+                                <div>
+                                    <button
+                                        onClick={() => setIsTimelineExpanded(false)}
+                                        className="text-xs font-semibold text-primary-600 hover:text-primary-700 mb-2"
+                                    >
+                                        &uarr; Collapse to Go-Go/Slow-Go/No-Go sliders
+                                    </button>
+                                    <OurLifelongTimeline
+                                        primaryLabel={primaryFirstName}
+                                        spouseLabel={spouseFirstName}
+                                        spouse1Dob={spouse1Dob}
+                                        spouse2Dob={spouse2Dob}
+                                        spouse1Pia={spouse1Pia}
+                                        spouse2Pia={spouse2Pia}
+                                        spouse1PreferredYear={spouse1PreferredYear}
+                                        spouse2PreferredYear={spouse2PreferredYear}
+                                        inflation={inflation}
+                                        combinedProjections={scenarioData.combinedProjections}
+                                        goGoEndAge={goGoEndAge}
+                                        setGoGoEndAge={setGoGoEndAge}
+                                        slowGoEndAge={slowGoEndAge}
+                                        setSlowGoEndAge={setSlowGoEndAge}
+                                        isDraggingGoGo={isDraggingGoGo}
+                                        setIsDraggingGoGo={setIsDraggingGoGo}
+                                        isDraggingSlowGo={isDraggingSlowGo}
+                                        setIsDraggingSlowGo={setIsDraggingSlowGo}
+                                        spouseGoGoEndAge={spouseGoGoEndAge}
+                                        setSpouseGoGoEndAge={setSpouseGoGoEndAge}
+                                        spouseSlowGoEndAge={spouseSlowGoEndAge}
+                                        setSpouseSlowGoEndAge={setSpouseSlowGoEndAge}
+                                        isDraggingSpouseGoGo={isDraggingSpouseGoGo}
+                                        setIsDraggingSpouseGoGo={setIsDraggingSpouseGoGo}
+                                        isDraggingSpouseSlowGo={isDraggingSpouseSlowGo}
+                                        setIsDraggingSpouseSlowGo={setIsDraggingSpouseSlowGo}
+                                    />
+                                </div>
+                            ) : (
+                                <div>
+                                    <RetirementStagesSlider
+                                        label={isMarried ? primaryFirstName : undefined}
+                                        goGoEndAge={goGoEndAge}
+                                        setGoGoEndAge={setGoGoEndAge}
+                                        slowGoEndAge={slowGoEndAge}
+                                        setSlowGoEndAge={setSlowGoEndAge}
+                                        isDraggingGoGo={isDraggingGoGo}
+                                        setIsDraggingGoGo={setIsDraggingGoGo}
+                                        isDraggingSlowGo={isDraggingSlowGo}
+                                        setIsDraggingSlowGo={setIsDraggingSlowGo}
+                                    />
+                                    {isMarried && (
+                                        <RetirementStagesSlider
+                                            label={spouseFirstName}
+                                            goGoEndAge={spouseGoGoEndAge}
+                                            setGoGoEndAge={setSpouseGoGoEndAge}
+                                            slowGoEndAge={spouseSlowGoEndAge}
+                                            setSlowGoEndAge={setSpouseSlowGoEndAge}
+                                            isDraggingGoGo={isDraggingSpouseGoGo}
+                                            setIsDraggingGoGo={setIsDraggingSpouseGoGo}
+                                            isDraggingSlowGo={isDraggingSpouseSlowGo}
+                                            setIsDraggingSlowGo={setIsDraggingSpouseSlowGo}
+                                        />
+                                    )}
+                                    {isTimelineReachable({ isMarried, spouse1Dob, spouse2Dob }) && (
+                                        <button
+                                            onClick={() => setIsTimelineExpanded(true)}
+                                            className="mt-2 text-xs font-semibold text-primary-600 hover:text-primary-700"
+                                        >
+                                            &darr; See Our Lifelong Timeline
+                                        </button>
+                                    )}
+                                </div>
                             )}
                         </div>
                     )}
