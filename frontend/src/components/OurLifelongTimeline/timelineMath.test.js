@@ -258,6 +258,28 @@ describe('life-stage milestones', () => {
     expect(milestones).toHaveLength(3);
     expect(milestones.map(m => m.kind)).toEqual(['age62', 'fra', 'age70']);
   });
+
+  test('skips the chosen-filing-age milestone when preferredYear is a cleared input ("")', () => {
+    // Number('') === 0, so without a guard this would place a stray milestone at Ted's birth year.
+    const milestones = getMilestonesForPerson({ label: 'Ted', dob: '1965-06-15', preferredYear: '' });
+
+    expect(milestones).toHaveLength(3);
+    expect(milestones.map(m => m.kind)).toEqual(['age62', 'fra', 'age70']);
+  });
+
+  test('skips the chosen-filing-age milestone when preferredYear is below the minimum filing age', () => {
+    const milestones = getMilestonesForPerson({ label: 'Ted', dob: '1965-06-15', preferredYear: 40 });
+
+    expect(milestones).toHaveLength(3);
+    expect(milestones.map(m => m.kind)).toEqual(['age62', 'fra', 'age70']);
+  });
+
+  test('skips the chosen-filing-age milestone when preferredYear is non-numeric', () => {
+    const milestones = getMilestonesForPerson({ label: 'Ted', dob: '1965-06-15', preferredYear: 'abc' });
+
+    expect(milestones).toHaveLength(3);
+    expect(milestones.map(m => m.kind)).toEqual(['age62', 'fra', 'age70']);
+  });
 });
 
 describe('couples-only reachability', () => {
