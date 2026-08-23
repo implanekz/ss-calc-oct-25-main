@@ -4233,7 +4233,7 @@ const ShowMeTheMoneyCalculator = () => {
                                     />
                                 </div>
                             ) : (
-                                <div>
+                                <div className="space-y-3">
                                     <RetirementStagesSlider
                                         label={isMarried ? primaryFirstName : undefined}
                                         goGoEndAge={goGoEndAge}
