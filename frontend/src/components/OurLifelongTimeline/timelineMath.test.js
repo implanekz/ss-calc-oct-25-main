@@ -1,4 +1,4 @@
-import { ageToCalendarYear, calendarYearToAge, getAxisEndYear, AXIS_END_AGE, getHouseholdBucket, getHouseholdBuckets, BUCKET_FILING_AGES, formatCurrency, formatBucketValue, getAnnualIncome } from './timelineMath';
+import { ageToCalendarYear, calendarYearToAge, getAxisEndYear, AXIS_END_AGE, getHouseholdBucket, getHouseholdBuckets, BUCKET_FILING_AGES, formatCurrency, formatBucketValue, getAnnualIncome, getMilestonesForPerson, isTimelineReachable } from './timelineMath';
 
 describe('age/calendar-year conversion', () => {
   test('converts age to the calendar year it falls in', () => {
@@ -148,5 +148,35 @@ describe('display formatting', () => {
     const bucket = { startYear: 2040, cumulative: { 2040: 66960, 2041: 133920 } };
     expect(formatBucketValue(bucket, 2040)).toEqual({ display: '$66,960', muted: false });
     expect(formatBucketValue(bucket, 2041)).toEqual({ display: '$133,920', muted: false });
+  });
+});
+
+describe('life-stage milestones', () => {
+  test('derives 62/FRA/70 milestones plus a distinct chosen-filing-age milestone', () => {
+    const milestones = getMilestonesForPerson({ label: 'Ted', dob: '1965-06-15', preferredYear: 64 });
+
+    expect(milestones).toEqual([
+      { year: 2027, label: 'Ted turns 62', kind: 'age62' },
+      { year: 2029, label: "Ted's chosen filing age", kind: 'chosenFilingAge' },
+      { year: 2032, label: 'Ted reaches full retirement age', kind: 'fra' },
+      { year: 2035, label: 'Ted turns 70', kind: 'age70' }
+    ]);
+  });
+
+  test('does not duplicate a milestone when the chosen filing age matches an existing one', () => {
+    const milestones = getMilestonesForPerson({ label: 'Ted', dob: '1965-06-15', preferredYear: 67 });
+
+    // 67 is Ted's FRA (born 1965) -- chosenFilingAge must not appear as a second 2032 entry.
+    expect(milestones).toHaveLength(3);
+    expect(milestones.map(m => m.kind)).toEqual(['age62', 'fra', 'age70']);
+  });
+});
+
+describe('couples-only reachability', () => {
+  test('reachable only when married with both DOBs present', () => {
+    expect(isTimelineReachable({ isMarried: true, spouse1Dob: '1965-01-01', spouse2Dob: '1970-01-01' })).toBe(true);
+    expect(isTimelineReachable({ isMarried: false, spouse1Dob: '1965-01-01', spouse2Dob: '1970-01-01' })).toBe(false);
+    expect(isTimelineReachable({ isMarried: true, spouse1Dob: '1965-01-01', spouse2Dob: null })).toBe(false);
+    expect(isTimelineReachable({ isMarried: true, spouse1Dob: '', spouse2Dob: '1970-01-01' })).toBe(false);
   });
 });

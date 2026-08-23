@@ -1,4 +1,5 @@
 import { calculateProjection, combineProjections } from '../../calculators/showMeTheMoney/projections';
+import { getFra } from '../../utils/benefitFormulas';
 
 // How far past the later-born spouse's birth year the shared calendar axis extends.
 export const AXIS_END_AGE = 100;
@@ -83,3 +84,24 @@ export const formatBucketValue = (bucket, year) => {
   }
   return { display: formatCurrency(bucket.cumulative[year] ?? 0), muted: false };
 };
+
+export const getMilestonesForPerson = ({ label, dob, preferredYear }) => {
+  const birthYear = new Date(dob).getFullYear();
+  const fra = getFra(birthYear);
+
+  const milestones = [
+    { year: birthYear + 62, label: `${label} turns 62`, kind: 'age62' },
+    { year: birthYear + fra.years, label: `${label} reaches full retirement age`, kind: 'fra' },
+    { year: birthYear + 70, label: `${label} turns 70`, kind: 'age70' }
+  ];
+
+  const chosenFilingAgeYear = birthYear + Number(preferredYear);
+  if (!milestones.some((m) => m.year === chosenFilingAgeYear)) {
+    milestones.push({ year: chosenFilingAgeYear, label: `${label}'s chosen filing age`, kind: 'chosenFilingAge' });
+  }
+
+  return milestones.sort((a, b) => a.year - b.year);
+};
+
+export const isTimelineReachable = ({ isMarried, spouse1Dob, spouse2Dob }) =>
+  Boolean(isMarried && spouse1Dob && spouse2Dob);
