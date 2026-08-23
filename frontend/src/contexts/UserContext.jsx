@@ -120,8 +120,8 @@ export const UserProvider = ({ children }) => {
             } catch (err) {
               console.error("[UserContext] loadUserData failed:", err);
             }
-            setLoading(false);
           }
+          setLoading(false);
         } else {
           setProfile(null);
           setPartners([]);
