@@ -31,7 +31,12 @@ const CalendarPhaseBar = ({
     const rect = trackRef.current.getBoundingClientRect();
     const x = clientX - rect.left;
     const percent = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    return Math.round(MIN_AGE + (percent / 100) * (MAX_AGE - MIN_AGE));
+    // trackRef's rendered pixel width is the CLAMPED bar (see barWidthPercent below), which
+    // spans [MIN_AGE, MAX_AGE] only when the bar isn't clipped. When someone is already older
+    // than MIN_AGE today, the visible left edge sits at today's age for them, not MIN_AGE --
+    // interpolating against a hardcoded MIN_AGE here would desync the handle from the cursor.
+    const leftAge = Math.max(MIN_AGE, axisStartYear - birthYear);
+    return Math.round(leftAge + (percent / 100) * (MAX_AGE - leftAge));
   };
 
   const handleGoGoMouseDown = (e) => {
@@ -72,12 +77,31 @@ const CalendarPhaseBar = ({
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
+    // xToAge closes over axisStartYear/birthYear (read fresh via closure from props that only
+    // change on scenario updates, not mid-drag) and the setters are stable useState setters --
+    // same mount-while-dragging pattern as TimelineCursor and the existing RetirementStagesSlider.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDraggingGoGo, isDraggingSlowGo, goGoEndAge, slowGoEndAge, setGoGoEndAge, setSlowGoEndAge, setIsDraggingGoGo, setIsDraggingSlowGo]);
 
-  const barLeftPercent = ageToPercent(MIN_AGE);
-  const barWidthPercent = ageToPercent(MAX_AGE) - ageToPercent(MIN_AGE);
-  const goGoWidth = ((goGoEndAge - MIN_AGE) / (MAX_AGE - MIN_AGE)) * 100;
-  const slowGoWidth = ((slowGoEndAge - goGoEndAge) / (MAX_AGE - MIN_AGE)) * 100;
+  // The full [MIN_AGE, MAX_AGE] span can start left of the visible track (negative percent)
+  // for anyone already older than MIN_AGE today -- this app's target users are 58+, so that's
+  // common, not an edge case. Clamp the rendered bar to the visible [0%, 100%] track so it (and
+  // its drag handles) never sit off-canvas to the left.
+  const barLeftPercentUnclamped = ageToPercent(MIN_AGE);
+  const barRightPercent = ageToPercent(MAX_AGE);
+  const barLeftPercent = Math.max(0, barLeftPercentUnclamped);
+  const barWidthPercent = Math.max(0, barRightPercent - barLeftPercent);
+
+  // Segment boundaries expressed in the same full-axis percent space as barLeftPercent/barRightPercent,
+  // then clamped into the *visible* [barLeftPercent, barRightPercent] range before being turned into
+  // percentages of the (possibly narrower, clamped) rendered bar. Using the fixed 33-year span here
+  // instead would make the colored segments overflow whenever the bar itself has been clamped.
+  const clampToVisible = (percent) => Math.min(barRightPercent, Math.max(barLeftPercent, percent));
+  const goGoBoundaryPercent = clampToVisible(ageToPercent(goGoEndAge));
+  const slowGoBoundaryPercent = clampToVisible(ageToPercent(slowGoEndAge));
+
+  const goGoWidth = barWidthPercent > 0 ? ((goGoBoundaryPercent - barLeftPercent) / barWidthPercent) * 100 : 0;
+  const slowGoWidth = barWidthPercent > 0 ? ((slowGoBoundaryPercent - goGoBoundaryPercent) / barWidthPercent) * 100 : 0;
   const noGoWidth = 100 - goGoWidth - slowGoWidth;
 
   return (
@@ -88,15 +112,20 @@ const CalendarPhaseBar = ({
         </div>
       )}
 
-      {/* Milestone markers, positioned on the full shared track independent of the bar itself */}
-      {milestones.map((m) => (
-        <div
-          key={`${m.kind}-${m.year}`}
-          className="absolute top-0 bottom-0 w-px bg-gray-300"
-          style={{ left: `${yearToPercent(m.year)}%` }}
-          title={m.label}
-        />
-      ))}
+      {/* Milestone markers, positioned on the full shared track independent of the bar itself.
+          Markers for already-past years (common for this app's 58+ target users) would compute
+          a negative percent and sit off-canvas to the left of the overflow-x-auto track with no
+          way to scroll to them -- skip rendering those rather than leave an unreachable marker. */}
+      {milestones
+        .filter((m) => yearToPercent(m.year) >= 0)
+        .map((m) => (
+          <div
+            key={`${m.kind}-${m.year}`}
+            className="absolute top-0 bottom-0 w-px bg-gray-300"
+            style={{ left: `${yearToPercent(m.year)}%` }}
+            title={m.label}
+          />
+        ))}
 
       {/* The 62-95 phase bar itself, absolutely positioned within the shared track */}
       <div
