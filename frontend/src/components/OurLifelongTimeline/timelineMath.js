@@ -37,9 +37,9 @@ export const getHouseholdBucket = ({
   });
   const combined = combineProjections({ primaryProjection, spouseProjection, isMarried: true });
 
-  const birthYearPrimary = new Date(spouse1Dob + 'Z').getUTCFullYear();
-  const birthYearSpouse = new Date(spouse2Dob + 'Z').getUTCFullYear();
-  const startYear = Math.max(birthYearPrimary, birthYearSpouse) + filingAge;
+  // Derive startYear from the same birthYear values that calculateProjection() used for its dictionary keys.
+  // This ensures the mask boundary always aligns with the actual calendar years in the .monthly/.cumulative dictionaries.
+  const startYear = Math.max(primaryProjection.birthYear, spouseProjection.birthYear) + filingAge;
 
   const monthly = {};
   const cumulative = {};
