@@ -2,7 +2,9 @@ import { calculateProjection, combineProjections } from '../../calculators/showM
 import { getFra } from '../../utils/benefitFormulas';
 
 // How far past the later-born spouse's birth year the shared calendar axis extends.
-export const AXIS_END_AGE = 100;
+// Must match the last age calculateProjection() actually has data for (birthYear + 95,
+// see projections.js) -- extending past that renders a data gap as a silent $0.
+export const AXIS_END_AGE = 95;
 
 export const ageToCalendarYear = (birthYear, age) => birthYear + age;
 

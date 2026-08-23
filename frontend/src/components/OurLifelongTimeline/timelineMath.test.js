@@ -1,4 +1,5 @@
 import { ageToCalendarYear, calendarYearToAge, getAxisEndYear, AXIS_END_AGE, getHouseholdBucket, getHouseholdBuckets, BUCKET_FILING_AGES, formatCurrency, formatBucketValue, getAnnualIncome, getMilestonesForPerson, isTimelineReachable } from './timelineMath';
+import { calculateProjection } from '../../calculators/showMeTheMoney/projections';
 
 describe('age/calendar-year conversion', () => {
   test('converts age to the calendar year it falls in', () => {
@@ -11,14 +12,37 @@ describe('age/calendar-year conversion', () => {
     expect(calendarYearToAge(1970, 2032)).toBe(62);
   });
 
-  test('axis end year is 100 for the later-born spouse, regardless of argument order', () => {
-    expect(AXIS_END_AGE).toBe(100);
-    expect(getAxisEndYear(1965, 1970)).toBe(2070);
-    expect(getAxisEndYear(1970, 1965)).toBe(2070);
+  test('axis end year is 95 for the later-born spouse, regardless of argument order', () => {
+    expect(AXIS_END_AGE).toBe(95);
+    expect(getAxisEndYear(1965, 1970)).toBe(2065);
+    expect(getAxisEndYear(1970, 1965)).toBe(2065);
   });
 
   test('axis end year works when both spouses share a birth year', () => {
-    expect(getAxisEndYear(1965, 1965)).toBe(2065);
+    expect(getAxisEndYear(1965, 1965)).toBe(2060);
+  });
+
+  test('axis end year never exceeds the last year calculateProjection() actually has data for', () => {
+    // Regression test for a real bug: AXIS_END_AGE used to be 100, but calculateProjection()'s
+    // .monthly/.cumulative dictionaries only have keys through birthYear + 95 (see projections.js).
+    // If the axis ever extends past that, the timeline silently renders the missing years as $0
+    // instead of showing that there's no data there.
+    const birthYearPrimary = 1965;
+    const birthYearSpouse = 1970;
+
+    const projection = calculateProjection({
+      pia: 2000,
+      dob: '1970-06-15',
+      filingYear: 62,
+      filingMonth: 0,
+      inflationRate: 0
+    });
+    const lastYearWithData = Math.max(...Object.keys(projection.monthly).map(Number));
+
+    expect(getAxisEndYear(birthYearPrimary, birthYearSpouse)).toBe(lastYearWithData);
+    expect(getAxisEndYear(birthYearPrimary, birthYearSpouse)).toBeLessThanOrEqual(
+      Math.max(birthYearPrimary, birthYearSpouse) + 95
+    );
   });
 });
 
