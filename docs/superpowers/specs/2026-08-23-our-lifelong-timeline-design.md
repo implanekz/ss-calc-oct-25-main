@@ -14,6 +14,8 @@ The app already renders an age-indexed "Go-Go / Slow-Go / No-Go" retirement life
 
 Give couples a way to see their combined Social Security timeline mapped onto shared calendar years — not each person's own age — so they can inspect any future year and see what their household income actually looks like there, under both their real plan and a few alternative claiming strategies. The mechanism is visibility, not persuasion: this spec does not attempt to talk anyone into a claiming age, it makes the future legible enough that the 62-63 default stops being the only option someone can picture.
 
+Underlying this is a premise Kurt calls **The Last Lever**: by the time someone is using this calculator, their Social Security earnings record — and therefore their PIA — is effectively fixed; there's no more leverage to be had there. The one high-leverage choice still fully within their control is *when* to file. That's why this module has no input controls of its own for PIA or filing age (see the orientation notice under Design) — those remain the main app's job. This module's job is to make the consequences of that one remaining choice visible.
+
 ## Non-goals for this version
 
 Deliberately deferred, to keep this shippable as one coherent unit rather than a sprawl:
@@ -44,6 +46,7 @@ This module is not reachable in Single mode — see Edge Cases.
   - The household's actual Monthly Income and Annual Income, under whatever preferred filing ages are already chosen for both people.
   - Three household-cumulative buckets: "if both had filed at 62," "at 67," and "at 70." Each bucket sums total household Social Security dollars received from the relevant hypothetical filing date up through the dragged year. The household is treated as one aggregate entity for these buckets — not two independently-summed per-person totals — so, for example, the "both filed at 70" bucket is genuinely zero for any dragged year before the *later* of the two people's 70th birthdays under that hypothetical. See Edge Cases for how this is presented so a legitimate zero doesn't read as broken.
 - **Life-stage milestone markers**, derived only (not user-editable in v1): each person's 62nd birthday, full retirement age, their actual chosen filing age, and 70th birthday, plotted at the correct calendar year on their respective row.
+- **An orientation notice**, persistent (not a dismissible toast) somewhere in the module, telling the user that changing what they see here means changing filing age (and other) inputs in the main sidebar — this module has no input controls of its own for PIA or filing age. This is functional wayfinding, not persuasive framing toward any particular age (that stays out of scope per Non-goals above): without it, a user exploring "what if I filed differently" has no way to know where that lever actually lives, since the go-go/slow-go/no-go handles are the only things draggable in this module and they don't affect income at all.
 
 ### Data flow
 
@@ -74,3 +77,4 @@ Because no new calculation logic is introduced beyond generalizing the existing 
 - The household-aggregate cumulative bucket math, specifically the zero-until-hypothetical-filing-date behavior for couples with a meaningful age gap.
 - Bidirectional sync: an edit made in the expanded (calendar-year) view is reflected correctly when the module is collapsed back to the age-based bars, and vice versa.
 - The module's non-reachability in Single mode, and behavior when a spouse field is missing in Married mode.
+- The orientation notice is present and visible without requiring scroll or interaction, in both the module's default and expanded-zoom states.
