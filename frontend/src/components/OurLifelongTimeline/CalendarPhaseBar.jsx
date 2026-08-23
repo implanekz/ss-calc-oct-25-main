@@ -31,8 +31,7 @@ const CalendarPhaseBar = ({
     const rect = trackRef.current.getBoundingClientRect();
     const x = clientX - rect.left;
     const percent = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    const year = axisStartYear + (percent / 100) * totalYears;
-    return Math.round(Math.max(MIN_AGE, Math.min(MAX_AGE, year - birthYear)));
+    return Math.round(MIN_AGE + (percent / 100) * (MAX_AGE - MIN_AGE));
   };
 
   const handleGoGoMouseDown = (e) => {
@@ -73,10 +72,6 @@ const CalendarPhaseBar = ({
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-    // xToAge, axisStartYear/axisEndYear/pxPerYear are read via closure from props that only
-    // change when the parent re-renders with new scenario data, matching the mount-while-
-    // dragging pattern already used by RetirementStagesSlider (ShowMeTheMoneyCalculator.jsx).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDraggingGoGo, isDraggingSlowGo, goGoEndAge, slowGoEndAge, setGoGoEndAge, setSlowGoEndAge, setIsDraggingGoGo, setIsDraggingSlowGo]);
 
   const barLeftPercent = ageToPercent(MIN_AGE);
