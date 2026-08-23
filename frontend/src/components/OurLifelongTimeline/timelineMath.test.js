@@ -1,5 +1,5 @@
 import { ageToCalendarYear, calendarYearToAge, getAxisEndYear, AXIS_END_AGE, getHouseholdBucket, getHouseholdBuckets, BUCKET_FILING_AGES, formatCurrency, formatBucketValue, getAnnualIncome, getMilestonesForPerson, isTimelineReachable } from './timelineMath';
-import { calculateProjection } from '../../calculators/showMeTheMoney/projections';
+import { calculateProjection, combineProjections } from '../../calculators/showMeTheMoney/projections';
 
 describe('age/calendar-year conversion', () => {
   test('converts age to the calendar year it falls in', () => {
@@ -149,6 +149,70 @@ describe('household cumulative buckets', () => {
     // because calculateProjection() calculated those keys from the same birthYear.
     // This guarantees correct alignment even in timezones where ISO date parsing
     // might shift the birth year by 1 relative to the input DOB string.
+  });
+});
+
+describe('premature-death threading into household buckets', () => {
+  // Same Ted/Wendy fixture as above: Ted born 1965-06-15 PIA $2500, Wendy born 1970-06-15 PIA $2000.
+  const household = {
+    spouse1Pia: 2500,
+    spouse1Dob: '1965-06-15',
+    spouse2Pia: 2000,
+    spouse2Dob: '1970-06-15',
+    inflation: 0
+  };
+
+  test('getHouseholdBucket applies combineProjections\' survivor-max behavior after deathYear, not a plain sum', () => {
+    const filingAge = 67;
+    // Between bucket67's startYear (2037) and bucket70's startYear (2040).
+    const deathYear = 2038;
+
+    const primaryProjection = calculateProjection({
+      pia: household.spouse1Pia,
+      dob: household.spouse1Dob,
+      filingYear: filingAge,
+      filingMonth: 0,
+      inflationRate: household.inflation
+    });
+    const spouseProjection = calculateProjection({
+      pia: household.spouse2Pia,
+      dob: household.spouse2Dob,
+      filingYear: filingAge,
+      filingMonth: 0,
+      inflationRate: household.inflation
+    });
+    const expectedCombined = combineProjections({
+      primaryProjection,
+      spouseProjection,
+      isMarried: true,
+      prematureDeath: true,
+      deathYear
+    });
+
+    const bucket = getHouseholdBucket({ filingAge, ...household, prematureDeath: true, deathYear });
+
+    // Before the death year: still the full combined (sum) amount -- Ted $2500 + Wendy $2000 = $4500/mo.
+    expect(bucket.monthly[2037]).toBe(expectedCombined.monthly[2037]);
+    expect(bucket.monthly[2037]).toBe(4500);
+
+    // From the death year on: survivor-max, not sum -- max(Ted $2500, Wendy $2000) = $2500/mo.
+    // Before this fix, getHouseholdBucket ignored prematureDeath/deathYear entirely and this
+    // would have stayed $4500, contradicting the survivor-adjusted "Monthly Income" line above it.
+    expect(bucket.monthly[2038]).toBe(expectedCombined.monthly[2038]);
+    expect(bucket.monthly[2038]).toBe(2500);
+  });
+
+  test('getHouseholdBuckets threads prematureDeath/deathYear through to every bucket', () => {
+    const deathYear = 2038;
+    const buckets = getHouseholdBuckets({ ...household, prematureDeath: true, deathYear });
+    const bucket67 = buckets.find((b) => b.filingAge === 67);
+
+    expect(bucket67.monthly[2038]).toBe(2500);
+  });
+
+  test('getHouseholdBucket defaults to no premature-death adjustment when omitted', () => {
+    const bucket67 = getHouseholdBucket({ filingAge: 67, ...household });
+    expect(bucket67.monthly[2038]).toBe(4500);
   });
 });
 

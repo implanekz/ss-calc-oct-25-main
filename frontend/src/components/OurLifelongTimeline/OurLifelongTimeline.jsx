@@ -17,6 +17,8 @@ const OurLifelongTimeline = ({
   spouse1PreferredYear,
   spouse2PreferredYear,
   inflation,
+  prematureDeath,
+  deathAge,
   combinedProjections,
   goGoEndAge,
   setGoGoEndAge,
@@ -43,9 +45,14 @@ const OurLifelongTimeline = ({
   const axisStartYear = currentYear;
   const axisEndYear = getAxisEndYear(birthYearPrimary, birthYearSpouse);
 
+  // Same computation ShowMeTheMoneyCalculator.jsx uses to build deathYearNumber for its own
+  // combineProjections() calls (primary person's birth year + deathAge), so the household
+  // buckets stay consistent with the tooltip's survivor-adjusted "Monthly Income" line above them.
+  const deathYear = birthYearPrimary + Number(deathAge);
+
   const buckets = useMemo(
-    () => getHouseholdBuckets({ spouse1Pia, spouse1Dob, spouse2Pia, spouse2Dob, inflation }),
-    [spouse1Pia, spouse1Dob, spouse2Pia, spouse2Dob, inflation]
+    () => getHouseholdBuckets({ spouse1Pia, spouse1Dob, spouse2Pia, spouse2Dob, inflation, prematureDeath, deathYear }),
+    [spouse1Pia, spouse1Dob, spouse2Pia, spouse2Dob, inflation, prematureDeath, deathYear]
   );
 
   const primaryMilestones = useMemo(

@@ -4213,6 +4213,8 @@ const ShowMeTheMoneyCalculator = () => {
                                         spouse1PreferredYear={spouse1PreferredYear}
                                         spouse2PreferredYear={spouse2PreferredYear}
                                         inflation={inflation}
+                                        prematureDeath={prematureDeath}
+                                        deathAge={deathAge}
                                         combinedProjections={scenarioData.combinedProjections}
                                         goGoEndAge={goGoEndAge}
                                         setGoGoEndAge={setGoGoEndAge}

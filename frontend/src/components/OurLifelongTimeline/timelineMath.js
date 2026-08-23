@@ -22,7 +22,9 @@ export const getHouseholdBucket = ({
   spouse1Dob,
   spouse2Pia,
   spouse2Dob,
-  inflation
+  inflation,
+  prematureDeath = false,
+  deathYear
 }) => {
   const primaryProjection = calculateProjection({
     pia: spouse1Pia,
@@ -38,7 +40,13 @@ export const getHouseholdBucket = ({
     filingMonth: 0,
     inflationRate: inflation
   });
-  const combined = combineProjections({ primaryProjection, spouseProjection, isMarried: true });
+  const combined = combineProjections({
+    primaryProjection,
+    spouseProjection,
+    isMarried: true,
+    prematureDeath,
+    deathYear
+  });
 
   // Derive startYear from the same birthYear values that calculateProjection() used for its dictionary keys.
   // This ensures the mask boundary always aligns with the actual calendar years in the .monthly/.cumulative dictionaries.
@@ -65,10 +73,27 @@ export const getHouseholdBucket = ({
   return { monthly, cumulative, startYear };
 };
 
-export const getHouseholdBuckets = ({ spouse1Pia, spouse1Dob, spouse2Pia, spouse2Dob, inflation }) =>
+export const getHouseholdBuckets = ({
+  spouse1Pia,
+  spouse1Dob,
+  spouse2Pia,
+  spouse2Dob,
+  inflation,
+  prematureDeath = false,
+  deathYear
+}) =>
   BUCKET_FILING_AGES.map((filingAge) => ({
     filingAge,
-    ...getHouseholdBucket({ filingAge, spouse1Pia, spouse1Dob, spouse2Pia, spouse2Dob, inflation })
+    ...getHouseholdBucket({
+      filingAge,
+      spouse1Pia,
+      spouse1Dob,
+      spouse2Pia,
+      spouse2Dob,
+      inflation,
+      prematureDeath,
+      deathYear
+    })
   }));
 
 export const formatCurrency = (value) =>
