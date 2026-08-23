@@ -68,7 +68,19 @@ const OurLifelongTimeline = ({
 
   return (
     <div className="space-y-3 mt-4">
-      <div className="overflow-x-auto" style={{ maxWidth: `${VISIBLE_YEARS * PX_PER_YEAR}px` }}>
+      {/*
+        overflow-x-auto forces overflow-y to auto too (per CSS spec, an axis that isn't
+        "visible" makes the other axis compute to "auto" as well), so anything positioned
+        outside this box's own padding box gets clipped/unreachable-by-scroll:
+          - CalendarPhaseBar's row label sits at -top-5 (-20px) with text-xs (16px line-height),
+            so it needs >= 20px of clearance above the bars -- pt-8 (32px) covers that.
+          - TimelineCursor's tooltip is anchored top-4 (16px) below the cursor line and is
+            taller than the two stacked phase bars (~136px) that establish this container's
+            height -- pb-32 (128px) reserves enough room for the tooltip's full rendered
+            height (~200px of text/buckets) to land inside the scrollable area instead of
+            being clipped at the bottom.
+      */}
+      <div className="overflow-x-auto pt-8 pb-32" style={{ maxWidth: `${VISIBLE_YEARS * PX_PER_YEAR}px` }}>
         <div className="relative" style={{ width: `${(axisEndYear - axisStartYear) * PX_PER_YEAR}px` }}>
           <div className="mb-8">
             <CalendarPhaseBar
