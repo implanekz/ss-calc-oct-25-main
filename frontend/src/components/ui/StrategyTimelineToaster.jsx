@@ -28,7 +28,7 @@ const StrategyTimelineToaster = ({ strategy, onClose, clientType, inline = false
         setViewMode('annual');
     }, [strategy?.strategy]);
 
-    const timeline = strategy?.benefit_timeline || [];
+    const timeline = useMemo(() => strategy?.benefit_timeline || [], [strategy?.benefit_timeline]);
 
     const chartData = useMemo(() => {
         if (!timeline.length) {
@@ -66,10 +66,6 @@ const StrategyTimelineToaster = ({ strategy, onClose, clientType, inline = false
     }, [timeline, viewMode]);
 
     const chartOptions = useMemo(() => {
-        const valueFormatter = (value) => viewMode === 'annual'
-            ? formatCurrency(value)
-            : formatCurrency(value);
-
         return {
             responsive: true,
             maintainAspectRatio: false,

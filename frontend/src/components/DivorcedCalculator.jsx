@@ -963,7 +963,6 @@ const DivorcedCalculator = ({ onSwitchToMarried }) => {
 
                                                                 // Start from right edge of card
                                                                 const startX = cardRect.right - containerRect.left;
-                                                                const startY = cardRect.top + cardRect.height / 2 - containerRect.top;
 
                                                                 // End at left edge of detail chart
                                                                 const endX = detailRect.left - containerRect.left;

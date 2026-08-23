@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Line, Bar } from 'react-chartjs-2';
+import { Line } from 'react-chartjs-2';
 import { useCalculatorPersistence } from '../hooks/useCalculatorPersistence';
-import { Button } from './ui';
 import { getFra, earlyReductionFromAges, drcIncreaseFromAges, adjustPIAForPreClaim } from '../utils/benefitFormulas';
 
 const StartStopStartCalculator = () => {

@@ -137,7 +137,7 @@ export const UserProvider = ({ children }) => {
       mounted = false;
       subscription?.unsubscribe();
     };
-  }, [loadUserData]);
+  }, [loadUserData, loadUserDataWithToken]);
 
   /**
    * Sign up new user

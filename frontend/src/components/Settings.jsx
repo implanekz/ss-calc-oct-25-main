@@ -15,8 +15,6 @@ const Settings = () => {
     const [lastName, setLastName] = useState('');
     const [dateOfBirth, setDateOfBirth] = useState('');
     const [email, setEmail] = useState('');
-    const [showDivorceInfo, setShowDivorceInfo] = useState(false);
-    const [showWidowedInfo, setShowWidowedInfo] = useState(false);
     const [relationshipStatus, setRelationshipStatus] = useState('single');
     const [everDivorced, setEverDivorced] = useState(false);
     const [divorceCount, setDivorceCount] = useState(1);

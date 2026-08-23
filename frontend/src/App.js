@@ -6,50 +6,6 @@ import LoginScreen from './screens/LoginScreen.jsx';
 import OnboardingScreen from './screens/OnboardingScreen.jsx';
 import CalculatorApp from './components/CalculatorApp.jsx';
 
-// Main App wrapper with auth flow
-function AppWithAuth() {
-  const { user, profile, loading, error } = useUser();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4"></div>
-          <p className="text-white text-lg">Loading Lifelong Navigator Profile...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <LoginScreen />;
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full text-center">
-          <h2 className="text-red-600 text-xl font-bold mb-4">Connection Error</h2>
-          <p className="text-slate-700 mb-6">{error}</p>
-          <p className="text-sm text-slate-500 mb-6">Please check that the backend server is running.</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded transition"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!profile?.onboarding_completed_at) {
-    return <OnboardingScreen />;
-  }
-
-  return <CalculatorApp />;
-}
-
 // Root App with Providers
 function App() {
   return (
@@ -65,7 +21,7 @@ function App() {
 
 // Wrapper to handle Dev Mode vs Real Mode
 function AppWithDevMode() {
-  const { isDevMode, devUser, devProfile, toggleDevMode, devResetOnboarding, devClearAll, testScenarios, loadTestScenario } = useDevMode();
+  const { isDevMode, devUser, devProfile, toggleDevMode, devResetOnboarding, devClearAll } = useDevMode();
   const { user: realUser, profile: realProfile, loading: realLoading } = useUser();
   const location = useLocation();
 

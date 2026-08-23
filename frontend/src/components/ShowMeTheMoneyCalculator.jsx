@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useReducer } from 'react';
-import { Bar, Line, Bubble } from 'react-chartjs-2';
+import { Bar, Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend, BubbleController } from 'chart.js';
 import annotationPlugin from 'chartjs-plugin-annotation';
 import { SankeyController, Flow } from 'chartjs-chart-sankey';
@@ -232,7 +232,7 @@ const FlowVisualization = ({ scenarioData, age, monthlyNeeds, activeRecordView, 
         return <div className="h-full flex items-center justify-center text-gray-500">Loading...</div>;
     }
 
-    const { primaryProjections, spouseProjections, combinedProjections, birthYearPrimary, earlyLateProjection, preferredLateProjection, bothLateProjection, bothEarlyProjection } = scenarioData;
+    const { primaryProjections, spouseProjections, combinedProjections, birthYearPrimary } = scenarioData;
 
     const projections = activeRecordView === 'primary'
         ? primaryProjections
@@ -1006,7 +1006,7 @@ const RaceTrackVisualization = ({ scenarioData, activeRecordView, isMarried, inf
         return <div className="h-full flex items-center justify-center text-gray-500">Loading...</div>;
     }
 
-    const { primaryProjections, spouseProjections, combinedProjections, birthYearPrimary, earlyLateProjection, preferredLateProjection, bothLateProjection, bothEarlyProjection } = scenarioData;
+    const { primaryProjections, spouseProjections, combinedProjections, birthYearPrimary } = scenarioData;
 
     // Determine which projections to use based on view
     const projections = activeRecordView === 'primary'
@@ -1717,8 +1717,12 @@ const ShowMeTheMoneyCalculator = () => {
     // Re-exposing them here keeps the JSX below unchanged.
     const {
         isMarried, spouse1Dob, spouse1Pia, spouse1PreferredYear, spouse1PreferredMonth,
+        // "Already filed" fields exist in the scenario schema (scenario.js) for a spouse who
+        // started claiming before using this calculator, but no UI/logic here reads them yet.
+        // eslint-disable-next-line no-unused-vars
         spouse1AlreadyFiled, spouse1CurrentBenefit, spouse1FiledAge,
         spouse2Dob, spouse2Pia, spouse2PreferredYear, spouse2PreferredMonth,
+        // eslint-disable-next-line no-unused-vars
         spouse2AlreadyFiled, spouse2CurrentBenefit, spouse2FiledAge,
         inflation, prematureDeath, deathAge, piaStrategy,
         goGoEndAge, slowGoEndAge, spouseGoGoEndAge, spouseSlowGoEndAge,
@@ -1746,16 +1750,21 @@ const ShowMeTheMoneyCalculator = () => {
     const setSpouse1Pia = setScenarioField('spouse1Pia');
     const setSpouse1PreferredYear = setScenarioField('spouse1PreferredYear');
     const setSpouse1PreferredMonth = setScenarioField('spouse1PreferredMonth');
+    // Setters for the not-yet-wired "already filed" fields (see destructuring comment above)
+    /* eslint-disable no-unused-vars */
     const setSpouse1AlreadyFiled = setScenarioField('spouse1AlreadyFiled');
     const setSpouse1CurrentBenefit = setScenarioField('spouse1CurrentBenefit');
     const setSpouse1FiledAge = setScenarioField('spouse1FiledAge');
+    /* eslint-enable no-unused-vars */
     const setSpouse2Dob = setScenarioField('spouse2Dob');
     const setSpouse2Pia = setScenarioField('spouse2Pia');
     const setSpouse2PreferredYear = setScenarioField('spouse2PreferredYear');
     const setSpouse2PreferredMonth = setScenarioField('spouse2PreferredMonth');
+    /* eslint-disable no-unused-vars */
     const setSpouse2AlreadyFiled = setScenarioField('spouse2AlreadyFiled');
     const setSpouse2CurrentBenefit = setScenarioField('spouse2CurrentBenefit');
     const setSpouse2FiledAge = setScenarioField('spouse2FiledAge');
+    /* eslint-enable no-unused-vars */
     const setInflation = setScenarioField('inflation');
     const setPrematureDeath = setScenarioField('prematureDeath');
     const setDeathAge = setScenarioField('deathAge');
@@ -1945,6 +1954,7 @@ const ShowMeTheMoneyCalculator = () => {
                 }
             }
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [profile, partners, preferences]); // Dep on profile/partners strictly to avoid typing loops
 
     // Persist ALL state changes
@@ -1973,6 +1983,9 @@ const ShowMeTheMoneyCalculator = () => {
     const [chartOptions, setChartOptions] = useState({});
     const [activeRecordView, setActiveRecordView] = useState('combined');
     const [showMonthlyCashflow, setShowMonthlyCashflow] = useState(false);
+    // setPost70View unused: 'monthly'/'combined' view modes are read below (line ~2544+)
+    // but there's no UI control yet to switch away from the 'cumulative' default.
+    // eslint-disable-next-line no-unused-vars
     const [post70View, setPost70View] = useState('cumulative');
     const [ssCutYear, setSsCutYear] = useState(2034);
     const [ssCutPercentage, setSsCutPercentage] = useState(21);
@@ -2160,7 +2173,7 @@ const ShowMeTheMoneyCalculator = () => {
             primaryYears,
             spouseYears
         };
-    }, [isMarried, spouse1Dob, spouse1Pia, spouse1PreferredYear, spouse1PreferredMonth, spouse2Dob, spouse2Pia, spouse2PreferredYear, spouse2PreferredMonth, inflation, prematureDeath, deathAge, piaStrategy]);
+    }, [isMarried, spouse1Dob, spouse1Pia, spouse1PreferredYear, spouse1PreferredMonth, spouse2Dob, spouse2Pia, spouse2PreferredYear, spouse2PreferredMonth, inflation, prematureDeath, deathAge]);
 
     // Bubble Chart Data - Calculate 4% Rule Equivalents at selected age
     const bubbleChartData = useMemo(() => {

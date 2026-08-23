@@ -16,7 +16,6 @@ const SSDICalculator = () => {
     });
 
     const [birthDate, setBirthDate] = useState('1963-01-01');
-    const [activeFaq, setActiveFaq] = useState(null);
 
     // Year View State
     const [yearViewEnabled, setYearViewEnabled] = useState(false);

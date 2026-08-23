@@ -3,7 +3,7 @@ import { getTaxableMaximum } from '../utils/taxableMaximum';
 import { tooltips } from '../utils/piaTooltips';
 import { useUser } from '../contexts/UserContext';
 import { useCalculatorPersistence } from '../hooks/useCalculatorPersistence';
-import { Tabs, TabList, Tab, TabPanel } from './ui/Tabs';
+import { Tabs, TabList, Tab } from './ui/Tabs';
 import { API_BASE_URL } from '../config/api';
 import { saveEarnings } from '../services/earningsService';
 import { getAuthToken } from '../config/supabase';
@@ -44,12 +44,12 @@ const PIACalculator = () => {
     const [primaryXmlUploadSuccess, setPrimaryXmlUploadSuccess] = useState(null);
     const [primaryStatementDate, setPrimaryStatementDate] = useState(null);
     const [primaryPersonInfo, setPrimaryPersonInfo] = useState(null);
-    const [primaryWhatIfScenario, setPrimaryWhatIfScenario] = useState(null);
+    const [, setPrimaryWhatIfScenario] = useState(null);
     const [primaryWhatIfResult, setPrimaryWhatIfResult] = useState(null);
     const [primaryShowWhatIfModal, setPrimaryShowWhatIfModal] = useState(false);
     const [primaryWhatIfEarnings, setPrimaryWhatIfEarnings] = useState([]);
-    const [primaryUploadedFileName, setPrimaryUploadedFileName] = useState(null);
-    const [primaryUploadedFileHash, setPrimaryUploadedFileHash] = useState(null);
+    const [, setPrimaryUploadedFileName] = useState(null);
+    const [, setPrimaryUploadedFileHash] = useState(null);
 
     // SPOUSE State management - use partner DOB if available
     const getInitialSpouseBirthYear = () => {
@@ -72,12 +72,12 @@ const PIACalculator = () => {
     const [spouseXmlUploadSuccess, setSpouseXmlUploadSuccess] = useState(null);
     const [spouseStatementDate, setSpouseStatementDate] = useState(null);
     const [spousePersonInfo, setSpousePersonInfo] = useState(null);
-    const [spouseWhatIfScenario, setSpouseWhatIfScenario] = useState(null);
+    const [, setSpouseWhatIfScenario] = useState(null);
     const [spouseWhatIfResult, setSpouseWhatIfResult] = useState(null);
     const [spouseShowWhatIfModal, setSpouseShowWhatIfModal] = useState(false);
     const [spouseWhatIfEarnings, setSpouseWhatIfEarnings] = useState([]);
-    const [spouseUploadedFileName, setSpouseUploadedFileName] = useState(null);
-    const [spouseUploadedFileHash, setSpouseUploadedFileHash] = useState(null);
+    const [, setSpouseUploadedFileName] = useState(null);
+    const [, setSpouseUploadedFileHash] = useState(null);
 
     // Helper: Get person-specific state based on active tab
     const isPrimary = activeTab === 'primary';
@@ -103,7 +103,6 @@ const PIACalculator = () => {
     const setStatementDate = isPrimary ? setPrimaryStatementDate : setSpouseStatementDate;
     const personInfo = isPrimary ? primaryPersonInfo : spousePersonInfo;
     const setPersonInfo = isPrimary ? setPrimaryPersonInfo : setSpousePersonInfo;
-    const whatIfScenario = isPrimary ? primaryWhatIfScenario : spouseWhatIfScenario;
     const setWhatIfScenario = isPrimary ? setPrimaryWhatIfScenario : setSpouseWhatIfScenario;
     const whatIfResult = isPrimary ? primaryWhatIfResult : spouseWhatIfResult;
     const setWhatIfResult = isPrimary ? setPrimaryWhatIfResult : setSpouseWhatIfResult;
@@ -111,9 +110,7 @@ const PIACalculator = () => {
     const setShowWhatIfModal = isPrimary ? setPrimaryShowWhatIfModal : setSpouseShowWhatIfModal;
     const whatIfEarnings = isPrimary ? primaryWhatIfEarnings : spouseWhatIfEarnings;
     const setWhatIfEarnings = isPrimary ? setPrimaryWhatIfEarnings : setSpouseWhatIfEarnings;
-    const uploadedFileName = isPrimary ? primaryUploadedFileName : spouseUploadedFileName;
     const setUploadedFileName = isPrimary ? setPrimaryUploadedFileName : setSpouseUploadedFileName;
-    const uploadedFileHash = isPrimary ? primaryUploadedFileHash : spouseUploadedFileHash;
     const setUploadedFileHash = isPrimary ? setPrimaryUploadedFileHash : setSpouseUploadedFileHash;
 
     // Get tab labels from user context
@@ -173,6 +170,10 @@ const PIACalculator = () => {
             }
             setEarningsHistory(initialEarnings);
         }
+        // earningsHistory is deliberately excluded: it's read only to decide whether to
+        // (re)initialize, and the initial fill is all-zero, so including it here would
+        // re-trigger this effect on its own write and loop.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [birthYear, activeTab]); // Re-run when birthYear changes or tab switches
 
     // Calculate PIA from earnings
@@ -522,7 +523,8 @@ const PIACalculator = () => {
         );
     };
 
-    // Bulk import from CSV or text
+    // Bulk import from CSV or text — built but not yet wired to a UI trigger; kept for when that lands
+    // eslint-disable-next-line no-unused-vars
     const handleBulkImport = (text) => {
         try {
             const lines = text.trim().split('\n');
@@ -562,9 +564,6 @@ const PIACalculator = () => {
             maximumFractionDigits: 0
         }).format(value);
     };
-
-    // Get the active PIA value
-    const activePIA = useCalculatedPIA && calculatedResult ? calculatedResult.pia : ssaPIA;
 
     // Count non-zero years (exclude projected/future years — those are
     // assumptions carried forward for planning, not years the user actually

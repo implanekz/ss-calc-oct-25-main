@@ -167,7 +167,7 @@ const RetirementSpendingApp = () => {
   });
   const [showTable, setShowTable] = useState(false);
   // Store the original spending need so Reset can restore it
-  const [originalSpendingNeed, setOriginalSpendingNeed] = useState(DEFAULTS.withdrawalAmount);
+  const [originalSpendingNeed] = useState(DEFAULTS.withdrawalAmount);
 
   const scenario = useMemo(() => computeScenario(inputs), [inputs]);
 

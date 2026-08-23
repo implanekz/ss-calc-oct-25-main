@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const RetirementBudgetWorksheet = () => {
     const [viewMode, setViewMode] = useState('simple'); // 'simple' or 'detailed'

@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
 import ThreeBarChart from './ThreeBarChart';
 import MonthYearControls from './MonthYearControls';
-import OutputDisplay from './OutputDisplay';
 import useBenefitCalculations from '../../hooks/useBenefitCalculations';
 
 /**
  * OneMonthAtATimeModal Component
- * 
+ *
  * Main container for the "One Month at a Time" feature
  * Integrates all MVP components:
  * - ThreeBarChart: Visual representation of benefits
  * - MonthYearControls: Increment/decrement controls
- * - OutputDisplay: Shows monetary value
  * - useBenefitCalculations: Calculation logic
  * 
  * Part of the "One Month at a Time" feature - MVP Sprint 5
@@ -81,7 +79,6 @@ const OneMonthAtATimeModal = ({
   // Calculate gains
   const monthlyGainFromBaseline = currentBenefit - baselineBenefit;
   const potentialRemainingGain = maxBenefit - currentBenefit;
-  const totalPossibleGain = maxBenefit - baselineBenefit;
 
   // Calculate cumulative lifetime income
   const calculateCumulativeIncome = (monthlyBenefit, filingAge, filingMonths, endAge) => {

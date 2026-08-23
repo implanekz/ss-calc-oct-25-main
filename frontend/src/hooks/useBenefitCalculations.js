@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getFra, delayedRetirementCreditFactor, earlyReductionFactor } from '../utils/benefitFormulas';
 
 /**
@@ -25,13 +25,13 @@ const useBenefitCalculations = ({
   // FRA lookup imported from shared module
 
   // Get FRA in years (decimal)
-  const getFRAYears = () => {
+  const getFRAYears = useCallback(() => {
     const fra = getFra(birthYear);
     return fra.years + (fra.months || 0) / 12;
-  };
+  }, [birthYear]);
 
   // Calculate benefit for a specific age in years (decimal)
-  const calculateMonthlyBenefit = (ageYears) => {
+  const calculateMonthlyBenefit = useCallback((ageYears) => {
     const fraYears = getFRAYears();
     
     // Cap age at 70 - SSA delayed credits stop at age 70
@@ -63,7 +63,7 @@ const useBenefitCalculations = ({
     benefit = benefit * inflationAdjustment;
     
     return Math.round(benefit);
-  };
+  }, [getFRAYears, baseBenefitAt62, inflationRate]);
 
   // Pre-calculate all benefits from age 62 to 70 (96 months)
   useEffect(() => {
@@ -84,7 +84,7 @@ const useBenefitCalculations = ({
     };
 
     calculateAllBenefits();
-  }, [baseBenefitAt62, fullRetirementAge, inflationRate, birthYear]);
+  }, [baseBenefitAt62, fullRetirementAge, inflationRate, birthYear, calculateMonthlyBenefit]);
 
   // Get FRA in months from age 62 (for compatibility)
   const getFRAMonths = () => {
