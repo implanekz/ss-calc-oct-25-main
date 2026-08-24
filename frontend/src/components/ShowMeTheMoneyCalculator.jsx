@@ -11,7 +11,7 @@ import { useCalculatorPersistence } from '../hooks/useCalculatorPersistence';
 import { useNavigate } from 'react-router-dom';
 import { OneMonthAtATimeModal } from './OneMonthAtATime';
 import { OurLifelongTimeline } from './OurLifelongTimeline';
-import { isTimelineReachable } from './OurLifelongTimeline/timelineMath';
+import { isTimelineReachable, getHouseholdBucket } from './OurLifelongTimeline/timelineMath';
 import { getFra, monthlyBenefitAtClaim } from '../utils/benefitFormulas';
 import { ageInMonths, calculateProjection, combineProjections } from '../calculators/showMeTheMoney/projections';
 import { applyBenefitCut, calculateAxisRanges } from '../calculators/showMeTheMoney/ssCuts';
@@ -4498,14 +4498,42 @@ const ShowMeTheMoneyCalculator = () => {
                                             ? scenarioData.spouseProjections
                                             : scenarioData.combinedProjections;
 
-                                    // Calculate cumulative since age 70 for each strategy
-                                    // Use age 69 as baseline so age 70 is fully included in "since 70"
-                                    const age69CalendarYear = primaryBirthYear + 69;
-                                    const cumulativeSince70 = (projection) => {
-                                        if (selectedYearAge < 70) return 0;
-                                        const currentCumulative = projection.cumulative[calendarYear] || 0;
-                                        const age69Cumulative = projection.cumulative[age69CalendarYear] || 0;
-                                        return Math.max(0, currentCumulative - age69Cumulative);
+                                    // Cumulative income since each strategy's own start -- not a fixed age-70
+                                    // landmark (the old logic subtracted the primary person's own age-70
+                                    // cumulative from every column, including File at 62, which produced a
+                                    // number with no coherent meaning for that strategy and didn't even match
+                                    // File at 70's own start when the spouse is the later-born one). This
+                                    // matches Our Lifelong Timeline's convention so the two views always agree.
+                                    // - File at 62/70 (combined view): reuse getHouseholdBucket, the exact
+                                    //   function the Timeline itself uses -- it masks to zero until the
+                                    //   later-born spouse also reaches that filing age.
+                                    // - File at 67 (combined view): this column is actually each spouse's own
+                                    //   preferred/chosen filing age (see `preferred` below), not a uniform
+                                    //   "both file at 67" hypothesis, so getHouseholdBucket's single-filingAge
+                                    //   shape doesn't apply -- use the raw preferred-scenario cumulative
+                                    //   directly, same as the Timeline's own "Your Plan" box.
+                                    // - Any single-person view (primary/spouse only): there's no "later
+                                    //   spouse" concept, and calculateProjection's own cumulative dict already
+                                    //   starts at zero before that person's filing year -- use it directly.
+                                    const deathYearNumber = primaryBirthYear + Number(deathAge);
+                                    const cumulativeSinceFiling = (filingAge, projection) => {
+                                        if (activeRecordView === 'primary' || activeRecordView === 'spouse') {
+                                            return projection.cumulative[calendarYear] || 0;
+                                        }
+                                        if (filingAge === 'preferred') {
+                                            return projection.cumulative[calendarYear] || 0;
+                                        }
+                                        const bucket = getHouseholdBucket({
+                                            filingAge,
+                                            spouse1Pia,
+                                            spouse1Dob,
+                                            spouse2Pia,
+                                            spouse2Dob,
+                                            inflation,
+                                            prematureDeath,
+                                            deathYear: deathYearNumber
+                                        });
+                                        return bucket.cumulative[calendarYear] || 0;
                                     };
 
                                     const strategies = [
@@ -4514,7 +4542,7 @@ const ShowMeTheMoneyCalculator = () => {
                                             color: 'green',
                                             gradient: 'from-green-500 to-green-600',
                                             monthly: projections.age70.monthly[calendarYear] || 0,
-                                            cumulative: cumulativeSince70(projections.age70),
+                                            cumulative: cumulativeSinceFiling(70, projections.age70),
                                             projection: projections.age70,
                                             filingAge: 70,
                                             started: false
@@ -4524,7 +4552,7 @@ const ShowMeTheMoneyCalculator = () => {
                                             color: 'blue',
                                             gradient: 'from-blue-500 to-blue-600',
                                             monthly: projections.preferred.monthly[calendarYear] || 0,
-                                            cumulative: cumulativeSince70(projections.preferred),
+                                            cumulative: cumulativeSinceFiling('preferred', projections.preferred),
                                             projection: projections.preferred,
                                             filingAge: 67,
                                             started: false
@@ -4534,7 +4562,7 @@ const ShowMeTheMoneyCalculator = () => {
                                             color: 'red',
                                             gradient: 'from-red-500 to-red-600',
                                             monthly: projections.age62.monthly[calendarYear] || 0,
-                                            cumulative: cumulativeSince70(projections.age62),
+                                            cumulative: cumulativeSinceFiling(62, projections.age62),
                                             projection: projections.age62,
                                             filingAge: 62,
                                             started: false
@@ -4637,7 +4665,7 @@ const ShowMeTheMoneyCalculator = () => {
                                                     {selectedYearAge >= 70 && (
                                                         <div className="bg-gray-50 rounded-lg p-4">
                                                             <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
-                                                                Cumulative Since Age 70
+                                                                Cumulative Since Filing
                                                             </p>
                                                             <p className={`text-lg font-bold ${strategy.started ? `text-${strategy.color}-600` : 'text-gray-400'}`}>
                                                                 {currencyFormatter.format(Math.round(strategy.cumulative))}
@@ -4699,10 +4727,29 @@ const ShowMeTheMoneyCalculator = () => {
                                         const cumPrev62 = projections.age62.cumulative[prevYear] || 0;
                                         const annual62 = Math.max(0, cumThis62 - cumPrev62);
 
-                                        // Cumulative Since 70 Calculation
-                                        const age69CalendarYear = primaryBirthYear + 69;
-                                        const cumSince70_70 = selectedYearAge < 70 ? 0 : Math.max(0, cumThis70 - (projections.age70.cumulative[age69CalendarYear] || 0));
-                                        const cumSince70_62 = selectedYearAge < 70 ? 0 : Math.max(0, cumThis62 - (projections.age62.cumulative[age69CalendarYear] || 0));
+                                        // Cumulative since each strategy's own filing -- same convention as the
+                                        // strategy cards above and Our Lifelong Timeline (see the detailed
+                                        // comment in the cards' IIFE above for why this replaced a fixed
+                                        // age-70 landmark).
+                                        const deathYearNumber = primaryBirthYear + Number(deathAge);
+                                        const cumulativeSinceFiling = (filingAge, projection) => {
+                                            if (activeRecordView === 'primary' || activeRecordView === 'spouse') {
+                                                return projection.cumulative[calendarYear] || 0;
+                                            }
+                                            const bucket = getHouseholdBucket({
+                                                filingAge,
+                                                spouse1Pia,
+                                                spouse1Dob,
+                                                spouse2Pia,
+                                                spouse2Dob,
+                                                inflation,
+                                                prematureDeath,
+                                                deathYear: deathYearNumber
+                                            });
+                                            return bucket.cumulative[calendarYear] || 0;
+                                        };
+                                        const cumTotal70 = cumulativeSinceFiling(70, projections.age70);
+                                        const cumTotal62 = cumulativeSinceFiling(62, projections.age62);
 
 
                                         if (selectedYearAge < 62) {
@@ -4712,7 +4759,7 @@ const ShowMeTheMoneyCalculator = () => {
                                         } else if (monthly70 > monthly62) {
                                             const monthlyDiff = monthly70 - monthly62;
                                             const annualDiff = annual70 - annual62;
-                                            const cumSince70Diff = cumSince70_70 - cumSince70_62;
+                                            const cumTotalDiff = cumTotal70 - cumTotal62;
                                             const percentIncrease = ((monthlyDiff / monthly62) * 100).toFixed(0);
 
                                             return (
@@ -4721,7 +4768,7 @@ const ShowMeTheMoneyCalculator = () => {
                                                     <ul className="list-disc pl-5 space-y-1">
                                                         <li>{currencyFormatter.format(Math.round(monthlyDiff))} more per month ({percentIncrease}% increase) compared to filing at 62.</li>
                                                         <li>{currencyFormatter.format(Math.round(annualDiff))} more per year compared to filing at 62.</li>
-                                                        <li>{currencyFormatter.format(Math.round(cumSince70Diff))} more since age 70 compared to filing at 62.</li>
+                                                        <li>{currencyFormatter.format(Math.round(cumTotalDiff))} more cumulative since filing, compared to filing at 62.</li>
                                                     </ul>
                                                 </>
                                             );
