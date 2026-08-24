@@ -1,5 +1,6 @@
 import { ageToCalendarYear, calendarYearToAge, getAxisEndYear, AXIS_END_AGE, getHouseholdBucket, getHouseholdBuckets, BUCKET_FILING_AGES, formatCurrency, formatBucketValue, getAnnualIncome, getMilestonesForPerson, isTimelineReachable, buildNarrative } from './timelineMath';
 import { calculateProjection, combineProjections } from '../../calculators/showMeTheMoney/projections';
+import { buildFilingComparisonBoxes } from './timelineMath';
 
 describe('age/calendar-year conversion', () => {
   test('converts age to the calendar year it falls in', () => {
@@ -59,8 +60,8 @@ describe('household cumulative buckets', () => {
     inflation: 0
   };
 
-  test('BUCKET_FILING_AGES is exactly 62, 67, 70', () => {
-    expect(BUCKET_FILING_AGES).toEqual([62, 67, 70]);
+  test('BUCKET_FILING_AGES is exactly 62 and 70', () => {
+    expect(BUCKET_FILING_AGES).toEqual([62, 70]);
   });
 
   test('bucket start year is the later spouse\'s year for that filing age', () => {
@@ -115,10 +116,10 @@ describe('household cumulative buckets', () => {
     expect(bucket70.cumulative[2040]).toBe(5580 * 12);
   });
 
-  test('getHouseholdBuckets returns all three ages in order', () => {
+  test('getHouseholdBuckets returns both ages in order', () => {
     const buckets = getHouseholdBuckets(household);
-    expect(buckets.map(b => b.filingAge)).toEqual([62, 67, 70]);
-    expect(buckets[2].startYear).toBe(2040);  // Later spouse (birthYear 1970) + filingAge 70 = 2040
+    expect(buckets.map(b => b.filingAge)).toEqual([62, 70]);
+    expect(buckets[1].startYear).toBe(2040);  // Later spouse (birthYear 1970) + filingAge 70 = 2040
   });
 
   test('startYear boundary aligns with combineProjections keys when inflation is nonzero', () => {
@@ -205,9 +206,12 @@ describe('premature-death threading into household buckets', () => {
   test('getHouseholdBuckets threads prematureDeath/deathYear through to every bucket', () => {
     const deathYear = 2038;
     const buckets = getHouseholdBuckets({ ...household, prematureDeath: true, deathYear });
-    const bucket67 = buckets.find((b) => b.filingAge === 67);
+    const bucket62 = buckets.find((b) => b.filingAge === 62);
 
-    expect(bucket67.monthly[2038]).toBe(2500);
+    // bucket62's startYear is 2032 (later spouse's 62nd birthday), so 2038 is well within its
+    // active range. Survivor-max from the death year on: max(Ted $2500*0.70=$1750, Wendy
+    // $2000*0.70=$1400) = $1750/mo.
+    expect(bucket62.monthly[2038]).toBe(1750);
   });
 
   test('getHouseholdBucket defaults to no premature-death adjustment when omitted', () => {
@@ -410,5 +414,84 @@ describe('buildNarrative', () => {
       deathYear: 2040
     });
     expect(narrative.survivorNote).toBeUndefined();
+  });
+});
+
+describe('buildFilingComparisonBoxes', () => {
+  // Reuses the Ted/Wendy household fixture: Ted born 1965-06-15 PIA $2500, Wendy born
+  // 1970-06-15 PIA $2000, inflation 0. bucket62 startYear = 2032, bucket70 startYear = 2040.
+  const household = {
+    spouse1Pia: 2500,
+    spouse1Dob: '1965-06-15',
+    spouse2Pia: 2000,
+    spouse2Dob: '1970-06-15',
+    inflation: 0
+  };
+
+  test('returns exactly 3 boxes in order: 62, your plan, 70', () => {
+    const buckets = getHouseholdBuckets(household);
+    const boxes = buildFilingComparisonBoxes({
+      buckets,
+      year: 2032,
+      think: '$3,150/month · $37,800/year',
+      cumulativeIncome: 100000
+    });
+
+    expect(boxes).toHaveLength(3);
+    expect(boxes.map((b) => b.label)).toEqual(['If both filed at 62', 'Your Plan', 'If both filed at 70']);
+  });
+
+  test('the 62 box is muted with a "starts <year>" bigText before its startYear', () => {
+    const buckets = getHouseholdBuckets(household);
+    const boxes = buildFilingComparisonBoxes({ buckets, year: 2030, think: '$0/month · $0/year', cumulativeIncome: 0 });
+
+    expect(boxes[0]).toEqual({ label: 'If both filed at 62', bigText: 'starts 2032', smallText: null, muted: true });
+  });
+
+  test('the 62 box shows monthly/yearly big text and the cumulative total small once started', () => {
+    const buckets = getHouseholdBuckets(household);
+    const boxes = buildFilingComparisonBoxes({ buckets, year: 2032, think: '$0/month · $0/year', cumulativeIncome: 0 });
+
+    // Both spouses file at 62: Ted $2500*0.70=$1750 + Wendy $2000*0.70=$1400 = $3150/mo.
+    expect(boxes[0]).toEqual({
+      label: 'If both filed at 62',
+      bigText: '$3,150/month · $37,800/year',
+      smallText: '$37,800',
+      muted: false
+    });
+  });
+
+  test('the 70 box mirrors the same muted/unmuted behavior around its own startYear (2040)', () => {
+    const buckets = getHouseholdBuckets(household);
+    const mutedBoxes = buildFilingComparisonBoxes({ buckets, year: 2039, think: '', cumulativeIncome: 0 });
+    expect(mutedBoxes[2]).toEqual({ label: 'If both filed at 70', bigText: 'starts 2040', smallText: null, muted: true });
+
+    const activeBoxes = buildFilingComparisonBoxes({ buckets, year: 2040, think: '', cumulativeIncome: 0 });
+    // Delayed to 70: 124% of PIA. Ted $3100 + Wendy $2480 = $5580/mo.
+    expect(activeBoxes[2]).toEqual({
+      label: 'If both filed at 70',
+      bigText: '$5,580/month · $66,960/year',
+      smallText: '$66,960',
+      muted: false
+    });
+  });
+
+  test('the middle box always uses the passed-in think/cumulativeIncome directly, never muted', () => {
+    const buckets = getHouseholdBuckets(household);
+    // Use a cursor year before either bucket has started, to confirm the middle box is
+    // independent of bucket startYears entirely.
+    const boxes = buildFilingComparisonBoxes({
+      buckets,
+      year: 2027,
+      think: '$1,750/month · $21,000/year',
+      cumulativeIncome: 21000
+    });
+
+    expect(boxes[1]).toEqual({
+      label: 'Your Plan',
+      bigText: '$1,750/month · $21,000/year',
+      smallText: '$21,000',
+      muted: false
+    });
   });
 });

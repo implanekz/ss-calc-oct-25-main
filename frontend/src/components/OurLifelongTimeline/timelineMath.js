@@ -13,8 +13,10 @@ export const calendarYearToAge = (birthYear, year) => year - birthYear;
 export const getAxisEndYear = (birthYearPrimary, birthYearSpouse) =>
   Math.max(birthYearPrimary, birthYearSpouse) + AXIS_END_AGE;
 
-// The three claiming-strategy hypotheticals shown in the timeline cursor's tooltip.
-export const BUCKET_FILING_AGES = [62, 67, 70];
+// The two claiming-strategy extremes shown in the timeline cursor's tooltip, bookending the
+// household's actual/preferred scenario (shown separately, not as a third fixed hypothetical --
+// see buildFilingComparisonBoxes).
+export const BUCKET_FILING_AGES = [62, 70];
 
 export const getHouseholdBucket = ({
   filingAge,
@@ -174,4 +176,28 @@ export const buildNarrative = ({
       : undefined;
 
   return { feel, milestoneNotes, think, doLine, survivorNote };
+};
+
+export const buildFilingComparisonBoxes = ({ buckets, year, think, cumulativeIncome }) => {
+  const [bucket62, bucket70] = buckets;
+
+  const bucketBox = (bucket, label) => {
+    const { display: cumulativeDisplay, muted } = formatBucketValue(bucket, year);
+    if (muted) {
+      return { label, bigText: cumulativeDisplay, smallText: null, muted: true };
+    }
+    const monthly = bucket.monthly[year] ?? 0;
+    return {
+      label,
+      bigText: `${formatCurrency(monthly)}/month · ${formatCurrency(getAnnualIncome(monthly))}/year`,
+      smallText: cumulativeDisplay,
+      muted: false
+    };
+  };
+
+  return [
+    bucketBox(bucket62, 'If both filed at 62'),
+    { label: 'Your Plan', bigText: think, smallText: formatCurrency(cumulativeIncome), muted: false },
+    bucketBox(bucket70, 'If both filed at 70')
+  ];
 };
