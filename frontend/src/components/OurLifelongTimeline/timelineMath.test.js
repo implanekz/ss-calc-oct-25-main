@@ -381,7 +381,7 @@ describe('buildNarrative', () => {
       prematureDeath: true,
       deathYear: 2040
     });
-    expect(narrative.survivorNote).toBe('This reflects survivor benefits, assuming Demo has passed by now.');
+    expect(narrative.survivorNote).toBe('This reflects survivor benefits — the household now receives the larger of the two benefits.');
   });
 
   test('premature death on, cursor year after deathYear -> survivorNote present', () => {
@@ -393,7 +393,7 @@ describe('buildNarrative', () => {
       prematureDeath: true,
       deathYear: 2040
     });
-    expect(narrative.survivorNote).toBe('This reflects survivor benefits, assuming Demo has passed by now.');
+    expect(narrative.survivorNote).toBe('This reflects survivor benefits — the household now receives the larger of the two benefits.');
   });
 
   test('premature death off -> survivorNote always absent regardless of year', () => {

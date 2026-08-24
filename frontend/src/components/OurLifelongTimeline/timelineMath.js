@@ -170,7 +170,7 @@ export const buildNarrative = ({
 
   const survivorNote =
     prematureDeath && year >= deathYear
-      ? `This reflects survivor benefits, assuming ${primaryLabel} has passed by now.`
+      ? 'This reflects survivor benefits — the household now receives the larger of the two benefits.'
       : undefined;
 
   return { feel, milestoneNotes, think, doLine, survivorNote };
