@@ -75,11 +75,13 @@ const OurLifelongTimeline = ({
             so it needs >= 20px of clearance above the bars -- pt-8 (32px) covers that.
           - TimelineCursor's tooltip is anchored top-4 (16px) below the cursor line and is
             taller than the two stacked phase bars (~136px) that establish this container's
-            height -- pb-32 (128px) reserves enough room for the tooltip's full rendered
-            height (~200px of text/buckets) to land inside the scrollable area instead of
-            being clipped at the bottom.
+            height -- pb-64 (256px) reserves enough room for the tooltip's full rendered
+            height on its worst case (a milestone year with a survivor note active: Feel line
+            + milestone note(s) + the large dollar reveal + a Do line + a survivor note +
+            the 62/67/70 comparison table, measured up to ~351px) to land inside the
+            scrollable area instead of being clipped at the bottom.
       */}
-      <div className="w-full overflow-x-auto pt-8 pb-32">
+      <div className="w-full overflow-x-auto pt-8 pb-64">
         <div className="relative" style={{ width: `${(axisEndYear - axisStartYear) * PX_PER_YEAR}px` }}>
           <div className="mb-8">
             <CalendarPhaseBar

@@ -135,7 +135,7 @@ const CalendarPhaseBar = ({
               key={`${m.kind}-${m.year}`}
               type="button"
               onClick={() => onMilestoneClick(m.year)}
-              className="absolute top-0 bottom-0 w-6 flex flex-col items-center bg-transparent border-0 p-0 cursor-pointer"
+              className="absolute top-0 bottom-0 w-6 z-10 flex flex-col items-center bg-transparent border-0 p-0 cursor-pointer"
               style={{ left: `calc(${yearToPercent(m.year)}% - 12px)` }}
               title={m.label}
             >
