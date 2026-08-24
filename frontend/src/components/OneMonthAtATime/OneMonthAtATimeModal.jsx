@@ -18,11 +18,11 @@ import useBenefitCalculations from '../../hooks/useBenefitCalculations';
 const OneMonthAtATimeModal = ({
   isOpen = false,
   onClose,
-  pia = 2500,
+  pia = 3571,       // True PIA at FRA; ~$2,500/month at a 62-year-old claim
   inflationRate = 0.03,
   dob = '1960-01-01',
   isMarried = false,
-  spousePia = 2000,
+  spousePia = 2857,  // True PIA at FRA; ~$2,000/month at a 62-year-old claim
   spouseDob = '1962-01-01'
 }) => {
   // State for current selection - separate for each spouse when married

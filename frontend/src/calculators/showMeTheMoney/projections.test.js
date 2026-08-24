@@ -67,6 +67,34 @@ describe('show me the money projections', () => {
     expect(wendyProjection.cumulative[2032]).toBeCloseTo(1400 * 7, 2);
   });
 
+  test('survivor-year monthly and annual come from the same winning spouse, even mid-partial-year', () => {
+    // Ted (primary): PIA 1400, files at 62, born 1965 -- already a full year into collecting by
+    // 2032. Wendy (spouse): PIA 1750, files at 62, born 1970 -- 2032 is HER partial first year
+    // (June birthday, 7 months). Wendy's MONTHLY rate ($1,225) is higher than Ted's ($980), but
+    // because her year is partial, her ANNUAL contribution ($1,225*7=$8,575) is smaller than
+    // Ted's full-year one ($980*12=$11,760) -- a naive independent max(annual) would credit
+    // Ted's amount to the household even though Wendy is the higher earner who should be the
+    // survivor benefit here.
+    const tedProjection = calculateProjection({
+      pia: 1400, dob: '1965-06-15', filingYear: 62, filingMonth: 0, inflationRate: 0, asOfDate: new Date('2032-06-15')
+    });
+    const wendyProjection = calculateProjection({
+      pia: 1750, dob: '1970-06-15', filingYear: 62, filingMonth: 0, inflationRate: 0, asOfDate: new Date('2032-06-15')
+    });
+
+    const combined = combineProjections({
+      primaryProjection: tedProjection,
+      spouseProjection: wendyProjection,
+      isMarried: true,
+      prematureDeath: true,
+      deathYear: 2032
+    });
+
+    expect(combined.monthly[2032]).toBe(1225); // Wendy's higher rate wins
+    const annual2032 = combined.cumulative[2032] - (combined.cumulative[2031] || 0);
+    expect(annual2032).toBeCloseTo(1225 * 7, 2); // Wendy's own (partial) annual, not Ted's
+  });
+
   test('combines spouse projections and preserves survivor-style max after death year', () => {
     const primaryProjection = {
       monthly: { 2030: 2000, 2031: 2100 },

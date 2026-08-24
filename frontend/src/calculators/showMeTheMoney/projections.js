@@ -105,8 +105,13 @@ export const combineProjections = ({
   allYears.forEach((year) => {
     const primaryMonthly = primaryProjection.monthly?.[year] || 0;
     const spouseMonthly = spouseProjection.monthly?.[year] || 0;
+    // In the survivor year, the monthly and annual figures must come from the SAME winning
+    // side -- picking each independently (e.g. max-monthly from one spouse but max-annual from
+    // the other, which can happen when one side is mid-partial-year) would show a monthly rate
+    // that doesn't match the year's own cumulative delta.
+    const survivorIsPrimary = primaryMonthly >= spouseMonthly;
     const combinedMonthly = prematureDeath && year >= deathYear
-      ? Math.max(primaryMonthly, spouseMonthly)
+      ? (survivorIsPrimary ? primaryMonthly : spouseMonthly)
       : primaryMonthly + spouseMonthly;
 
     // Derive each side's dollars received THIS year from the delta of its own cumulative
@@ -119,7 +124,7 @@ export const combineProjections = ({
     const primaryAnnual = primaryCumulativeThis - prevPrimaryCumulative;
     const spouseAnnual = spouseCumulativeThis - prevSpouseCumulative;
     const combinedAnnual = prematureDeath && year >= deathYear
-      ? Math.max(primaryAnnual, spouseAnnual)
+      ? (survivorIsPrimary ? primaryAnnual : spouseAnnual)
       : primaryAnnual + spouseAnnual;
 
     monthly[year] = combinedMonthly;

@@ -20,9 +20,11 @@ const useBenefitCalculations = ({
   inflationRate = 0.03
 }) => {
   const birthYear = new Date(dob).getFullYear();
-  // A malformed dob would otherwise silently zero every figure below (NaN key misses every
-  // dict lookup) -- fall back to a birth year calculateProjection can still compute against.
-  const safeDob = Number.isNaN(birthYear) ? '1960-01-01' : dob;
+  // A malformed or missing dob would otherwise silently zero every figure below (an
+  // unparseable date yields NaN, which misses every dict lookup; `null`/`undefined` parses as
+  // the 1970 epoch instead of failing loudly) -- fall back to a birth year calculateProjection
+  // can still compute against.
+  const safeDob = !dob || Number.isNaN(birthYear) ? '1960-01-01' : dob;
 
   // Monthly benefit if filing at this exact age/month. Reads the projection's own
   // claimingCalendarYear rather than assuming birthYear + years -- a late filingMonth can
