@@ -4,6 +4,13 @@ import React, { useRef, useEffect } from 'react';
 const MIN_AGE = 62;
 const MAX_AGE = 95;
 
+const MILESTONE_STYLES = {
+  age62: { color: '#3B82F6', chip: '62' },
+  fra: { color: '#8B5CF6', chip: 'FRA' },
+  chosenFilingAge: { color: '#10B981', chip: 'Filed' },
+  age70: { color: '#F59E0B', chip: '70' }
+};
+
 const CalendarPhaseBar = ({
   label,
   birthYear,
@@ -18,7 +25,8 @@ const CalendarPhaseBar = ({
   setIsDraggingGoGo,
   isDraggingSlowGo,
   setIsDraggingSlowGo,
-  milestones
+  milestones,
+  onMilestoneClick
 }) => {
   const trackRef = useRef(null);
   const totalYears = axisEndYear - axisStartYear;
@@ -115,17 +123,36 @@ const CalendarPhaseBar = ({
       {/* Milestone markers, positioned on the full shared track independent of the bar itself.
           Markers for already-past years (common for this app's 58+ target users) would compute
           a negative percent and sit off-canvas to the left of the overflow-x-auto track with no
-          way to scroll to them -- skip rendering those rather than leave an unreachable marker. */}
+          way to scroll to them -- skip rendering those rather than leave an unreachable marker.
+          Clicking a marker snaps the shared inspection cursor to that year via onMilestoneClick
+          -- the same cursorYear state the drag cursor already writes to, not a parallel state. */}
       {milestones
         .filter((m) => yearToPercent(m.year) >= 0)
-        .map((m) => (
-          <div
-            key={`${m.kind}-${m.year}`}
-            className="absolute top-0 bottom-0 w-px bg-gray-300"
-            style={{ left: `${yearToPercent(m.year)}%` }}
-            title={m.label}
-          />
-        ))}
+        .map((m) => {
+          const style = MILESTONE_STYLES[m.kind];
+          return (
+            <button
+              key={`${m.kind}-${m.year}`}
+              type="button"
+              onClick={() => onMilestoneClick(m.year)}
+              className="absolute top-0 bottom-0 flex flex-col items-center bg-transparent border-0 p-0 cursor-pointer"
+              style={{ left: `${yearToPercent(m.year)}%` }}
+              title={m.label}
+            >
+              <span
+                className="absolute -top-4 w-2.5 h-2.5 rounded-full border border-white shadow"
+                style={{ backgroundColor: style.color }}
+              />
+              <span className="w-px h-full" style={{ backgroundColor: style.color }} />
+              <span
+                className="absolute -top-8 whitespace-nowrap text-[10px] font-bold px-1 rounded text-white"
+                style={{ backgroundColor: style.color }}
+              >
+                {style.chip}
+              </span>
+            </button>
+          );
+        })}
 
       {/* The 62-95 phase bar itself, absolutely positioned within the shared track */}
       <div
