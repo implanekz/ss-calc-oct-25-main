@@ -1,6 +1,6 @@
 // frontend/src/components/OurLifelongTimeline/TimelineCursor.jsx
 import React, { useRef, useState, useEffect } from 'react';
-import { formatCurrency, formatBucketValue, getAnnualIncome } from './timelineMath';
+import { formatCurrency, formatBucketValue, buildNarrative } from './timelineMath';
 
 const TimelineCursor = ({
   axisStartYear,
@@ -13,7 +13,11 @@ const TimelineCursor = ({
   spouseLabel,
   spouseAge,
   monthlyIncome,
-  buckets
+  buckets,
+  primaryMilestones,
+  spouseMilestones,
+  prematureDeath,
+  deathYear
 }) => {
   const trackRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -46,6 +50,19 @@ const TimelineCursor = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDragging]);
 
+  const narrative = buildNarrative({
+    year,
+    primaryLabel,
+    primaryAge,
+    spouseLabel,
+    spouseAge,
+    primaryMilestones,
+    spouseMilestones,
+    monthlyIncome,
+    prematureDeath,
+    deathYear
+  });
+
   return (
     <div
       ref={trackRef}
@@ -63,14 +80,30 @@ const TimelineCursor = ({
         <div className="absolute -top-2 -left-1.5 w-3 h-3 rounded-full bg-green-500 shadow" />
 
         <div className="absolute top-4 left-3 w-64 rounded-lg border border-gray-200 bg-white p-3 shadow-lg text-sm">
-          <div className="font-bold text-gray-800 mb-1">{year}</div>
-          <div className="text-gray-600 mb-2">
-            {primaryLabel}: {primaryAge} &nbsp;&middot;&nbsp; {spouseLabel}: {spouseAge}
-          </div>
-          <div className="mb-2">
-            <div>Monthly Income: <span className="font-semibold">{formatCurrency(monthlyIncome)}</span></div>
-            <div>Annual Income: <span className="font-semibold">{formatCurrency(getAnnualIncome(monthlyIncome))}</span></div>
-          </div>
+          <div className="font-bold text-gray-800 mb-1">{narrative.feel}</div>
+
+          {narrative.milestoneNotes.length > 0 && (
+            <div className="mb-2 space-y-1">
+              {narrative.milestoneNotes.map((note) => (
+                <div key={note} className="text-xs font-semibold text-amber-800 bg-amber-50 rounded px-2 py-1">
+                  {note}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="text-xl font-extrabold text-primary-700 mb-1">{narrative.think}</div>
+
+          {narrative.doLine && (
+            <div className="text-xs italic text-gray-600 mb-2">{narrative.doLine}</div>
+          )}
+
+          {narrative.survivorNote && (
+            <div className="text-xs text-gray-500 bg-gray-50 border-l-2 border-gray-300 rounded px-2 py-1 mb-2">
+              {narrative.survivorNote}
+            </div>
+          )}
+
           <div className="border-t border-gray-100 pt-2 space-y-1">
             {buckets.map((bucket) => {
               const { display, muted } = formatBucketValue(bucket, year);
