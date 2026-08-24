@@ -12,8 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { OneMonthAtATimeModal } from './OneMonthAtATime';
 import { OurLifelongTimeline } from './OurLifelongTimeline';
 import { isTimelineReachable, getHouseholdBucket } from './OurLifelongTimeline/timelineMath';
-import { getFra, monthlyBenefitAtClaim } from '../utils/benefitFormulas';
-import { ageInMonths, calculateProjection, combineProjections } from '../calculators/showMeTheMoney/projections';
+import { calculateProjection, combineProjections } from '../calculators/showMeTheMoney/projections';
 import { applyBenefitCut, calculateAxisRanges } from '../calculators/showMeTheMoney/ssCuts';
 import {
     createScenario,
@@ -5013,40 +5012,12 @@ const ShowMeTheMoneyCalculator = () => {
             <OneMonthAtATimeModal
                 isOpen={showOneMonthModal}
                 onClose={() => setShowOneMonthModal(false)}
-                baseBenefitAt62={(() => {
-                    if (!spouse1Pia) return 2500;
-                    const birthYear = new Date(spouse1Dob).getFullYear();
-                    const fra = getFra(birthYear);
-                    const fraYears = fra.years + (fra.months || 0) / 12;
-                    const currentAgeMonths = ageInMonths(new Date(spouse1Dob), new Date());
-                    const currentAgeYears = currentAgeMonths / 12;
-                    return monthlyBenefitAtClaim({
-                        piaFRA: spouse1Pia,
-                        claimAgeYears: 62,
-                        currentAgeYears,
-                        rate: inflation,
-                        fraYears
-                    });
-                })()}
+                pia={spouse1Pia || 2500}
+                dob={spouse1Dob}
                 inflationRate={inflation}
-                birthYear={new Date(spouse1Dob).getFullYear()}
                 isMarried={isMarried}
-                spouseBenefitAt62={(() => {
-                    if (!isMarried || !spouse2Pia) return 2000;
-                    const birthYear = new Date(spouse2Dob).getFullYear();
-                    const fra = getFra(birthYear);
-                    const fraYears = fra.years + (fra.months || 0) / 12;
-                    const currentAgeMonths = ageInMonths(new Date(spouse2Dob), new Date());
-                    const currentAgeYears = currentAgeMonths / 12;
-                    return monthlyBenefitAtClaim({
-                        piaFRA: spouse2Pia,
-                        claimAgeYears: 62,
-                        currentAgeYears,
-                        rate: inflation,
-                        fraYears
-                    });
-                })()}
-                spouseBirthYear={new Date(spouse2Dob).getFullYear()}
+                spousePia={(isMarried && spouse2Pia) || 2000}
+                spouseDob={spouse2Dob}
             />
         </div >
     );

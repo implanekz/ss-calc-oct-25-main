@@ -18,12 +18,12 @@ import useBenefitCalculations from '../../hooks/useBenefitCalculations';
 const OneMonthAtATimeModal = ({
   isOpen = false,
   onClose,
-  baseBenefitAt62 = 2500,
+  pia = 2500,
   inflationRate = 0.03,
-  birthYear = 1960,
+  dob = '1960-01-01',
   isMarried = false,
-  spouseBenefitAt62 = 2000,
-  spouseBirthYear = 1962
+  spousePia = 2000,
+  spouseDob = '1962-01-01'
 }) => {
   // State for current selection - separate for each spouse when married
   const [primaryAge, setPrimaryAge] = useState(62);
@@ -36,17 +36,17 @@ const OneMonthAtATimeModal = ({
 
   // Get benefit calculations for primary
   const primaryCalcs = useBenefitCalculations({
-    baseBenefitAt62,
+    pia,
     inflationRate,
-    birthYear
+    dob
   });
 
   // Get benefit calculations for spouse - always call hook (React rules)
   // We just won't use it if not married
   const spouseCalcs = useBenefitCalculations({
-    baseBenefitAt62: spouseBenefitAt62,
+    pia: spousePia,
     inflationRate,
-    birthYear: spouseBirthYear
+    dob: spouseDob
   });
 
   // Handle age change from controls
@@ -80,19 +80,16 @@ const OneMonthAtATimeModal = ({
   const monthlyGainFromBaseline = currentBenefit - baselineBenefit;
   const potentialRemainingGain = maxBenefit - currentBenefit;
 
-  // Calculate cumulative lifetime income
-  const calculateCumulativeIncome = (monthlyBenefit, filingAge, filingMonths, endAge) => {
-    const startAgeInMonths = filingAge * 12 + filingMonths;
-    const endAgeInMonths = endAge * 12;
-    const monthsOfPayment = endAgeInMonths - startAgeInMonths;
-    return monthsOfPayment > 0 ? monthlyBenefit * monthsOfPayment : 0;
-  };
-
-  const primaryCumulativeIncome = calculateCumulativeIncome(primaryCurrent, primaryAge, primaryMonths, longevityAge);
-  const spouseCumulativeIncome = includeSpouse ? calculateCumulativeIncome(spouseCurrent, spouseAge, spouseMonths, longevityAge) : 0;
+  // Cumulative lifetime income through longevityAge -- delegates to the shared
+  // calculateProjection() engine (same one used everywhere else in the app), so this
+  // correctly compounds COLA on the benefit each year in retirement rather than a flat
+  // monthly-times-months estimate.
+  const primaryCumulativeIncome = primaryCalcs.getCumulativeIncome(primaryAge, primaryMonths, longevityAge);
+  const spouseCumulativeIncome = includeSpouse ? spouseCalcs.getCumulativeIncome(spouseAge, spouseMonths, longevityAge) : 0;
   const totalCumulativeIncome = primaryCumulativeIncome + spouseCumulativeIncome;
 
-  const baselineCumulativeIncome = calculateCumulativeIncome(baselineBenefit, 62, 0, longevityAge);
+  const baselineCumulativeIncome = primaryCalcs.getCumulativeIncome(62, 0, longevityAge)
+    + (includeSpouse ? spouseCalcs.getCumulativeIncome(62, 0, longevityAge) : 0);
   const cumulativeGain = totalCumulativeIncome - baselineCumulativeIncome;
 
   if (!isOpen) return null;
