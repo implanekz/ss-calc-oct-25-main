@@ -428,7 +428,7 @@ describe('buildFilingComparisonBoxes', () => {
     inflation: 0
   };
 
-  test('returns exactly 3 boxes in order: 62, your plan, 70', () => {
+  test('returns exactly 3 boxes in order: 70, 62, your plan', () => {
     const buckets = getHouseholdBuckets(household);
     const boxes = buildFilingComparisonBoxes({
       buckets,
@@ -438,14 +438,14 @@ describe('buildFilingComparisonBoxes', () => {
     });
 
     expect(boxes).toHaveLength(3);
-    expect(boxes.map((b) => b.label)).toEqual(['If both filed at 62', 'Your Plan', 'If both filed at 70']);
+    expect(boxes.map((b) => b.label)).toEqual(['If both filed at 70', 'If both filed at 62', 'Your Plan']);
   });
 
   test('the 62 box is muted with a "starts <year>" bigText before its startYear', () => {
     const buckets = getHouseholdBuckets(household);
     const boxes = buildFilingComparisonBoxes({ buckets, year: 2030, think: '$0/month · $0/year', cumulativeIncome: 0 });
 
-    expect(boxes[0]).toEqual({ label: 'If both filed at 62', bigText: 'starts 2032', smallText: null, muted: true });
+    expect(boxes[1]).toEqual({ label: 'If both filed at 62', bigText: 'starts 2032', smallText: null, muted: true });
   });
 
   test('the 62 box shows monthly/yearly big text and the cumulative total small once started', () => {
@@ -453,7 +453,7 @@ describe('buildFilingComparisonBoxes', () => {
     const boxes = buildFilingComparisonBoxes({ buckets, year: 2032, think: '$0/month · $0/year', cumulativeIncome: 0 });
 
     // Both spouses file at 62: Ted $2500*0.70=$1750 + Wendy $2000*0.70=$1400 = $3150/mo.
-    expect(boxes[0]).toEqual({
+    expect(boxes[1]).toEqual({
       label: 'If both filed at 62',
       bigText: '$3,150/month · $37,800/year',
       smallText: '$37,800',
@@ -464,11 +464,11 @@ describe('buildFilingComparisonBoxes', () => {
   test('the 70 box mirrors the same muted/unmuted behavior around its own startYear (2040)', () => {
     const buckets = getHouseholdBuckets(household);
     const mutedBoxes = buildFilingComparisonBoxes({ buckets, year: 2039, think: '', cumulativeIncome: 0 });
-    expect(mutedBoxes[2]).toEqual({ label: 'If both filed at 70', bigText: 'starts 2040', smallText: null, muted: true });
+    expect(mutedBoxes[0]).toEqual({ label: 'If both filed at 70', bigText: 'starts 2040', smallText: null, muted: true });
 
     const activeBoxes = buildFilingComparisonBoxes({ buckets, year: 2040, think: '', cumulativeIncome: 0 });
     // Delayed to 70: 124% of PIA. Ted $3100 + Wendy $2480 = $5580/mo.
-    expect(activeBoxes[2]).toEqual({
+    expect(activeBoxes[0]).toEqual({
       label: 'If both filed at 70',
       bigText: '$5,580/month · $66,960/year',
       smallText: '$66,960',
@@ -476,9 +476,9 @@ describe('buildFilingComparisonBoxes', () => {
     });
   });
 
-  test('the middle box always uses the passed-in think/cumulativeIncome directly, never muted', () => {
+  test('the last box always uses the passed-in think/cumulativeIncome directly, never muted', () => {
     const buckets = getHouseholdBuckets(household);
-    // Use a cursor year before either bucket has started, to confirm the middle box is
+    // Use a cursor year before either bucket has started, to confirm the "Your Plan" box is
     // independent of bucket startYears entirely.
     const boxes = buildFilingComparisonBoxes({
       buckets,
@@ -487,7 +487,7 @@ describe('buildFilingComparisonBoxes', () => {
       cumulativeIncome: 21000
     });
 
-    expect(boxes[1]).toEqual({
+    expect(boxes[2]).toEqual({
       label: 'Your Plan',
       bigText: '$1,750/month · $21,000/year',
       smallText: '$21,000',
