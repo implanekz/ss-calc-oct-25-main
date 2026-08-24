@@ -11,6 +11,12 @@ const MILESTONE_STYLES = {
   age70: { color: '#F59E0B', chip: '70' }
 };
 
+// Vertical px offset applied per stack level when two milestones share a year (e.g. a chosen
+// filing age landing on the same year as FRA). A person has at most 4 milestones and only
+// chosenFilingAge is variable, so at most 2 can ever collide -- level 0 and level 1 are the
+// only cases that exist.
+const MARKER_LEVEL_HEIGHT = 48;
+
 const CalendarPhaseBar = ({
   label,
   birthYear,
@@ -126,10 +132,24 @@ const CalendarPhaseBar = ({
           way to scroll to them -- skip rendering those rather than leave an unreachable marker.
           Clicking a marker snaps the shared inspection cursor to that year via onMilestoneClick
           -- the same cursorYear state the drag cursor already writes to, not a parallel state. */}
-      {milestones
-        .filter((m) => yearToPercent(m.year) >= 0)
-        .map((m) => {
+      {(() => {
+        const visibleMilestones = milestones.filter((m) => yearToPercent(m.year) >= 0);
+        // Group by year so same-year markers (now always present per Task 2, rather than one
+        // being silently dropped) stack instead of overlapping. Stack index is assigned in
+        // array order, which is already year-sorted -- ties keep getMilestonesForPerson's own
+        // push order (fixed milestone first, chosenFilingAge second).
+        const stackIndexByKey = {};
+        const countByYear = {};
+        visibleMilestones.forEach((m) => {
+          const key = `${m.kind}-${m.year}`;
+          stackIndexByKey[key] = countByYear[m.year] || 0;
+          countByYear[m.year] = (countByYear[m.year] || 0) + 1;
+        });
+
+        return visibleMilestones.map((m) => {
           const style = MILESTONE_STYLES[m.kind];
+          const stackOffset = stackIndexByKey[`${m.kind}-${m.year}`] * MARKER_LEVEL_HEIGHT;
+
           return (
             <button
               key={`${m.kind}-${m.year}`}
@@ -140,19 +160,21 @@ const CalendarPhaseBar = ({
               title={m.label}
             >
               <span
-                className="absolute -top-4 w-2.5 h-2.5 rounded-full border border-white shadow"
-                style={{ backgroundColor: style.color }}
+                className="absolute w-3.5 h-3.5 rounded-full border-2 border-white shadow"
+                style={{ backgroundColor: style.color, top: `${-16 - stackOffset}px` }}
               />
-              <span className="w-px h-full" style={{ backgroundColor: style.color }} />
+              <span className="w-1 h-full rounded-full" style={{ backgroundColor: style.color }} />
               <span
-                className="absolute -top-8 whitespace-nowrap text-[10px] font-bold px-1 rounded text-white"
-                style={{ backgroundColor: style.color }}
+                className="absolute flex flex-col items-center whitespace-nowrap text-white font-bold rounded px-1.5 py-0.5 leading-none"
+                style={{ backgroundColor: style.color, top: `${-48 - stackOffset}px` }}
               >
-                {style.chip}
+                <span className="text-xs">{style.chip}</span>
+                <span className="text-[9px] font-semibold opacity-90">{m.year}</span>
               </span>
             </button>
           );
-        })}
+        });
+      })()}
 
       {/* The 62-95 phase bar itself, absolutely positioned within the shared track */}
       <div
