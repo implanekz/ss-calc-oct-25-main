@@ -75,14 +75,14 @@ const TimelineCursor = ({
       style={{ width: `${totalYears * pxPerYear}px` }}
     >
       <div
-        className="absolute top-0 bottom-0 w-px bg-green-500 cursor-ew-resize z-20"
-        style={{ left: `${yearToPercent(year)}%` }}
+        className="absolute top-0 bottom-0 w-1.5 rounded-full bg-green-500 shadow cursor-ew-resize z-20"
+        style={{ left: `calc(${yearToPercent(year)}% - 3px)` }}
         onMouseDown={(e) => {
           e.preventDefault();
           setIsDragging(true);
         }}
       >
-        <div className="absolute -top-2 -left-1.5 w-3 h-3 rounded-full bg-green-500 shadow" />
+        <div className="absolute -top-2.5 -left-1 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-white shadow" />
 
         <div
           className={`absolute w-[600px] rounded-lg border border-gray-200 bg-white p-3 shadow-lg text-sm ${flipLeft ? 'right-2' : 'left-2'}`}
