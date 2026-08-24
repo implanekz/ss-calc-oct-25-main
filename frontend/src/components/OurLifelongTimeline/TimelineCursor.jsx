@@ -1,6 +1,6 @@
 // frontend/src/components/OurLifelongTimeline/TimelineCursor.jsx
 import React, { useRef, useState, useEffect } from 'react';
-import { formatBucketValue, buildNarrative } from './timelineMath';
+import { buildNarrative, buildFilingComparisonBoxes } from './timelineMath';
 
 const TimelineCursor = ({
   axisStartYear,
@@ -13,11 +13,14 @@ const TimelineCursor = ({
   spouseLabel,
   spouseAge,
   monthlyIncome,
+  cumulativeIncome,
   buckets,
   primaryMilestones,
   spouseMilestones,
   prematureDeath,
-  deathYear
+  deathYear,
+  flipLeft,
+  tooltipTopOffset
 }) => {
   const trackRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -63,6 +66,8 @@ const TimelineCursor = ({
     deathYear
   });
 
+  const filingBoxes = buildFilingComparisonBoxes({ buckets, year, think: narrative.think, cumulativeIncome });
+
   return (
     <div
       ref={trackRef}
@@ -79,7 +84,10 @@ const TimelineCursor = ({
       >
         <div className="absolute -top-2 -left-1.5 w-3 h-3 rounded-full bg-green-500 shadow" />
 
-        <div className="absolute top-4 left-3 w-64 rounded-lg border border-gray-200 bg-white p-3 shadow-lg text-sm">
+        <div
+          className={`absolute w-[600px] rounded-lg border border-gray-200 bg-white p-3 shadow-lg text-sm ${flipLeft ? 'right-2' : 'left-2'}`}
+          style={{ top: `${tooltipTopOffset}px` }}
+        >
           <div className="font-bold text-gray-800 mb-1">{narrative.feel}</div>
 
           {narrative.milestoneNotes.length > 0 && (
@@ -92,8 +100,6 @@ const TimelineCursor = ({
             </div>
           )}
 
-          <div className="text-xl font-extrabold text-primary-700 mb-1">{narrative.think}</div>
-
           {narrative.doLine && (
             <div className="text-xs italic text-gray-600 mb-2">{narrative.doLine}</div>
           )}
@@ -104,15 +110,21 @@ const TimelineCursor = ({
             </div>
           )}
 
-          <div className="border-t border-gray-100 pt-2 space-y-1">
-            {buckets.map((bucket) => {
-              const { display, muted } = formatBucketValue(bucket, year);
-              return (
-                <div key={bucket.filingAge} className={muted ? 'text-gray-400' : 'text-gray-700'}>
-                  If both filed at {bucket.filingAge}: <span className="font-semibold">{display}</span>
+          {/* Monthly/yearly is the large, primary-emphasis text in every box -- that's the
+              number people compare at a glance -- with the lifetime running total present but
+              visually secondary underneath it, per Kurt's visual-hierarchy guidance. */}
+          <div className="grid grid-cols-3 gap-2 border-t border-gray-100 pt-2">
+            {filingBoxes.map((box) => (
+              <div key={box.label} className="text-center">
+                <div className="text-[10px] uppercase tracking-wide text-gray-500 mb-1">{box.label}</div>
+                <div className={`text-lg font-extrabold ${box.muted ? 'text-gray-400' : 'text-primary-700'}`}>
+                  {box.bigText}
                 </div>
-              );
-            })}
+                {box.smallText && (
+                  <div className="text-xs text-gray-500 mt-1">{box.smallText}</div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </div>
