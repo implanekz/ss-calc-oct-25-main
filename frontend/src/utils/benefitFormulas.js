@@ -42,6 +42,14 @@ export const getFraYears = (birthYear) => {
 // Pre-claim COLA application used by Early/Late view.
 // If the claim age is in the future, apply COLA to the PIA before reduction/credits.
 // Matches the behavior previously embedded in ShowMeTheMoneyCalculator.
+// KNOWN ISSUE (deliberately deferred, see docs/superpowers/notes/2026-08-24-inflation-cola-model.md):
+// this compounds by whole AGE-years (Math.floor(claimAgeYears) - 62), while
+// projections.js's post-claim growth (benefitAfterClaim) compounds by whole CALENDAR-years
+// (year - claimingCalendarYear). The two only agree for a January birthday -- for anyone else,
+// sweeping filing month-by-month can show cumulative income dip right at a calendar-year
+// boundary. Not a "which rate" problem (Kurt's single-flat-rate-for-the-whole-arc decision is
+// correct and intentional, see the note) -- a "which calendar convention" inconsistency between
+// this function and benefitAfterClaim.
 export const preclaimColaFactor = (claimAgeYears, currentAgeYears, rate) => {
   if (claimAgeYears <= currentAgeYears) return 1;
   const pre60Years = Math.max(0, Math.min(60, claimAgeYears) - currentAgeYears);
@@ -89,7 +97,9 @@ export const monthlyBenefitAtClaim = ({ piaFRA, claimAgeYears, currentAgeYears, 
   return base * earlyReductionFactor(offset);
 };
 
-// Apply post-claim COLA for years after claim
+// Apply post-claim COLA for years after claim. Callers pass a CALENDAR-year delta
+// (year - claimingCalendarYear, see projections.js) -- see the KNOWN ISSUE comment on
+// preclaimColaFactor above for why that convention mismatch with pre-claim growth matters.
 export const benefitAfterClaim = (baseMonthlyAtClaim, yearsAfterClaim, rate) => {
   const years = Math.max(0, yearsAfterClaim);
   return baseMonthlyAtClaim * Math.pow(1 + rate, years);
