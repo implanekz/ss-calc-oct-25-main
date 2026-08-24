@@ -97,6 +97,7 @@ const OurLifelongTimeline = ({
               isDraggingSlowGo={isDraggingSlowGo}
               setIsDraggingSlowGo={setIsDraggingSlowGo}
               milestones={primaryMilestones}
+              onMilestoneClick={setCursorYear}
             />
           </div>
           <div>
@@ -115,6 +116,7 @@ const OurLifelongTimeline = ({
               isDraggingSlowGo={isDraggingSpouseSlowGo}
               setIsDraggingSlowGo={setIsDraggingSpouseSlowGo}
               milestones={spouseMilestones}
+              onMilestoneClick={setCursorYear}
             />
           </div>
 
@@ -130,6 +132,10 @@ const OurLifelongTimeline = ({
             spouseAge={calendarYearToAge(birthYearSpouse, cursorYear)}
             monthlyIncome={monthlyIncome}
             buckets={buckets}
+            primaryMilestones={primaryMilestones}
+            spouseMilestones={spouseMilestones}
+            prematureDeath={prematureDeath}
+            deathYear={deathYear}
           />
         </div>
       </div>
