@@ -7,10 +7,18 @@ import { getAxisEndYear, getHouseholdBuckets, getMilestonesForPerson, calendarYe
 
 const PX_PER_YEAR = 50;
 
+// How often the year ruler beneath both rows places a labeled tick.
+const YEAR_TICK_INTERVAL = 5;
+
+// The ruler's own vertical footprint (mt-3 gap + its text row) in the normal-flow layout below
+// both bars -- folded into TWO_ROW_HEIGHT so the tooltip still renders below it, not on top of it.
+const YEAR_RULER_HEIGHT = 28;
+
 // Two 52px-tall CalendarPhaseBar rows plus the mb-28 (112px) gap between them -- grown from
-// 32px so row 2's stacked (two-level) markers have clearance below row 1's bar. The tooltip
-// (Task 7) is positioned this far down plus a small clearance so it never overlaps either bar.
-const TWO_ROW_HEIGHT = 52 + 112 + 52;
+// 32px so row 2's stacked (two-level) markers have clearance below row 1's bar -- plus the year
+// ruler's own height. The tooltip (Task 7) is positioned this far down plus a small clearance
+// so it never overlaps either bar or the ruler.
+const TWO_ROW_HEIGHT = 52 + 112 + 52 + YEAR_RULER_HEIGHT;
 const TOOLTIP_TOP_OFFSET = TWO_ROW_HEIGHT + 12;
 
 // Approximate rendered width of the redesigned 3-box tooltip, used only to decide when it
@@ -99,6 +107,14 @@ const OurLifelongTimeline = ({
   const cursorPixelX = (cursorYear - axisStartYear) * PX_PER_YEAR;
   const flipLeft = cursorPixelX - viewport.scrollLeft > viewport.clientWidth - TOOLTIP_WIDTH - TOOLTIP_FLIP_MARGIN;
 
+  const yearTicks = useMemo(() => {
+    const ticks = [];
+    for (let y = axisStartYear; y <= axisEndYear; y += YEAR_TICK_INTERVAL) {
+      ticks.push(y);
+    }
+    return ticks;
+  }, [axisStartYear, axisEndYear]);
+
   return (
     <div className="space-y-3 mt-4">
       {/*
@@ -108,9 +124,10 @@ const OurLifelongTimeline = ({
           - CalendarPhaseBar's bolder markers (Task 4) can reach up to two stack levels above
             the bar, roughly -126px at the chip's own top edge -- pt-32 (128px) covers that
             with a small margin; the row label's older -top-5 need is comfortably inside it too.
-          - TimelineCursor's tooltip now renders below both rows entirely (TOOLTIP_TOP_OFFSET,
-            past the 216px two-row block), rather than overlapping either bar -- pb-96 (384px)
-            reserves enough room for that offset plus the tooltip's own worst-case rendered
+          - TimelineCursor's tooltip now renders below both rows and the year ruler entirely
+            (TOOLTIP_TOP_OFFSET, past the 244px two-row-plus-ruler block), rather than
+            overlapping either bar -- pb-96 (384px) reserves enough room for that offset plus
+            the tooltip's own worst-case rendered
             height (narrative header with all optional lines present, plus the 3-box row) to
             land inside the scrollable area instead of being clipped at the bottom.
       */}
@@ -153,6 +170,20 @@ const OurLifelongTimeline = ({
               milestones={spouseMilestones}
               onMilestoneClick={setCursorYear}
             />
+          </div>
+
+          {/* Year ruler: a labeled tick every YEAR_TICK_INTERVAL years, so a reader can place any
+              point on either bar in calendar time without hovering for the cursor tooltip. */}
+          <div className="relative mt-3 h-4 border-t border-gray-200">
+            {yearTicks.map((y) => (
+              <span
+                key={y}
+                className="absolute top-1 text-[10px] font-medium text-gray-500"
+                style={{ left: `${((y - axisStartYear) / (axisEndYear - axisStartYear)) * 100}%` }}
+              >
+                {y}
+              </span>
+            ))}
           </div>
 
           {prematureDeath && (
