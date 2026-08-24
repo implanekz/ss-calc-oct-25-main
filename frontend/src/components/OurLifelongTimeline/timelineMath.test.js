@@ -1,4 +1,4 @@
-import { ageToCalendarYear, calendarYearToAge, getAxisEndYear, AXIS_END_AGE, getHouseholdBucket, getHouseholdBuckets, BUCKET_FILING_AGES, formatCurrency, formatBucketValue, getAnnualIncome, getMilestonesForPerson, isTimelineReachable } from './timelineMath';
+import { ageToCalendarYear, calendarYearToAge, getAxisEndYear, AXIS_END_AGE, getHouseholdBucket, getHouseholdBuckets, BUCKET_FILING_AGES, formatCurrency, formatBucketValue, getAnnualIncome, getMilestonesForPerson, isTimelineReachable, buildNarrative } from './timelineMath';
 import { calculateProjection, combineProjections } from '../../calculators/showMeTheMoney/projections';
 
 describe('age/calendar-year conversion', () => {
@@ -288,5 +288,123 @@ describe('couples-only reachability', () => {
     expect(isTimelineReachable({ isMarried: false, spouse1Dob: '1965-01-01', spouse2Dob: '1970-01-01' })).toBe(false);
     expect(isTimelineReachable({ isMarried: true, spouse1Dob: '1965-01-01', spouse2Dob: null })).toBe(false);
     expect(isTimelineReachable({ isMarried: true, spouse1Dob: '', spouse2Dob: '1970-01-01' })).toBe(false);
+  });
+});
+
+describe('buildNarrative', () => {
+  // Demo: milestones land at 2027 (age62), 2031 (chosenFilingAge), 2032 (fra), 2035 (age70).
+  // Spouse: milestones land at 2028 (age62), 2032 (fra -- same year as Demo's FRA, to test the
+  // both-people-same-year case), 2036 (age70).
+  const primaryMilestones = [
+    { year: 2027, label: 'Demo turns 62', kind: 'age62' },
+    { year: 2031, label: "Demo's chosen filing age", kind: 'chosenFilingAge' },
+    { year: 2032, label: 'Demo reaches full retirement age', kind: 'fra' },
+    { year: 2035, label: 'Demo turns 70', kind: 'age70' }
+  ];
+  const spouseMilestones = [
+    { year: 2028, label: 'Spouse turns 62', kind: 'age62' },
+    { year: 2032, label: 'Spouse reaches full retirement age', kind: 'fra' },
+    { year: 2036, label: 'Spouse turns 70', kind: 'age70' }
+  ];
+
+  const baseArgs = {
+    primaryLabel: 'Demo',
+    spouseLabel: 'Spouse',
+    primaryMilestones,
+    spouseMilestones,
+    monthlyIncome: 3140,
+    prematureDeath: false,
+    deathYear: undefined
+  };
+
+  test('feel line always states both ages for the cursor year', () => {
+    const narrative = buildNarrative({ ...baseArgs, year: 2030, primaryAge: 65, spouseAge: 60 });
+    expect(narrative.feel).toBe('2030: Demo is 65, Spouse is 60.');
+  });
+
+  test('think line formats the dramatic income reveal', () => {
+    const narrative = buildNarrative({ ...baseArgs, year: 2030, primaryAge: 65, spouseAge: 60 });
+    expect(narrative.think).toBe('$3,140/month · $37,680/year');
+  });
+
+  test('no milestone on the cursor year -> empty milestoneNotes and no doLine', () => {
+    const narrative = buildNarrative({ ...baseArgs, year: 2030, primaryAge: 65, spouseAge: 60 });
+    expect(narrative.milestoneNotes).toEqual([]);
+    expect(narrative.doLine).toBeUndefined();
+  });
+
+  test('age62 milestone -> milestoneNotes and the age62 doLine', () => {
+    const narrative = buildNarrative({ ...baseArgs, year: 2027, primaryAge: 62, spouseAge: 57 });
+    expect(narrative.milestoneNotes).toEqual(['Demo turns 62']);
+    expect(narrative.doLine).toBe('This is the earliest possible filing age — the smallest benefit this household could lock in.');
+  });
+
+  test('chosenFilingAge milestone -> the chosenFilingAge doLine', () => {
+    const narrative = buildNarrative({ ...baseArgs, year: 2031, primaryAge: 66, spouseAge: 61 });
+    expect(narrative.milestoneNotes).toEqual(["Demo's chosen filing age"]);
+    expect(narrative.doLine).toBe("This is the age you've chosen to file.");
+  });
+
+  test('age70 milestone -> the age70 doLine', () => {
+    const narrative = buildNarrative({ ...baseArgs, year: 2035, primaryAge: 70, spouseAge: 65 });
+    expect(narrative.milestoneNotes).toEqual(['Demo turns 70']);
+    expect(narrative.doLine).toBe("This is the last year waiting still grows the benefit — filing later than this doesn't add more.");
+  });
+
+  test('both people reaching FRA the same year -> both notes, doLine from the first (primary) entry', () => {
+    const narrative = buildNarrative({ ...baseArgs, year: 2032, primaryAge: 67, spouseAge: 62 });
+    expect(narrative.milestoneNotes).toEqual([
+      'Demo reaches full retirement age',
+      'Spouse reaches full retirement age'
+    ]);
+    expect(narrative.doLine).toBe('Filing here locks in your full, unreduced benefit — no early-claim penalty, no delayed-credit bonus.');
+  });
+
+  test('premature death on, cursor year before deathYear -> no survivorNote', () => {
+    const narrative = buildNarrative({
+      ...baseArgs,
+      year: 2039,
+      primaryAge: 74,
+      spouseAge: 69,
+      prematureDeath: true,
+      deathYear: 2040
+    });
+    expect(narrative.survivorNote).toBeUndefined();
+  });
+
+  test('premature death on, cursor year at deathYear -> survivorNote present', () => {
+    const narrative = buildNarrative({
+      ...baseArgs,
+      year: 2040,
+      primaryAge: 75,
+      spouseAge: 70,
+      prematureDeath: true,
+      deathYear: 2040
+    });
+    expect(narrative.survivorNote).toBe('This reflects survivor benefits, assuming Demo has passed by now.');
+  });
+
+  test('premature death on, cursor year after deathYear -> survivorNote present', () => {
+    const narrative = buildNarrative({
+      ...baseArgs,
+      year: 2045,
+      primaryAge: 80,
+      spouseAge: 75,
+      prematureDeath: true,
+      deathYear: 2040
+    });
+    expect(narrative.survivorNote).toBe('This reflects survivor benefits, assuming Demo has passed by now.');
+  });
+
+  test('premature death off -> survivorNote always absent regardless of year', () => {
+    const narrative = buildNarrative({
+      ...baseArgs,
+      year: 2050,
+      primaryAge: 85,
+      spouseAge: 80,
+      prematureDeath: false,
+      deathYear: 2040
+    });
+    expect(narrative.survivorNote).toBeUndefined();
   });
 });

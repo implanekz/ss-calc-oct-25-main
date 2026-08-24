@@ -138,3 +138,40 @@ export const getMilestonesForPerson = ({ label, dob, preferredYear }) => {
 
 export const isTimelineReachable = ({ isMarried, spouse1Dob, spouse2Dob }) =>
   Boolean(isMarried && spouse1Dob && spouse2Dob);
+
+const MILESTONE_DO_LINES = {
+  age62: 'This is the earliest possible filing age — the smallest benefit this household could lock in.',
+  fra: 'Filing here locks in your full, unreduced benefit — no early-claim penalty, no delayed-credit bonus.',
+  chosenFilingAge: "This is the age you've chosen to file.",
+  age70: "This is the last year waiting still grows the benefit — filing later than this doesn't add more."
+};
+
+export const buildNarrative = ({
+  year,
+  primaryLabel,
+  primaryAge,
+  spouseLabel,
+  spouseAge,
+  primaryMilestones,
+  spouseMilestones,
+  monthlyIncome,
+  prematureDeath,
+  deathYear
+}) => {
+  const feel = `${year}: ${primaryLabel} is ${primaryAge}, ${spouseLabel} is ${spouseAge}.`;
+  const think = `${formatCurrency(monthlyIncome)}/month · ${formatCurrency(getAnnualIncome(monthlyIncome))}/year`;
+
+  // Order matters: primary's milestones are checked first, so when both people land a
+  // milestone on the same year, doLine is derived from the primary's entry (array order,
+  // not a significance ranking -- see spec "Design > Narrative content").
+  const matches = [...primaryMilestones, ...spouseMilestones].filter((m) => m.year === year);
+  const milestoneNotes = matches.map((m) => m.label);
+  const doLine = matches.length > 0 ? MILESTONE_DO_LINES[matches[0].kind] : undefined;
+
+  const survivorNote =
+    prematureDeath && year >= deathYear
+      ? `This reflects survivor benefits, assuming ${primaryLabel} has passed by now.`
+      : undefined;
+
+  return { feel, milestoneNotes, think, doLine, survivorNote };
+};
