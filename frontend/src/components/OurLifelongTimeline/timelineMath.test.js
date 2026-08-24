@@ -251,12 +251,16 @@ describe('life-stage milestones', () => {
     ]);
   });
 
-  test('does not duplicate a milestone when the chosen filing age matches an existing one', () => {
+  test('always includes the chosen-filing-age milestone, even when it collides with another milestone\'s year', () => {
     const milestones = getMilestonesForPerson({ label: 'Ted', dob: '1965-06-15', preferredYear: 67 });
 
-    // 67 is Ted's FRA (born 1965) -- chosenFilingAge must not appear as a second 2032 entry.
-    expect(milestones).toHaveLength(3);
-    expect(milestones.map(m => m.kind)).toEqual(['age62', 'fra', 'age70']);
+    // 67 is Ted's FRA (born 1965) -- both entries must be present at year 2032. Stable sort
+    // preserves push order for ties, so the fixed milestone (pushed first) sorts before the
+    // chosen-filing-age one (pushed after, once preferredYear is known to be valid).
+    expect(milestones).toHaveLength(4);
+    expect(milestones.map(m => m.kind)).toEqual(['age62', 'fra', 'chosenFilingAge', 'age70']);
+    expect(milestones[1].year).toBe(2032);
+    expect(milestones[2].year).toBe(2032);
   });
 
   test('skips the chosen-filing-age milestone when preferredYear is a cleared input ("")', () => {

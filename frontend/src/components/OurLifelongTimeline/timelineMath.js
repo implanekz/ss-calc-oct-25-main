@@ -125,12 +125,12 @@ export const getMilestonesForPerson = ({ label, dob, preferredYear }) => {
   const numericPreferredYear = Number(preferredYear);
   // A cleared input (`''`) coerces to 0 via Number(''), which would otherwise place a stray
   // "chosen filing age" milestone at the person's birth year. Skip the milestone entirely
-  // when the value isn't a real, in-range filing age.
+  // when the value isn't a real, in-range filing age. Unlike an earlier version of this
+  // function, a chosen filing age landing on the same year as another milestone is still
+  // added -- CalendarPhaseBar stacks same-year markers rather than this function dropping one.
   if (Number.isFinite(numericPreferredYear) && numericPreferredYear >= 62) {
     const chosenFilingAgeYear = birthYear + numericPreferredYear;
-    if (!milestones.some((m) => m.year === chosenFilingAgeYear)) {
-      milestones.push({ year: chosenFilingAgeYear, label: `${label}'s chosen filing age`, kind: 'chosenFilingAge' });
-    }
+    milestones.push({ year: chosenFilingAgeYear, label: `${label}'s chosen filing age`, kind: 'chosenFilingAge' });
   }
 
   return milestones.sort((a, b) => a.year - b.year);
