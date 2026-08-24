@@ -4515,14 +4515,20 @@ const ShowMeTheMoneyCalculator = () => {
                                     //   spouse" concept, and calculateProjection's own cumulative dict already
                                     //   starts at zero before that person's filing year -- use it directly.
                                     const deathYearNumber = primaryBirthYear + Number(deathAge);
-                                    const cumulativeSinceFiling = (filingAge, projection) => {
+
+                                    // Shared by both cumulative metrics below: the same cumulative-bearing
+                                    // source (household bucket for 62/70, raw preferred/single-person
+                                    // projection otherwise) that cumulativeSinceFiling already used, so
+                                    // "Cumulative Since 70" reads from the exact same numbers rather than a
+                                    // second, possibly-inconsistent source.
+                                    const getCumulativeSource = (filingAge, projection) => {
                                         if (activeRecordView === 'primary' || activeRecordView === 'spouse') {
-                                            return projection.cumulative[calendarYear] || 0;
+                                            return projection;
                                         }
                                         if (filingAge === 'preferred') {
-                                            return projection.cumulative[calendarYear] || 0;
+                                            return projection;
                                         }
-                                        const bucket = getHouseholdBucket({
+                                        return getHouseholdBucket({
                                             filingAge,
                                             spouse1Pia,
                                             spouse1Dob,
@@ -4532,7 +4538,32 @@ const ShowMeTheMoneyCalculator = () => {
                                             prematureDeath,
                                             deathYear: deathYearNumber
                                         });
-                                        return bucket.cumulative[calendarYear] || 0;
+                                    };
+
+                                    const cumulativeSinceFiling = (filingAge, projection) =>
+                                        getCumulativeSource(filingAge, projection).cumulative[calendarYear] || 0;
+
+                                    // "Cumulative Since 70" -- a second, deliberately different comparison
+                                    // basis from "Cumulative Since Filing" above. Age 70 is the first point
+                                    // every strategy is actually on the same footing: the File at 62/67
+                                    // strategies already had years of a head start the File at 70 strategy
+                                    // never had a chance to match, and once everyone is collecting, that
+                                    // earlier head start stops being the interesting question -- this metric
+                                    // deliberately excludes those years so all three are compared over the
+                                    // same stretch of time. Matches the "Since 70" calculation the Race tab
+                                    // already ships (RaceTrackVisualization's calculateRaceData, same
+                                    // effectiveBirthYear + age-69-baseline convention) rather than inventing a
+                                    // second definition of "since 70" that could disagree with it.
+                                    const effectiveBirthYear = (activeRecordView === 'spouse' && scenarioData.birthYearSpouse)
+                                        ? scenarioData.birthYearSpouse
+                                        : primaryBirthYear;
+                                    const age69CalendarYear = effectiveBirthYear + 69;
+
+                                    const cumulativeSince70 = (projection) => {
+                                        if (selectedYearAge < 70) return null;
+                                        const atCursor = projection.cumulative[calendarYear] || 0;
+                                        const atBaseline = projection.cumulative[age69CalendarYear] || 0;
+                                        return Math.max(0, atCursor - atBaseline);
                                     };
 
                                     const strategies = [
@@ -4542,6 +4573,7 @@ const ShowMeTheMoneyCalculator = () => {
                                             gradient: 'from-green-500 to-green-600',
                                             monthly: projections.age70.monthly[calendarYear] || 0,
                                             cumulative: cumulativeSinceFiling(70, projections.age70),
+                                            cumulativeSince70: cumulativeSince70(projections.age70),
                                             projection: projections.age70,
                                             filingAge: 70,
                                             started: false
@@ -4552,6 +4584,7 @@ const ShowMeTheMoneyCalculator = () => {
                                             gradient: 'from-blue-500 to-blue-600',
                                             monthly: projections.preferred.monthly[calendarYear] || 0,
                                             cumulative: cumulativeSinceFiling('preferred', projections.preferred),
+                                            cumulativeSince70: cumulativeSince70(projections.preferred),
                                             projection: projections.preferred,
                                             filingAge: 67,
                                             started: false
@@ -4562,6 +4595,7 @@ const ShowMeTheMoneyCalculator = () => {
                                             gradient: 'from-red-500 to-red-600',
                                             monthly: projections.age62.monthly[calendarYear] || 0,
                                             cumulative: cumulativeSinceFiling(62, projections.age62),
+                                            cumulativeSince70: cumulativeSince70(projections.age62),
                                             projection: projections.age62,
                                             filingAge: 62,
                                             started: false
@@ -4668,6 +4702,19 @@ const ShowMeTheMoneyCalculator = () => {
                                                             </p>
                                                             <p className={`text-lg font-bold ${strategy.started ? `text-${strategy.color}-600` : 'text-gray-400'}`}>
                                                                 {currencyFormatter.format(Math.round(strategy.cumulative))}
+                                                            </p>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Cumulative Since 70 -- the point every strategy is on the same
+                                                        footing; matches the Race tab's own "Since 70" calculation. */}
+                                                    {selectedYearAge >= 70 && (
+                                                        <div className="bg-gray-50 rounded-lg p-4">
+                                                            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                                                                Cumulative Since 70
+                                                            </p>
+                                                            <p className={`text-lg font-bold ${strategy.started ? `text-${strategy.color}-600` : 'text-gray-400'}`}>
+                                                                {currencyFormatter.format(Math.round(strategy.cumulativeSince70))}
                                                             </p>
                                                         </div>
                                                     )}
