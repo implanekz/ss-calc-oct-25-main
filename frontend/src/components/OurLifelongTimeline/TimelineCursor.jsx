@@ -1,6 +1,6 @@
 // frontend/src/components/OurLifelongTimeline/TimelineCursor.jsx
 import React, { useRef, useState, useEffect } from 'react';
-import { formatCurrency, formatBucketValue, buildNarrative } from './timelineMath';
+import { formatBucketValue, buildNarrative } from './timelineMath';
 
 const TimelineCursor = ({
   axisStartYear,
