@@ -5,7 +5,6 @@ import TimelineCursor from './TimelineCursor';
 import { getAxisEndYear, getHouseholdBuckets, getMilestonesForPerson, calendarYearToAge } from './timelineMath';
 
 const PX_PER_YEAR = 50;
-const VISIBLE_YEARS = 12;
 
 const OurLifelongTimeline = ({
   primaryLabel,
@@ -80,7 +79,7 @@ const OurLifelongTimeline = ({
             height (~200px of text/buckets) to land inside the scrollable area instead of
             being clipped at the bottom.
       */}
-      <div className="overflow-x-auto pt-8 pb-32" style={{ maxWidth: `${VISIBLE_YEARS * PX_PER_YEAR}px` }}>
+      <div className="w-full overflow-x-auto pt-8 pb-32">
         <div className="relative" style={{ width: `${(axisEndYear - axisStartYear) * PX_PER_YEAR}px` }}>
           <div className="mb-8">
             <CalendarPhaseBar
