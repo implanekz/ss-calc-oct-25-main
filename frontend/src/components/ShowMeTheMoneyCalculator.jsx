@@ -3777,16 +3777,7 @@ const ShowMeTheMoneyCalculator = () => {
 
                 {/* Earnings Provenance Banner */}
                 <div className="px-4 pt-4">
-                    {scenario.provenance === PROVENANCE.ESTIMATED ? (
-                        <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 mb-4">
-                            <div className="font-semibold text-amber-900">Preliminary Lifelong Estimate</div>
-                            <p className="text-sm text-amber-800 mt-1">
-                                These numbers assume your future earnings continue at their current level.
-                                Add your Social Security earnings record to see what stopping work at
-                                different ages would do to your benefit.
-                            </p>
-                        </div>
-                    ) : (
+                    {scenario.provenance === PROVENANCE.ESTIMATED ? null : (
                         <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 mb-4">
                             {/* Claims only what is true today: the record is on file and
                                 drives the work-stop comparison. It does NOT yet feed the
