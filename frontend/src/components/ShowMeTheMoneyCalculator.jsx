@@ -4778,29 +4778,26 @@ const ShowMeTheMoneyCalculator = () => {
                                         const cumPrev62 = projections.age62.cumulative[prevYear] || 0;
                                         const annual62 = Math.max(0, cumThis62 - cumPrev62);
 
-                                        // Cumulative since each strategy's own filing -- same convention as the
-                                        // strategy cards above and Our Lifelong Timeline (see the detailed
-                                        // comment in the cards' IIFE above for why this replaced a fixed
-                                        // age-70 landmark).
-                                        const deathYearNumber = primaryBirthYear + Number(deathAge);
-                                        const cumulativeSinceFiling = (filingAge, projection) => {
-                                            if (activeRecordView === 'primary' || activeRecordView === 'spouse') {
-                                                return projection.cumulative[calendarYear] || 0;
-                                            }
-                                            const bucket = getHouseholdBucket({
-                                                filingAge,
-                                                spouse1Pia,
-                                                spouse1Dob,
-                                                spouse2Pia,
-                                                spouse2Dob,
-                                                inflation,
-                                                prematureDeath,
-                                                deathYear: deathYearNumber
-                                            });
-                                            return bucket.cumulative[calendarYear] || 0;
+                                        // "Cumulative Since 70" -- reads the exact same raw projection dictionaries,
+                                        // via the exact same formula, as the strategy cards' own "Cumulative Since 70"
+                                        // figures above (not routed through getHouseholdBucket, unlike "Cumulative
+                                        // Since Filing" -- see the cards' IIFE for that convention). Deliberately not
+                                        // "cumulative since each strategy's own filing" either: that basis gives File
+                                        // at 62 several extra years of head start File at 70 never had a chance to
+                                        // match, so it reports a smaller gap than this fair, same-footing comparison.
+                                        // Matching the cards' own data path (not just the same concept) is what keeps
+                                        // this box from ever disagreeing with the numbers printed a few inches above it.
+                                        const effectiveBirthYear = (activeRecordView === 'spouse' && scenarioData.birthYearSpouse)
+                                            ? scenarioData.birthYearSpouse
+                                            : primaryBirthYear;
+                                        const age69CalendarYear = effectiveBirthYear + 69;
+                                        const cumulativeSince70 = (projection) => {
+                                            const atCursor = projection.cumulative[calendarYear] || 0;
+                                            const atBaseline = projection.cumulative[age69CalendarYear] || 0;
+                                            return Math.max(0, atCursor - atBaseline);
                                         };
-                                        const cumTotal70 = cumulativeSinceFiling(70, projections.age70);
-                                        const cumTotal62 = cumulativeSinceFiling(62, projections.age62);
+                                        const cumTotal70 = cumulativeSince70(projections.age70);
+                                        const cumTotal62 = cumulativeSince70(projections.age62);
 
 
                                         if (selectedYearAge < 62) {
@@ -4819,7 +4816,7 @@ const ShowMeTheMoneyCalculator = () => {
                                                     <ul className="list-disc pl-5 space-y-1">
                                                         <li>{currencyFormatter.format(Math.round(monthlyDiff))} more per month ({percentIncrease}% increase) compared to filing at 62.</li>
                                                         <li>{currencyFormatter.format(Math.round(annualDiff))} more per year compared to filing at 62.</li>
-                                                        <li>{currencyFormatter.format(Math.round(cumTotalDiff))} more cumulative since filing, compared to filing at 62.</li>
+                                                        <li>{currencyFormatter.format(Math.round(cumTotalDiff))} more cumulative since age 70, compared to filing at 62.</li>
                                                     </ul>
                                                 </>
                                             );
