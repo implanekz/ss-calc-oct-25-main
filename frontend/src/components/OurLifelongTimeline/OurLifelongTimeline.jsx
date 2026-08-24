@@ -7,9 +7,10 @@ import { getAxisEndYear, getHouseholdBuckets, getMilestonesForPerson, calendarYe
 
 const PX_PER_YEAR = 50;
 
-// Two 52px-tall CalendarPhaseBar rows plus the mb-8 (32px) gap between them -- the tooltip
+// Two 52px-tall CalendarPhaseBar rows plus the mb-28 (112px) gap between them -- grown from
+// 32px so row 2's stacked (two-level) markers have clearance below row 1's bar. The tooltip
 // (Task 7) is positioned this far down plus a small clearance so it never overlaps either bar.
-const TWO_ROW_HEIGHT = 52 + 32 + 52;
+const TWO_ROW_HEIGHT = 52 + 112 + 52;
 const TOOLTIP_TOP_OFFSET = TWO_ROW_HEIGHT + 12;
 
 // Approximate rendered width of the redesigned 3-box tooltip, used only to decide when it
@@ -108,14 +109,14 @@ const OurLifelongTimeline = ({
             the bar, roughly -126px at the chip's own top edge -- pt-32 (128px) covers that
             with a small margin; the row label's older -top-5 need is comfortably inside it too.
           - TimelineCursor's tooltip now renders below both rows entirely (TOOLTIP_TOP_OFFSET,
-            past the 136px two-row block), rather than overlapping either bar -- pb-72 (288px)
+            past the 216px two-row block), rather than overlapping either bar -- pb-96 (384px)
             reserves enough room for that offset plus the tooltip's own worst-case rendered
             height (narrative header with all optional lines present, plus the 3-box row) to
             land inside the scrollable area instead of being clipped at the bottom.
       */}
-      <div ref={scrollContainerRef} className="w-full overflow-x-auto pt-32 pb-72">
+      <div ref={scrollContainerRef} className="w-full overflow-x-auto pt-32 pb-96">
         <div className="relative" style={{ width: `${(axisEndYear - axisStartYear) * PX_PER_YEAR}px` }}>
-          <div className="mb-8">
+          <div className="mb-28">
             <CalendarPhaseBar
               label={primaryLabel}
               birthYear={birthYearPrimary}
