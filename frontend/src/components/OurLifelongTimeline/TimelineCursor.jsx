@@ -20,7 +20,8 @@ const TimelineCursor = ({
   prematureDeath,
   deathYear,
   flipLeft,
-  tooltipTopOffset
+  tooltipTopOffset,
+  onDeeperDive
 }) => {
   const trackRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -88,7 +89,16 @@ const TimelineCursor = ({
           className={`absolute w-[600px] rounded-lg border border-gray-200 bg-white p-3 shadow-lg text-sm ${flipLeft ? 'right-2' : 'left-2'}`}
           style={{ top: `${tooltipTopOffset}px` }}
         >
-          <div className="font-bold text-gray-800 mb-1">{narrative.feel}</div>
+          <div className="flex items-start justify-between gap-3 mb-1">
+            <div className="font-bold text-gray-800">{narrative.feel}</div>
+            <button
+              type="button"
+              onClick={() => onDeeperDive(year)}
+              className="shrink-0 text-[10px] font-semibold text-primary-700 hover:text-primary-800 underline whitespace-nowrap"
+            >
+              Deeper Dive Into Just This Year
+            </button>
+          </div>
 
           {narrative.milestoneNotes.length > 0 && (
             <div className="mb-2 space-y-1">
@@ -120,9 +130,6 @@ const TimelineCursor = ({
                 <div className={`text-lg font-extrabold ${box.muted ? 'text-gray-400' : 'text-primary-700'}`}>
                   {box.bigText}
                 </div>
-                {box.smallText && (
-                  <div className="text-xs text-gray-500 mt-1">{box.smallText}</div>
-                )}
               </div>
             ))}
           </div>

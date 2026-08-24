@@ -4222,6 +4222,11 @@ const ShowMeTheMoneyCalculator = () => {
                                         setIsDraggingSpouseGoGo={setIsDraggingSpouseGoGo}
                                         isDraggingSpouseSlowGo={isDraggingSpouseSlowGo}
                                         setIsDraggingSpouseSlowGo={setIsDraggingSpouseSlowGo}
+                                        onDeeperDive={(year) => {
+                                            const primaryBirthYear = new Date(spouse1Dob).getFullYear();
+                                            setSelectedYearAge(year - primaryBirthYear);
+                                            setShowYearModal(true);
+                                        }}
                                     />
                                 </div>
                             ) : (

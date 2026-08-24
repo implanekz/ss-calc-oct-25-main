@@ -55,7 +55,8 @@ const OurLifelongTimeline = ({
   isDraggingSpouseGoGo,
   setIsDraggingSpouseGoGo,
   isDraggingSpouseSlowGo,
-  setIsDraggingSpouseSlowGo
+  setIsDraggingSpouseSlowGo,
+  onDeeperDive
 }) => {
   const currentYear = new Date().getFullYear();
   const [cursorYear, setCursorYear] = useState(currentYear);
@@ -214,6 +215,7 @@ const OurLifelongTimeline = ({
             deathYear={deathYear}
             flipLeft={flipLeft}
             tooltipTopOffset={TOOLTIP_TOP_OFFSET}
+            onDeeperDive={onDeeperDive}
           />
         </div>
       </div>
