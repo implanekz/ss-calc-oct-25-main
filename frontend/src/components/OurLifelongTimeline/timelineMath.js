@@ -54,9 +54,17 @@ export const getHouseholdBucket = ({
   // This ensures the mask boundary always aligns with the actual calendar years in the .monthly/.cumulative dictionaries.
   const startYear = Math.max(primaryProjection.birthYear, spouseProjection.birthYear) + filingAge;
 
+  // combined.cumulative already correctly accounts for each spouse's own partial first
+  // claiming year (calculateProjection discounts it, and combineProjections preserves that
+  // discount rather than assuming a flat 12 months) -- reuse it instead of re-deriving via
+  // monthly * 12, which would silently overcount by however many months short of a full year
+  // the later-born spouse's own claim actually started in. Offsetting by whatever had already
+  // accumulated just before startYear keeps this bucket's own "both must have reached this
+  // age" masking intact.
+  const preStartCumulative = combined.cumulative[startYear - 1] || 0;
+
   const monthly = {};
   const cumulative = {};
-  let runningTotal = 0;
 
   Object.keys(combined.monthly)
     .map(Number)
@@ -68,8 +76,7 @@ export const getHouseholdBucket = ({
         return;
       }
       monthly[year] = combined.monthly[year];
-      runningTotal += combined.monthly[year] * 12;
-      cumulative[year] = runningTotal;
+      cumulative[year] = (combined.cumulative[year] || 0) - preStartCumulative;
     });
 
   return { monthly, cumulative, startYear };

@@ -5012,11 +5012,11 @@ const ShowMeTheMoneyCalculator = () => {
             <OneMonthAtATimeModal
                 isOpen={showOneMonthModal}
                 onClose={() => setShowOneMonthModal(false)}
-                pia={spouse1Pia || 2500}
+                pia={spouse1Pia || 3571}
                 dob={spouse1Dob}
                 inflationRate={inflation}
                 isMarried={isMarried}
-                spousePia={(isMarried && spouse2Pia) || 2000}
+                spousePia={(isMarried && spouse2Pia) || 2857}
                 spouseDob={spouse2Dob}
             />
         </div >

@@ -95,8 +95,12 @@ describe('household cumulative buckets', () => {
     // Both spouses file at 62: Ted $2500*0.70=$1750 + Wendy $2000*0.70=$1400 = $3150/mo from 2032 on.
     // (with birthYear 1970 for the later spouse, age 62 falls in year 2032)
     expect(bucket62.monthly[2032]).toBe(3150);
-    expect(bucket62.cumulative[2032]).toBe(3150 * 12);
-    expect(bucket62.cumulative[2033]).toBe(3150 * 12 * 2);
+    // Ted has been collecting since 2027 (full 12 months by 2032); Wendy (June 15 birthday,
+    // month index 5) only just started, so 2032 is a partial 12-5=7-month year for her --
+    // Ted $1750*12=$21,000 + Wendy $1400*7=$9,800 = $30,800, not a flat $3150*12.
+    expect(bucket62.cumulative[2032]).toBe(21000 + 9800);
+    // 2033 is a full year for both: Ted $1750*12=$21,000 + Wendy $1400*12=$16,800 = $37,800.
+    expect(bucket62.cumulative[2033]).toBe(30800 + 37800);
   });
 
   test('the 67 and 70 buckets use the correct FRA and delayed-credit multipliers', () => {
@@ -107,13 +111,18 @@ describe('household cumulative buckets', () => {
     // Later spouse (birthYear 1970) reaches 67 in year 2037, so startYear = 2037.
     expect(bucket67.monthly[2036]).toBe(0);
     expect(bucket67.monthly[2037]).toBe(4500);
-    expect(bucket67.cumulative[2037]).toBe(4500 * 12);
+    // Ted's own FRA year was 2032, so 2037 is a full year for him; Wendy's is a partial
+    // 12-5=7-month first year (same June birthday as above): Ted $2500*12=$30,000 +
+    // Wendy $2000*7=$14,000 = $44,000.
+    expect(bucket67.cumulative[2037]).toBe(30000 + 14000);
 
     // Delayed to 70: 124% of PIA. Ted $3100 + Wendy $2480 = $5580/mo.
     // Later spouse reaches 70 in year 2040, so startYear = 2040.
     expect(bucket70.monthly[2039]).toBe(0);
     expect(bucket70.monthly[2040]).toBe(5580);
-    expect(bucket70.cumulative[2040]).toBe(5580 * 12);
+    // Ted's own age-70 year was 2035, so 2040 is a full year for him; Wendy's is a partial
+    // 12-5=7-month first year: Ted $3100*12=$37,200 + Wendy $2480*7=$17,360 = $54,560.
+    expect(bucket70.cumulative[2040]).toBe(37200 + 17360);
   });
 
   test('getHouseholdBuckets returns both ages in order', () => {
@@ -453,10 +462,13 @@ describe('buildFilingComparisonBoxes', () => {
     const boxes = buildFilingComparisonBoxes({ buckets, year: 2032, think: '$0/month · $0/year', cumulativeIncome: 0 });
 
     // Both spouses file at 62: Ted $2500*0.70=$1750 + Wendy $2000*0.70=$1400 = $3150/mo.
+    // Cumulative is the partial-first-year total, not a flat monthly*12: Ted has been
+    // collecting since 2027 (full 12 months by 2032), Wendy (June 15 birthday) just started
+    // with a partial 7-month year -- Ted $1750*12=$21,000 + Wendy $1400*7=$9,800 = $30,800.
     expect(boxes[1]).toEqual({
       label: 'If both filed at 62',
       bigText: '$3,150/month · $37,800/year',
-      smallText: '$37,800',
+      smallText: '$30,800',
       muted: false
     });
   });
@@ -467,11 +479,14 @@ describe('buildFilingComparisonBoxes', () => {
     expect(mutedBoxes[0]).toEqual({ label: 'If both filed at 70', bigText: 'starts 2040', smallText: null, muted: true });
 
     const activeBoxes = buildFilingComparisonBoxes({ buckets, year: 2040, think: '', cumulativeIncome: 0 });
-    // Delayed to 70: 124% of PIA. Ted $3100 + Wendy $2480 = $5580/mo.
+    // Delayed to 70: 124% of PIA. Ted $3100 + Wendy $2480 = $5580/mo ($66,960/year annualized).
+    // Cumulative is the partial-first-year total: Ted has been collecting since 2035 (full 12
+    // months by 2040), Wendy (June 15 birthday) just started with a partial 7-month year --
+    // Ted $3100*12=$37,200 + Wendy $2480*7=$17,360 = $54,560.
     expect(activeBoxes[0]).toEqual({
       label: 'If both filed at 70',
       bigText: '$5,580/month · $66,960/year',
-      smallText: '$66,960',
+      smallText: '$54,560',
       muted: false
     });
   });

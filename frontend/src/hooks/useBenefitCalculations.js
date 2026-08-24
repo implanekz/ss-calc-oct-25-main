@@ -20,17 +20,22 @@ const useBenefitCalculations = ({
   inflationRate = 0.03
 }) => {
   const birthYear = new Date(dob).getFullYear();
+  // A malformed dob would otherwise silently zero every figure below (NaN key misses every
+  // dict lookup) -- fall back to a birth year calculateProjection can still compute against.
+  const safeDob = Number.isNaN(birthYear) ? '1960-01-01' : dob;
 
-  // Monthly benefit if filing at this exact age/month.
+  // Monthly benefit if filing at this exact age/month. Reads the projection's own
+  // claimingCalendarYear rather than assuming birthYear + years -- a late filingMonth can
+  // carry the actual claim into the following calendar year (see projections.js).
   const getBenefitForAge = (years, months) => {
-    const projection = calculateProjection({ pia, dob, filingYear: years, filingMonth: months, inflationRate });
-    return projection.monthly[birthYear + years] || 0;
+    const projection = calculateProjection({ pia, dob: safeDob, filingYear: years, filingMonth: months, inflationRate });
+    return projection.monthly[projection.claimingCalendarYear] || 0;
   };
 
   // Lifetime cumulative income if filing at (years, months), collected through throughAge.
   const getCumulativeIncome = (years, months, throughAge) => {
-    const projection = calculateProjection({ pia, dob, filingYear: years, filingMonth: months, inflationRate });
-    return projection.cumulative[birthYear + throughAge] || 0;
+    const projection = calculateProjection({ pia, dob: safeDob, filingYear: years, filingMonth: months, inflationRate });
+    return projection.cumulative[projection.birthYear + throughAge] || 0;
   };
 
   return {
